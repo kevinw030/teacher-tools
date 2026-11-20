@@ -5,7 +5,7 @@
 
   var PETS = [
     { id: 'puppy', name: 'Puppy', emoji: '🐶', color: 'amber', food: 'a bowl of kibble', home: 'yard', move: 'walk', say: 'Woof woof!' },
-    { id: 'kitten', name: 'Kitten', emoji: '🐱', color: 'coral', food: 'some tuna', home: 'yard', move: 'walk', say: 'Meow!' },
+    { id: 'kitten', name: 'Kitten', emoji: '🐱', color: 'coral', food: 'some tuna', home: 'yard', move: 'walk', say: 'Meow!', art: 'cat' },
     { id: 'bunny', name: 'Bunny', emoji: '🐰', color: 'rose', food: 'fresh carrots', home: 'yard', move: 'hop', say: '*wiggles nose*' },
     { id: 'hamster', name: 'Hamster', emoji: '🐹', color: 'amber', food: 'sunflower seeds', home: 'den', move: 'walk', say: 'Squeak!' },
     { id: 'turtle', name: 'Turtle', emoji: '🐢', color: 'emerald', food: 'leafy greens', home: 'terrarium', move: 'slow', say: 'Hello… slowly.', side: 'right' },
@@ -61,7 +61,7 @@
   // ---------- Mini habitat for the home page ----------
   // The pet moves around its home. Tap the pet to say hi, tap anywhere else to call it over.
   TT.mountPetMini = function (el) {
-    var raf = 0, pet = null, node = null, home = null, bubble = null, info = null;
+    var raf = 0, pet = null, node = null, home = null, bubble = null, info = null, bubbleTimer = 0;
     var x = 50, y = 60, tx = 50, ty = 60, vx = 0, face = 1, rest = 0, t0 = 0, lastPick = 0;
 
     function build() {
@@ -76,13 +76,25 @@
       }
       pet = PETS.filter(function (p) { return p.id === st.pet; })[0] || PETS[0];
       var done = st.day === dayNumber(new Date()) ? CORE.filter(function (c) { return st.done && st.done[c.id]; }).length : 0;
-      node = h('button', { type: 'button', class: 'mini-pet', 'aria-label': 'Say hi to ' + st.name }, h('span', { class: 'mini-pet-body', text: pet.emoji }));
       bubble = h('span', { class: 'mini-bubble', hidden: true });
-      home = h('div', { class: 'mini-home home-' + pet.home }, decor(pet.home), node, bubble);
+      var art = pet.art && TT.petActor;
+      if (art) home = h('div', { class: 'mini-home' }, bubble);
+      else {
+        node = h('button', { type: 'button', class: 'mini-pet', 'aria-label': 'Say hi to ' + st.name }, h('span', { class: 'mini-pet-body', text: pet.emoji }));
+        home = h('div', { class: 'mini-home home-' + pet.home }, decor(pet.home), node, bubble);
+      }
       info = h('a', { class: 'mini-info', href: '#pet' },
         h('span', null, h('b', { text: st.name }), h('small', { text: done === CORE.length ? 'All cared for today ❤️' : done + ' of ' + CORE.length + ' care tasks done' })),
         h('span', { class: 'mini-go', html: TT.icon('arrow') }));
       el.append(h('div', { class: 'pet-mini' }, home, info));
+      if (art) {
+        // An illustrated pet runs itself: it walks, sits, blinks and waves when tapped.
+        TT.petActor(home, { art: pet.art, size: 1.3, ground: 8, label: 'Say hi to ' + st.name, onHello: function (px) {
+          bubble.textContent = pet.say; bubble.hidden = false; bubble.style.left = px + '%'; bubble.style.top = '30%';
+          clearTimeout(bubbleTimer); bubbleTimer = setTimeout(function () { bubble.hidden = true; }, 1800);
+        } });
+        return;
+      }
       node.addEventListener('click', function (e) { e.stopPropagation(); hello(st.name); });
       home.addEventListener('click', function (e) {
         var r = home.getBoundingClientRect();
@@ -150,7 +162,6 @@
       bubble.style.top = (y + bob) + '%';
     }
 
-    var bubbleTimer = 0;
     function hello(name) {
       TT.tick();
       node.classList.remove('wiggle'); void node.offsetWidth; node.classList.add('wiggle');
@@ -209,7 +220,7 @@
           grid.querySelectorAll('.pet-choice').forEach(function (x) { x.setAttribute('aria-checked', 'false'); });
           b.setAttribute('aria-checked', 'true');
           if (!nameInput.value) nameInput.placeholder = 'Name your ' + p.name.toLowerCase();
-        } }, h('span', { class: 'pet-emoji', text: p.emoji }), h('span', { text: p.name }));
+        } }, p.art && TT.petIcon ? TT.petIcon(p.art, 'pet-emoji pet-art-icon') : h('span', { class: 'pet-emoji', text: p.emoji }), h('span', { text: p.name }));
         grid.append(b);
       });
       var msg = h('p', { class: 'form-msg', hidden: true });
@@ -231,13 +242,18 @@
     }
 
     // ---------- Pet home ----------
-    var petEl, moodEl, heartsEl, levelEl, streakEl, taskList, bonusBtn, helperEl, hatEl, progressEl;
+    var petEl, moodEl, heartsEl, levelEl, streakEl, taskList, bonusBtn, helperEl, hatEl, progressEl, actor = null;
     function renderPet() {
       rollDay();
       var p = petInfo();
       root.textContent = '';
       hatEl = h('span', { class: 'pet-hat' });
-      petEl = h('div', { class: 'pet-avatar' }, hatEl, h('span', { class: 'pet-big', text: p.emoji, 'aria-hidden': 'true' }));
+      if (actor) { actor.destroy(); actor = null; }
+      if (p.art && TT.petActor) {
+        // Illustrated pets live in a room: they walk around and act out each care task.
+        petEl = h('div', { class: 'pet-scene' });
+        actor = TT.petActor(petEl, { art: p.art, hat: hatEl, label: 'Say hi to ' + state.name });
+      } else petEl = h('div', { class: 'pet-avatar' }, hatEl, h('span', { class: 'pet-big', text: p.emoji, 'aria-hidden': 'true' }));
       moodEl = h('p', { class: 'pet-mood', 'aria-live': 'polite' });
       heartsEl = h('b'); levelEl = h('b'); streakEl = h('b');
       progressEl = h('span');
@@ -287,6 +303,7 @@
       var before = state.lastLevel || 1;
       save();
       celebrate(n);
+      if (actor) actor.act({ hello: 'wave', food: 'eat', water: 'drink', play: 'play', clean: 'happy' }[id], 3600);
       paint();
       if (level() > before) { state.lastLevel = level(); save(); var hh = hat(); moodEl.textContent = state.name + ' reached level ' + level() + '!' + (hh && hh.level === level() ? ' It earned ' + hh.name + ' ' + hh.emoji : ''); }
     }

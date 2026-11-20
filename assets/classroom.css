@@ -369,3 +369,33 @@
 @media (max-width: 760px) { .er-tag { font-size: 11px; } .er-ping { width: 16px; height: 16px; margin: -8px 0 0 -8px; } .er-over { position: fixed; z-index: 9000; } .er-key { width: 44px; height: 30px; } .er-key svg { width: 34px; height: 17px; } }
 @media (prefers-reduced-motion: reduce) { .ea *, .er-ping::after, .er-card-panel, .er-stage.ready .er-exit::before { animation: none !important; } }
 .page.fs .er-stage, .page.fs .er-bar { max-width: 1180px; }
+
+/* ---------- Illustrated pets (tools/pet-art.js): the kitten in its cozy room ---------- */
+.pet-room { background-size: cover; background-position: center 78%; background-repeat: no-repeat; container-type: inline-size; }
+.pet-scene { position: relative; width: 100%; aspect-ratio: 2 / 1; border-radius: 20px; overflow: hidden; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(14,17,32,.08), var(--shadow); }
+.pa { appearance: none; position: absolute; border: 0; padding: 0; margin: 0; background: none; cursor: pointer; transform: translateX(-50%); z-index: 3; -webkit-tap-highlight-color: transparent; }
+.pa:focus-visible { outline: 3px solid #fff; outline-offset: 4px; border-radius: 16px; }
+.pa-flip, .pa-body { position: absolute; inset: 0; display: block; }
+.pa-body { transform-origin: 50% 100%; }
+.pa-body img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; user-select: none; pointer-events: none; }
+.pa-shadow { position: absolute; left: 8%; right: 8%; bottom: -3%; height: 9%; border-radius: 50%; background: rgba(60,35,10,.28); filter: blur(3px); }
+.pa-hat { position: absolute; left: 62%; top: -13%; font-size: 5.2cqw; line-height: 1; transform: rotate(10deg); }
+.pa[data-pose="sit"] .pa-body, .pa[data-pose="happy"] .pa-body { animation: pa-breathe 3.2s ease-in-out infinite; }
+.pa[data-pose="walk"] .pa-body { animation: pa-walk .34s ease-in-out infinite; }
+.pa.act[data-pose="wave"] .pa-body { transform-origin: 40% 100%; animation: pa-wave .5s ease-in-out infinite; }
+.pa.act[data-pose="eat"] .pa-body, .pa.act[data-pose="drink"] .pa-body { transform-origin: 20% 100%; animation: pa-nod .46s ease-in-out infinite; }
+.pa.act[data-pose="play"] .pa-body { animation: pa-pounce .5s ease-in-out infinite; }
+.pa.act[data-pose="happy"] .pa-body { animation: pa-purr .5s ease-in-out infinite; }
+@keyframes pa-breathe { 50% { transform: scale(1.012, 1.022); } }
+@keyframes pa-walk { 0%, 100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-4%) rotate(1.5deg); } }
+@keyframes pa-wave { 0%, 100% { transform: rotate(-2.5deg); } 50% { transform: rotate(3deg) translateY(-2%); } }
+@keyframes pa-nod { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(2.4deg) translateY(1.5%); } }
+@keyframes pa-pounce { 0%, 100% { transform: translate(-3%, 0) rotate(-1deg); } 50% { transform: translate(4%, -5%) rotate(2deg); } }
+@keyframes pa-purr { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.05, .96); } }
+.mini-home.pet-room { background-position: center 86%; }
+.mini-home.pet-room .mini-bubble { transform: translate(-50%, -100%); }
+img.pet-art-icon { width: 60px; height: 60px; margin: -4px 0; object-fit: contain; font-size: 0; }
+.pet-scene .float-heart { bottom: 46%; z-index: 4; font-size: clamp(22px, 3cqw, 40px); }
+.pet-scene.hop .pa-body { animation: pa-purr .5s ease-in-out 2; }
+@media (prefers-reduced-motion: reduce) { .pa-body { animation: none !important; } }
+.page.fs .pet-scene { max-width: 760px; margin-left: auto; margin-right: auto; width: 100%; }
