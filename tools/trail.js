@@ -1,25 +1,25 @@
-// Trail Race: a whole-class board game. Teams roll a die, move along the trail and land on surprise spaces.
+// Multiplication Race: a whole-class board game. Teams roll, race around the track and answer
+// multiplication facts to get ahead. Artwork lives in assets/race/.
 (function () {
   var TT = window.TT, h = TT.h;
-  var N = 30, COLS = 6;
-  var TEAMS = [['Blue Team', '#3B7BFF'], ['Orange Team', '#FF7448'], ['Green Team', '#14B884'], ['Purple Team', '#8B5CF6']];
+  var N = 30, COLS = 6, ART = 'assets/race/';
+  var TEAMS = [['Blue Team', '#2F6BFF', 'pawn-blue'], ['Orange Team', '#FF7A1A', 'pawn-orange'], ['Green Team', '#22D07A', 'pawn-green'], ['Purple Team', '#9B4DFF', 'pawn-purple']];
   var KINDS = {
-    q: ['❓', 'Question', 'Answer it right to move ahead 2'],
-    move: ['🤸', 'Move It', 'Everyone moves, then go ahead 1'],
-    boost: ['🚀', 'Rocket Boost', 'Zoom ahead 3'],
-    slip: ['🍌', 'Banana Slip', 'Slide back 2'],
-    again: ['🎲', 'Roll Again', 'Take another turn'],
-    swap: ['🔄', 'Switch Places', 'Trade spots with the leader']
+    q: ['question', 'Fact Check', 'Solve it to move ahead 2'],
+    move: ['move', 'Skip Count', 'Count and move, then go ahead 1'],
+    boost: ['rocket', 'Times Two', 'Double your roll'],
+    slip: ['banana', 'Banana Slip', 'Slide back 2'],
+    again: ['dice', 'Roll Again', 'Take another turn'],
+    swap: ['swap', 'Switch Places', 'Trade spots with the leader']
   };
-  var MOVES = ['Everyone do 10 jumping jacks!', 'Everyone hop on one foot 10 times!', 'Everyone touch your toes 5 times!', 'Everyone spin around 3 times, slowly!', 'Everyone do 5 big arm circles!',
-    'Everyone march in place and count to 20!', 'Everyone reach for the sky, then touch the floor, 5 times!', 'Everyone do your best robot dance for 10 seconds!', 'Everyone balance on one foot and count to 10!',
-    'Everyone do 5 star jumps!', 'Everyone pretend to swim across the room for 10 seconds!', 'Everyone give a neighbor an air high five!'];
+  var MOVES = ['march in place', 'do jumping jacks', 'hop on one foot', 'do arm circles', 'touch your toes', 'do star jumps', 'clap over your head', 'tap your knees'];
   var PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+  function art(name, cls) { return h('img', { src: ART + name + '.png', alt: '', class: cls || '', draggable: 'false' }); }
 
   function makeLayout() {
     var L = [], bag = [], spots = [], i;
     for (i = 0; i < N; i++) L.push('');
-    [['q', 9], ['move', 3], ['boost', 2], ['slip', 3], ['again', 2], ['swap', 1]].forEach(function (b) { for (var k = 0; k < b[1]; k++) bag.push(b[0]); });
+    [['q', 11], ['move', 3], ['boost', 2], ['slip', 3], ['again', 2], ['swap', 1]].forEach(function (b) { for (var k = 0; k < b[1]; k++) bag.push(b[0]); });
     for (i = 1; i < N - 1; i++) spots.push(i);
     spots = TT.shuffle(spots);
     bag.forEach(function (k, j) { L[spots[j]] = k; });
@@ -27,20 +27,32 @@
   }
 
   function trail(el) {
-    var state = TT.load('trail', null), busy = false, lastRoll = 1, usedQ = [];
+    var state = TT.load('trail', null), busy = false, lastRoll = 1, recent = [];
+    var set = TT.load('trail-set', null) || {};
+    if (!Array.isArray(set.tables) || !set.tables.length) set.tables = [2, 3, 4, 5, 6, 7, 8, 9, 10];
     var teamsBar = h('div', { class: 'scorebar' });
     var st = h('p', { class: 'game-status', 'aria-live': 'polite' });
     var die = h('span', { class: 'tr-die', 'aria-hidden': 'true' });
     var rollBtn = TT.button('Roll the Die', { kind: 'primary big', onclick: roll });
-    var board = h('div', { class: 'tr-board', role: 'img', 'aria-label': 'Game board with ' + N + ' spaces' });
+    var board = h('div', { class: 'tr-board', role: 'img', 'aria-label': 'Race track with ' + N + ' spaces' });
     var card = h('div', { class: 'tr-card', hidden: true, role: 'dialog', 'aria-live': 'assertive' });
     var counts = h('div', { class: 'segmented', role: 'group', 'aria-label': 'Number of teams' }, [2, 3, 4].map(function (n) {
       return h('button', { type: 'button', class: 'seg', 'data-n': n, onclick: function () { newGame(n); } }, n + ' Teams');
     }));
+    var tables = h('div', { class: 'tr-tables', role: 'group', 'aria-label': 'Times tables in play' });
+    for (var tb = 2; tb <= 12; tb++) (function (n) {
+      tables.append(h('button', { type: 'button', class: 'tr-table', 'data-n': n, title: n + ' times table', onclick: function () {
+        var i = set.tables.indexOf(n);
+        if (i >= 0) { if (set.tables.length > 1) set.tables.splice(i, 1); } else set.tables.push(n);
+        TT.save('trail-set', set); paintTables();
+      } }, '×' + n));
+    })(tb);
+    function paintTables() { tables.querySelectorAll('.tr-table').forEach(function (b) { var on = set.tables.indexOf(+b.getAttribute('data-n')) >= 0; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); }); }
     el.append(h('div', { class: 'game trail' }, teamsBar, st,
       h('div', { class: 'row center' }, die, rollBtn),
       h('div', { class: 'tr-wrap' }, board, card),
-      h('div', { class: 'tr-legend' }, Object.keys(KINDS).map(function (k) { return h('span', null, h('b', { text: KINDS[k][0] + ' ' + KINDS[k][1] }), ' ' + KINDS[k][2]); })),
+      h('div', { class: 'tr-legend' }, Object.keys(KINDS).map(function (k) { return h('span', null, art(KINDS[k][0]), h('b', { text: KINDS[k][1] }), ' ' + KINDS[k][2]); })),
+      h('div', { class: 'tr-setup' }, h('b', { text: 'Times Tables in Play' }), tables),
       h('div', { class: 'row center' }, counts, TT.button('New Game', { icon: 'reset', onclick: function () { newGame(state.n); } }))));
 
     function save() { TT.save('trail', state); }
@@ -50,6 +62,15 @@
       busy = false; card.hidden = true; save(); paint();
     }
     function name(t) { return TEAMS[t][0]; }
+    function fact() {
+      var a, b, key, tries = 0;
+      do {
+        a = set.tables[Math.floor(Math.random() * set.tables.length)]; b = 2 + Math.floor(Math.random() * 11);
+        key = Math.min(a, b) + 'x' + Math.max(a, b);
+      } while (recent.indexOf(key) >= 0 && ++tries < 30);
+      recent.push(key); if (recent.length > 14) recent.shift();
+      return Math.random() < 0.5 ? [a, b] : [b, a];
+    }
     function paintDie(v) {
       die.textContent = '';
       for (var k = 0; k < 9; k++) die.append(h('i', { class: PIPS[v].indexOf(k) >= 0 ? 'on' : '' }));
@@ -57,8 +78,8 @@
     function paint() {
       teamsBar.textContent = '';
       state.pos.forEach(function (p, t) {
-        teamsBar.append(h('div', { class: 'team' + (t === state.turn && !state.over ? ' active' : '') },
-          h('span', { class: 'team-dot', style: 'background:' + TEAMS[t][1] }), h('span', { text: name(t) }), h('b', { text: p >= N - 1 ? '🏁' : String(p) })));
+        teamsBar.append(h('div', { class: 'team tr-team' + (t === state.turn && !state.over ? ' active' : '') },
+          art(TEAMS[t][2]), h('span', { text: name(t) }), h('b', { text: String(Math.min(p, N - 1)) })));
       });
       counts.querySelectorAll('.seg').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-n') === state.n); });
       board.textContent = '';
@@ -67,25 +88,36 @@
         var dir = i === N - 1 ? '' : c === COLS - 1 ? ' d' : row % 2 ? ' l' : ' r';
         var k = state.layout[i];
         var tokens = h('span', { class: 'tr-tokens' });
-        state.pos.forEach(function (p, t) { if (p === i) tokens.append(h('i', { class: 'tr-token' + (t === state.turn && !state.over ? ' now' : ''), style: 'background:' + TEAMS[t][1], title: name(t) })); });
-        var tile = h('div', { class: 'tr-tile' + dir + (k ? ' k-' + k : '') + (i === 0 ? ' start' : i === N - 1 ? ' finish' : ''), title: k ? KINDS[k][1] : null },
+        state.pos.forEach(function (p, t) { if (Math.min(p, N - 1) === i) tokens.append(art(TEAMS[t][2], 'tr-token' + (t === state.turn && !state.over ? ' now' : ''))); });
+        var ico = i === 0 ? 'start' : i === N - 1 ? 'finish' : k ? KINDS[k][0] : '';
+        var tile = h('div', { class: 'tr-tile' + dir + (k ? ' k-' + k : '') + (i === 0 ? ' start' : i === N - 1 ? ' finish' : ''), title: i === 0 ? 'Start' : i === N - 1 ? 'Finish' : k ? KINDS[k][1] : null },
           h('span', { class: 'tr-n', text: i === 0 ? 'Start' : i === N - 1 ? 'Finish' : String(i) }),
-          h('span', { class: 'tr-ico', text: i === N - 1 ? '🏁' : k ? KINDS[k][0] : '' }), tokens);
+          ico ? art(ico, 'tr-ico') : null, tokens);
         tile.style.gridRow = row + 1; tile.style.gridColumn = col + 1;
         board.append(tile);
       }
-      paintDie(lastRoll);
+      paintDie(lastRoll); paintTables();
       rollBtn.disabled = busy || state.over;
       if (state.over) st.textContent = name(state.turn) + ' wins the race!';
       else if (!busy) st.textContent = name(state.turn) + ', it’s your turn. Roll the die!';
     }
-    function show(emoji, title, text, buttons, extra) {
+    function show(icon, title, text, buttons, extra) {
       card.textContent = '';
-      card.append(h('span', { class: 'tr-card-emoji', text: emoji }), h('h2', { text: title }), text ? h('p', { text: text }) : null, extra || null, h('div', { class: 'row center' }, buttons));
+      [art(icon, 'tr-card-art'), h('h2', { text: title }), text ? h('p', { text: text }) : null, extra, h('div', { class: 'row center' }, buttons)].forEach(function (n) { if (n) card.append(n); });
       card.hidden = false;
       var b = card.querySelector('button'); if (b) b.focus();
     }
     function hide() { card.hidden = true; }
+    function artBtn(icon, label, kind, fn) { var b = TT.button(label, { kind: kind, onclick: fn }); b.prepend(art(icon, 'tr-btn-art')); return b; }
+    // A fact on a card: show it, reveal the answer, then the teacher says if the team got it.
+    function ask(t, icon, title, right, wrong, rightLabel) {
+      var f = fact();
+      var ans = h('span', { class: 'tr-ans', text: '?' });
+      var judge = h('div', { class: 'row center', hidden: true },
+        artBtn('right', rightLabel, 'primary big', right), artBtn('wrong', 'Not This Time', 'big', wrong));
+      var reveal = TT.button('Show Answer', { kind: 'primary big', onclick: function () { ans.textContent = String(f[0] * f[1]); ans.classList.add('shown'); judge.hidden = false; reveal.hidden = true; TT.tick(); } });
+      show(icon, title, null, [reveal], h('div', { class: 'tr-extra' }, h('div', { class: 'tr-fact' }, f[0] + ' × ' + f[1] + ' = ', ans), judge));
+    }
     // Move one space at a time so the class can count along.
     function walk(t, n, done) {
       var step = n > 0 ? 1 : -1, left = Math.abs(n);
@@ -95,9 +127,13 @@
         setTimeout(go, 260);
       })();
     }
+    // At the finish line a team has to solve one last fact to win.
     function finishOr(t, next) {
-      if (state.pos[t] >= N - 1) { state.over = true; busy = false; save(); paint(); TT.chime(); show('🏆', name(t) + ' Wins!', 'What a race. Great playing, everyone!', [TT.button('Play Again', { kind: 'primary big', onclick: function () { newGame(state.n); } })]); }
-      else next();
+      if (state.pos[t] < N - 1) { next(); return; }
+      ask(t, 'finish', 'Finish Line Fact for ' + name(t), function () {
+        state.over = true; busy = false; save(); paint(); TT.chime();
+        show('finish', name(t) + ' Wins!', 'What a race. Great multiplying, everyone!', [TT.button('Play Again', { kind: 'primary big', onclick: function () { newGame(state.n); } })]);
+      }, function () { hide(); walk(t, -2, endTurn); }, 'Got It! Win the Race');
     }
     function endTurn() { hide(); state.turn = (state.turn + 1) % state.n; busy = false; save(); paint(); }
     function thenMove(t, n) { hide(); walk(t, n, function () { finishOr(t, endTurn); }); }
@@ -117,21 +153,12 @@
       if (!k) { endTurn(); return; }
       var K = KINDS[k];
       if (k === 'q') {
-        var pool = TT.triviaPool ? TT.triviaPool() : [];
-        var fresh = pool.filter(function (q) { return usedQ.indexOf(q[0]) < 0; });
-        if (!fresh.length) { usedQ = []; fresh = pool; }
-        var q = fresh[Math.floor(Math.random() * fresh.length)] || ['What is 6 × 7?', '42', 'Math'];
-        usedQ.push(q[0]);
-        var ans = h('div', { class: 'tr-answer', hidden: true, text: q[1] });
-        var judge = h('div', { class: 'row center', hidden: true },
-          TT.button('Got It! Move Ahead 2', { kind: 'primary big', onclick: function () { thenMove(t, 2); } }),
-          TT.button('Not This Time', { kind: 'big', onclick: endTurn }));
-        var reveal = TT.button('Show Answer', { kind: 'primary big', onclick: function () { ans.hidden = false; judge.hidden = false; reveal.hidden = true; } });
-        show(K[0], q[2] + ' Question for ' + name(t), q[0], [reveal], h('div', { class: 'tr-extra' }, ans, judge));
+        ask(t, K[0], 'Fact Check for ' + name(t), function () { thenMove(t, 2); }, endTurn, 'Got It! Move Ahead 2');
       } else if (k === 'move') {
-        show(K[0], 'Move It!', MOVES[Math.floor(Math.random() * MOVES.length)], [TT.button('Done! Move Ahead 1', { kind: 'primary big', onclick: function () { thenMove(t, 1); } })]);
+        var n = set.tables[Math.floor(Math.random() * set.tables.length)];
+        show(K[0], 'Skip Count!', 'Everyone count by ' + n + 's up to ' + n * 10 + ' while you ' + MOVES[Math.floor(Math.random() * MOVES.length)] + '.', [TT.button('Done! Move Ahead 1', { kind: 'primary big', onclick: function () { thenMove(t, 1); } })]);
       } else if (k === 'boost') {
-        show(K[0], 'Rocket Boost!', name(t) + ' zooms ahead 3 spaces.', [TT.button('Blast Off', { kind: 'primary big', onclick: function () { thenMove(t, 3); } })]);
+        show(K[0], 'Times Two!', name(t) + ' rolled a ' + lastRoll + '. ' + lastRoll + ' × 2 = ' + lastRoll * 2 + ', so zoom ahead ' + lastRoll + ' more.', [TT.button('Blast Off', { kind: 'primary big', onclick: function () { thenMove(t, lastRoll); } })]);
       } else if (k === 'slip') {
         show(K[0], 'Banana Slip!', 'Whoops. ' + name(t) + ' slides back 2 spaces.', [TT.button('Slide Back', { kind: 'primary big', onclick: function () { thenMove(t, -2); } })]);
       } else if (k === 'again') {
@@ -147,11 +174,11 @@
     }
 
     var ok = state && state.layout && state.layout.length === N && Array.isArray(state.pos) && state.pos.length === state.n && state.n >= 2 && state.n <= 4;
-    if (ok) paint(); else newGame(2);
+    if (ok) { if (state.pos.some(function (p) { return p >= N - 1; }) && !state.over) state.pos = state.pos.map(function (p) { return Math.min(p, N - 3); }); paint(); } else newGame(2);
   }
 
   TT.games = (TT.games || []).concat([
-    { id: 'trail-race', title: 'Trail Race', desc: 'A class board game. Teams roll, race along the trail and land on questions and surprises.', color: 'emerald', mount: trail,
+    { id: 'trail-race', title: 'Multiplication Race', desc: 'A class board game. Teams roll, race around the track and solve multiplication facts to get ahead.', color: 'emerald', mount: trail,
       icon: '<path d="M4 19h5a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h8"/><path d="M16 3v8M16 4h5l-1.5 2L21 8h-5"/><circle cx="4" cy="19" r="1.4" fill="currentColor"/>' }
   ]);
 })();
