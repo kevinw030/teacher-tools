@@ -92,11 +92,12 @@
     'name-picker': function () { TT.mountRoster($('pickerRoster')); return TT.mountPicker($('pickerMount')); },
     groups: function () { TT.mountRoster($('groupsRoster')); return TT.mountGroups($('groupsMount')); },
     'would-you-rather': function () { return TT.mountWYR($('wyrMount')); },
-    pet: function () { return TT.mountPet($('petMount')); }
+    pet: function () { return TT.mountPet($('petMount')); },
+    'name-wheel': function () { return TT.mountWheel($('wheelMount'), $('wheelSide')); }
   };
   Object.keys(gameMounters).forEach(function (k) { mounters[k] = gameMounters[k]; });
   var views = document.querySelectorAll('[data-view]:not(a)');
-  var titles = { home: 'Teacher Tools', board: 'Classroom Board', timer: 'Timer', 'name-picker': 'Name Picker', groups: 'Group Maker', 'would-you-rather': 'Would You Rather', pet: 'Classroom Pet', games: 'Games' };
+  var titles = { home: 'Teacher Tools', board: 'Classroom Board', timer: 'Timer', 'name-picker': 'Name Picker', groups: 'Group Maker', 'would-you-rather': 'Would You Rather', pet: 'Classroom Pet', games: 'Games', 'name-wheel': 'Name Wheel' };
   Object.keys(gameTitles).forEach(function (k) { titles[k] = gameTitles[k]; });
 
   function route() {

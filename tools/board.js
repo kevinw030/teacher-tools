@@ -3,16 +3,11 @@
   var TT = window.TT, h = TT.h;
   var KEY = 'board';
 
-  var BACKGROUNDS = [
-    { id: 'sky', name: 'Sky', css: 'linear-gradient(135deg,#8EC5FF 0%,#C9B8FF 100%)' },
-    { id: 'sunrise', name: 'Sunrise', css: 'linear-gradient(135deg,#FFB38A 0%,#FF8FB1 55%,#C79BFF 100%)' },
-    { id: 'meadow', name: 'Meadow', css: 'linear-gradient(135deg,#A8EBC6 0%,#6CCFB0 50%,#4BA3C7 100%)' },
-    { id: 'lemon', name: 'Lemonade', css: 'linear-gradient(135deg,#FFF1A8 0%,#FFC987 100%)' },
-    { id: 'ocean', name: 'Ocean', css: 'linear-gradient(160deg,#1E3A8A 0%,#2563EB 50%,#38BDF8 100%)' },
-    { id: 'galaxy', name: 'Galaxy', css: 'radial-gradient(circle at 20% 20%,#5B3FD1 0%,transparent 45%),radial-gradient(circle at 80% 70%,#D9469C 0%,transparent 45%),#151033' },
-    { id: 'chalk', name: 'Chalkboard', css: 'radial-gradient(circle at 50% 40%,#2F5D4E 0%,#1C3B32 100%)' },
-    { id: 'paper', name: 'Paper', css: '#F4F2EC' }
-  ];
+  function allBackgrounds() {
+    var out = [];
+    (TT.BACKGROUNDS || []).forEach(function (g) { g.items.forEach(function (b) { out.push(b); }); });
+    return out;
+  }
 
   var TYPES = {
     clock: { title: 'Clock', icon: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', w: 300, h: 190 },
@@ -30,11 +25,23 @@
     var mounted = {};
 
     // ----- Background chooser -----
+    var colorInput = h('input', { type: 'color', id: 'bgColor', value: '#7CC8FF', 'aria-label': 'Pick any color' });
+    colorInput.addEventListener('input', function () { state.customColor = colorInput.value; setBg('color'); });
+    var fileInput = h('input', { type: 'file', id: 'bgPhoto', accept: 'image/*', hidden: true });
+    fileInput.addEventListener('change', function () { if (fileInput.files[0]) usePhoto(fileInput.files[0]); fileInput.value = ''; });
+    var photoMsg = h('p', { class: 'form-msg', hidden: true });
     var bgPanel = h('div', { class: 'bg-panel', hidden: true, role: 'dialog', 'aria-label': 'Choose a background' },
-      h('div', { class: 'bg-grid' }, BACKGROUNDS.map(function (b) {
-        return h('button', { type: 'button', class: 'bg-swatch', 'data-bg': b.id, style: 'background:' + b.css, onclick: function () { setBg(b.id); } },
-          h('span', { text: b.name }));
-      })));
+      h('div', { class: 'bg-own' },
+        h('label', { class: 'btn small', for: 'bgPhoto', html: TT.icon('image') + '<span>Use my own photo</span>' }), fileInput,
+        h('label', { class: 'btn small color-btn', for: 'bgColor' }, colorInput, h('span', { text: 'Any color' }))),
+      photoMsg,
+      (TT.BACKGROUNDS || []).map(function (g) {
+        return h('div', { class: 'bg-group' }, h('h4', { text: g.group }),
+          h('div', { class: 'bg-grid' }, g.items.map(function (b) {
+            return h('button', { type: 'button', class: 'bg-swatch', 'data-bg': b.id, style: 'background:' + b.css, title: b.name, onclick: function () { setBg(b.id); } },
+              h('span', { text: b.name }));
+          })));
+      }));
     var bgBtn = TT.button('Background', { icon: 'image', kind: 'glass', onclick: function () { bgPanel.hidden = !bgPanel.hidden; } });
 
     var clearConfirm = h('span', { class: 'confirm glass-pill', hidden: true },
@@ -66,10 +73,37 @@
     function save() { TT.save(KEY, state); }
     function setBg(id) {
       state.bg = id; save();
-      var b = BACKGROUNDS.filter(function (x) { return x.id === id; })[0] || BACKGROUNDS[0];
-      root.style.background = b.css;
-      root.classList.toggle('dark-bg', ['ocean', 'galaxy', 'chalk'].indexOf(b.id) >= 0);
+      var css, dark = false;
+      if (id === 'photo' && TT.load('board-photo', null)) { css = 'center / cover no-repeat url("' + TT.load('board-photo', '') + '"), #333'; dark = true; }
+      else if (id === 'color') { css = state.customColor || '#7CC8FF'; dark = isDark(css); }
+      else { var all = allBackgrounds(); var b = all.filter(function (x) { return x.id === id; })[0] || all[0]; css = b.css; dark = !!b.dark; }
+      root.style.background = css;
+      root.classList.toggle('dark-bg', dark);
       bgPanel.querySelectorAll('.bg-swatch').forEach(function (s) { s.classList.toggle('on', s.getAttribute('data-bg') === id); });
+    }
+    function isDark(hex) {
+      var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+      return (r * 299 + g * 587 + b * 114) / 1000 < 120;
+    }
+    // Shrink the photo so it fits in browser storage, then save it.
+    function usePhoto(file) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        var img = new Image();
+        img.onload = function () {
+          var scale = Math.min(1, 1920 / Math.max(img.width, img.height));
+          var c = document.createElement('canvas');
+          c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          var data = c.toDataURL('image/jpeg', 0.82);
+          try { localStorage.setItem('tt:board-photo', JSON.stringify(data)); photoMsg.hidden = true; }
+          catch (e) { photoMsg.textContent = 'That photo is too big to save. Try a smaller one.'; photoMsg.hidden = false; return; }
+          setBg('photo');
+        };
+        img.onerror = function () { photoMsg.textContent = 'That file isn’t a picture this browser can open. Try a JPG or PNG.'; photoMsg.hidden = false; };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
     }
 
     function bounds() { return { w: canvas.clientWidth || window.innerWidth, h: canvas.clientHeight || window.innerHeight - 160 }; }

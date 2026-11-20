@@ -24,6 +24,7 @@
       <a href="#board" data-view="board">Classroom Board</a>
       <a href="#timer" data-view="timer">Timer</a>
       <a href="#name-picker" data-view="name-picker">Name Picker</a>
+      <a href="#name-wheel" data-view="name-wheel">Name Wheel</a>
       <a href="#groups" data-view="groups">Group Maker</a>
       <a href="#pet" data-view="pet">Class Pet</a>
       <a href="#games" data-view="games">Games</a>
@@ -77,6 +78,12 @@
         <h3>Name Picker</h3>
         <p>Pick a student at random. Everyone gets a turn before anyone repeats.</p>
         <span class="go">Open picker <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+      </a>
+      <a class="tool c-sky" href="#name-wheel">
+        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/></svg></span>
+        <h3>Name Wheel</h3>
+        <p>Spin a colorful wheel of names, or fill it with your own choices.</p>
+        <span class="go">Spin the wheel <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
       </a>
       <a class="tool c-amber" href="#groups">
         <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><path d="M2 20a5 5 0 0 1 10 0M12 20a5 5 0 0 1 10 0"/></svg></span>
@@ -153,6 +160,18 @@
   </div>
 </main>
 
+<!-- NAME WHEEL -->
+<main class="page c-sky" id="view-name-wheel" data-view="name-wheel" hidden>
+  <header class="tool-head">
+    <div><span class="eyebrow">Classroom tool</span><h1>Name Wheel</h1><p>Spin to pick a student, or switch to your own list for prizes, topics or jobs.</p></div>
+    <div class="row js-fs-slot"></div>
+  </header>
+  <div class="split">
+    <section class="panel" id="wheelMount"></section>
+    <aside class="panel" id="wheelSide"></aside>
+  </div>
+</main>
+
 <!-- GROUP MAKER -->
 <main class="page c-amber" id="view-groups" data-view="groups" hidden>
   <header class="tool-head">
@@ -198,8 +217,10 @@
 <script src="tools/groups.js"></script>
 <script src="would-you-rather/questions.js"></script>
 <script src="would-you-rather/app.js"></script>
+<script src="assets/backgrounds.js"></script>
 <script src="tools/board.js"></script>
 <script src="tools/pet.js"></script>
+<script src="tools/wheel.js"></script>
 <script src="tools/games.js"></script>
 <script src="assets/app.js"></script>
 </body>
