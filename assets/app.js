@@ -10,7 +10,8 @@
     $('dateWeekday').textContent = d.toLocaleDateString(undefined, { weekday: 'long' });
     $('dateMonth').textContent = d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
     var hr = d.getHours();
-    $('greeting').textContent = hr < 12 ? 'Good morning!' : hr < 17 ? 'Good afternoon!' : 'Good evening!';
+    var who = TT.settings.name ? ', ' + TT.settings.name : '';
+    $('greeting').textContent = (hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening') + who + '!';
     $('wyrDate').textContent = d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) + ' · Pick a side, then tell a partner why.';
   }
   function paintToday() {
@@ -93,18 +94,21 @@
     groups: function () { TT.mountRoster($('groupsRoster')); return TT.mountGroups($('groupsMount')); },
     'would-you-rather': function () { return TT.mountWYR($('wyrMount')); },
     pet: function () { return TT.mountPet($('petMount')); },
-    'name-wheel': function () { return TT.mountWheel($('wheelMount'), $('wheelSide')); }
+    'name-wheel': function () { return TT.mountWheel($('wheelMount'), $('wheelSide')); },
+    'morning-meeting': function () { return TT.mountMorning($('morningMount')); },
+    'brain-breaks': function () { return TT.mountBreaks($('breaksMount')); },
+    settings: function () { return TT.mountSettings($('settingsMount')); }
   };
   Object.keys(gameMounters).forEach(function (k) { mounters[k] = gameMounters[k]; });
   var views = document.querySelectorAll('[data-view]:not(a)');
-  var titles = { home: 'Teacher Tools', board: 'Classroom Board', timer: 'Timer', 'name-picker': 'Name Picker', groups: 'Group Maker', 'would-you-rather': 'Would You Rather', pet: 'Classroom Pet', games: 'Games', 'name-wheel': 'Name Wheel' };
+  var titles = { home: 'Teacher Tools', board: 'Classroom Board', timer: 'Timer', 'name-picker': 'Name Picker', groups: 'Group Maker', 'would-you-rather': 'Would You Rather', pet: 'Classroom Pet', games: 'Games', 'name-wheel': 'Name Wheel', 'morning-meeting': 'Morning Meeting', 'brain-breaks': 'Brain Breaks', settings: 'Settings' };
   Object.keys(gameTitles).forEach(function (k) { titles[k] = gameTitles[k]; });
 
   function route() {
     var name = location.hash.replace('#', '') || 'home';
     if (!titles[name]) name = 'home';
     views.forEach(function (v) { v.hidden = v.getAttribute('data-view') !== name; });
-    document.querySelectorAll('.nav-links a').forEach(function (a) {
+    document.querySelectorAll('.nav a[data-view]').forEach(function (a) {
       var on = a.getAttribute('data-view') === name || (a.getAttribute('data-view') === 'games' && !!gameTitles[name]);
       a.classList.toggle('active', on);
       if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
@@ -112,7 +116,7 @@
     document.body.classList.toggle('board-mode', name === 'board');
     if (!mounted[name] && mounters[name]) mounted[name] = mounters[name]() || {};
     if (mounted[name] && mounted[name].show) mounted[name].show();
-    if (name === 'home') { paintToday(); if (petMini) petMini.refresh(); }
+    if (name === 'home') { paintDate(); paintToday(); if (petMini) petMini.refresh(); }
     document.title = name === 'home' ? 'Teacher Tools' : titles[name] + ' · Teacher Tools';
     window.scrollTo(0, 0);
   }
@@ -123,6 +127,7 @@
     if (new Date().toDateString() !== shown) { shown = new Date().toDateString(); paintDate(); paintToday(); }
   }, 60000);
 
+  document.querySelector('.nav-gear').innerHTML = TT.icon('gear');
   $('homeBackup').append(TT.backupControls());
   var petMini = TT.mountPetMini ? TT.mountPetMini($('petMini')) : null;
   paintDate();
