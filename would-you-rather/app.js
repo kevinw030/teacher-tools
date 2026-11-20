@@ -55,7 +55,7 @@
         h('span', { class: 'tag', text: label }),
         text,
         h('span', { class: 'votes' },
-          h('span', { class: 'votes-row' }, h('span', { text: compact ? 'Tap to vote' : 'Tap to add a vote' }), count),
+          h('span', { class: 'votes-row' }, h('span', { text: compact ? 'Tap to Vote' : 'Tap to Add a Vote' }), count),
           h('span', { class: 'vbar' }, bar))
       );
       return { btn: btn, text: text, count: count, bar: bar };
@@ -64,11 +64,11 @@
     var B = side('c-coral', 'Choice B', 'b');
     var progressLabel = h('span', { class: 'progress-label' });
     var progressBar = h('span');
-    var newBtn = TT.button('New question', { icon: 'arrow', kind: 'primary', onclick: function () { newBtn.hidden = true; confirm.hidden = false; } });
+    var newBtn = TT.button('New Question', { icon: 'arrow', kind: 'primary', onclick: function () { newBtn.hidden = true; confirm.hidden = false; } });
     var confirm = h('span', { class: 'confirm', hidden: true },
       h('span', { text: 'Skip today’s question?' }),
-      TT.button('Yes, skip', { kind: 'primary', onclick: function () { pickNew(); confirm.hidden = true; newBtn.hidden = false; } }),
-      TT.button('Keep it', { onclick: function () { confirm.hidden = true; newBtn.hidden = false; } })
+      TT.button('Yes, Skip', { kind: 'primary', onclick: function () { pickNew(); confirm.hidden = true; newBtn.hidden = false; } }),
+      TT.button('Keep It', { onclick: function () { confirm.hidden = true; newBtn.hidden = false; } })
     );
 
     el.append(h('div', { class: 'wyr' + (compact ? ' compact' : '') },
@@ -77,7 +77,7 @@
       compact ? null : h('div', { class: 'wyr-foot' },
         h('div', { class: 'progress' }, progressLabel, h('span', { class: 'track' }, progressBar)),
         h('div', { class: 'row' },
-          TT.button('Clear votes', { icon: 'reset', onclick: function () { state.votes = { a: 0, b: 0 }; save(); } }),
+          TT.button('Clear Votes', { icon: 'reset', onclick: function () { state.votes = { a: 0, b: 0 }; save(); } }),
           confirm, newBtn))
     ));
 

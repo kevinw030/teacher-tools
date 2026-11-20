@@ -12,7 +12,7 @@
         turnEls.push(e);
         return e;
       }),
-      TT.button('Reset score', { kind: 'small', onclick: function () { scores = [0, 0]; TT.save(scoreKey, scores); paint(); } }));
+      TT.button('Reset Score', { kind: 'small', onclick: function () { scores = [0, 0]; TT.save(scoreKey, scores); paint(); } }));
     function paint() { els[0].textContent = scores[0]; els[1].textContent = scores[1]; }
     paint();
     return {
@@ -26,7 +26,7 @@
   // ---------- Four in a Row ----------
   function four(el) {
     var COLS = 7, ROWS = 6;
-    var sb = scoreBar(['Red team', 'Yellow team'], 'g-four');
+    var sb = scoreBar(['Red Team', 'Yellow Team'], 'g-four');
     var st = status();
     var grid = h('div', { class: 'c4', role: 'grid', 'aria-label': 'Four in a Row board' });
     var board, turn, over, starter = 0;
@@ -37,7 +37,7 @@
         cells.push(cell); grid.append(cell);
       })(c);
     }
-    el.append(h('div', { class: 'game' }, sb.el, st, grid, h('div', { class: 'row center' }, TT.button('New game', { icon: 'reset', kind: 'primary', onclick: reset }))));
+    el.append(h('div', { class: 'game' }, sb.el, st, grid, h('div', { class: 'row center' }, TT.button('New Game', { icon: 'reset', kind: 'primary', onclick: reset }))));
     function reset() { board = []; for (var i = 0; i < ROWS * COLS; i++) board.push(-1); turn = starter; starter = 1 - starter; over = false; paint(); }
     function at(r, c) { return r < 0 || r >= ROWS || c < 0 || c >= COLS ? -2 : board[r * COLS + c]; }
     function drop(c) {
@@ -45,7 +45,7 @@
       for (var r = ROWS - 1; r >= 0; r--) if (at(r, c) === -1) {
         board[r * COLS + c] = turn; TT.tick();
         var line = winLine(r, c);
-        if (line) { over = true; line.forEach(function (i) { cells[i].classList.add('win'); }); sb.win(turn); st.textContent = (turn ? 'Yellow' : 'Red') + ' team wins!'; paintCells(r * COLS + c); TT.chime(); return; }
+        if (line) { over = true; line.forEach(function (i) { cells[i].classList.add('win'); }); sb.win(turn); st.textContent = (turn ? 'Yellow' : 'Red') + ' Team wins!'; paintCells(r * COLS + c); TT.chime(); return; }
         if (board.indexOf(-1) < 0) { over = true; st.textContent = 'It’s a tie! The board is full.'; paintCells(r * COLS + c); return; }
         turn = 1 - turn; paint(r * COLS + c); return;
       }
@@ -71,7 +71,7 @@
     function paint(last) {
       cells.forEach(function (c) { c.classList.remove('win'); });
       paintCells(last);
-      st.textContent = (turn ? 'Yellow' : 'Red') + ' team’s turn. Tap a column.';
+      st.textContent = (turn ? 'Yellow' : 'Red') + ' Team’s turn. Tap a column.';
       sb.turn(turn);
     }
     reset();
@@ -92,7 +92,7 @@
     el.append(h('div', { class: 'game' }, sb.el, st, grid,
       h('div', { class: 'row center' },
         h('label', { class: 'check', for: 'tttCpu' }, vsBox, h('span', { text: 'Class vs. computer (computer plays O)' })),
-        TT.button('New game', { icon: 'reset', kind: 'primary', onclick: reset }))));
+        TT.button('New Game', { icon: 'reset', kind: 'primary', onclick: reset }))));
     var LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
     function winner(b) { for (var k = 0; k < 8; k++) { var l = LINES[k]; if (b[l[0]] >= 0 && b[l[0]] === b[l[1]] && b[l[1]] === b[l[2]]) return l; } return null; }
     function reset() { board = [-1,-1,-1,-1,-1,-1,-1,-1,-1]; turn = vsBox.checked ? 0 : starter; starter = 1 - starter; over = false; paint(); }
@@ -132,7 +132,7 @@
 
   // ---------- Checkers ----------
   function checkers(el) {
-    var sb = scoreBar(['Red team', 'Black team'], 'g-checkers', ['#C81E1E', '#16181F']);
+    var sb = scoreBar(['Red Team', 'Black Team'], 'g-checkers', ['#C81E1E', '#16181F']);
     var st = status();
     var grid = h('div', { class: 'ck' });
     var board, turn, sel, over, chain, cells = [];
@@ -144,7 +144,7 @@
     })(i);
     el.append(h('div', { class: 'game' }, sb.el, st, grid, h('div', { class: 'row center' },
       h('span', { class: 'muted', text: 'Tap a piece, then tap where it should go. Jumps capture.' }),
-      TT.button('New game', { icon: 'reset', kind: 'primary', onclick: reset }))));
+      TT.button('New Game', { icon: 'reset', kind: 'primary', onclick: reset }))));
     // piece: {p: 0 red (moves up) | 1 black (moves down), k: king}
     function reset() {
       board = [];
@@ -185,7 +185,7 @@
       }
       chain = false; sel = -1; turn = 1 - turn;
       var left = board.some(function (x, k) { return x && x.p === turn && moves(k).length; });
-      if (!left) { over = true; sb.win(1 - turn); paint(); st.textContent = (turn ? 'Red' : 'Black') + ' team wins!'; TT.chime(); return; }
+      if (!left) { over = true; sb.win(1 - turn); paint(); st.textContent = (turn ? 'Red' : 'Black') + ' Team wins!'; TT.chime(); return; }
       paint();
     }
     function paint() {
@@ -196,7 +196,7 @@
         c.classList.toggle('target', targets.indexOf(i) >= 0);
         c.innerHTML = pc ? '<span class="ck-pc p' + pc.p + (pc.k ? ' king' : '') + '">' + (pc.k ? '♛' : '') + '</span>' : '';
       });
-      if (!over) st.textContent = (turn ? 'Black' : 'Red') + ' team’s turn.';
+      if (!over) st.textContent = (turn ? 'Black' : 'Red') + ' Team’s turn.';
       sb.turn(turn);
     }
     reset();
@@ -217,7 +217,7 @@
     Object.keys(SETS).forEach(function (k) {
       setSel.append(h('button', { type: 'button', class: 'seg' + (k === set ? ' on' : ''), 'data-set': k, onclick: function () { set = k; setSel.querySelectorAll('.seg').forEach(function (s) { s.classList.toggle('on', s.getAttribute('data-set') === k); }); reset(); } }, k.charAt(0).toUpperCase() + k.slice(1)));
     });
-    el.append(h('div', { class: 'game' }, sb.el, st, grid, h('div', { class: 'row center' }, setSel, TT.button('New game', { icon: 'reset', kind: 'primary', onclick: reset }))));
+    el.append(h('div', { class: 'game' }, sb.el, st, grid, h('div', { class: 'row center' }, setSel, TT.button('New Game', { icon: 'reset', kind: 'primary', onclick: reset }))));
     function reset() {
       var pick = TT.shuffle(SETS[set]).slice(0, 10);
       cards = TT.shuffle(pick.concat(pick)); open = []; matched = {}; turn = 0; lock = false; pts = [0, 0];
@@ -281,8 +281,8 @@
       keys.append(h('button', { type: 'button', class: 'key', 'data-k': L, onclick: function () { guess(L); } }, L));
     });
     el.append(h('div', { class: 'game' }, st, balloons, wordEl, keys,
-      h('div', { class: 'row center' }, catSel, TT.button('New word', { icon: 'reset', kind: 'primary', onclick: reset })),
-      h('div', { class: 'row center' }, custom, TT.button('Use my word', { onclick: function () {
+      h('div', { class: 'row center' }, catSel, TT.button('New Word', { icon: 'reset', kind: 'primary', onclick: reset })),
+      h('div', { class: 'row center' }, custom, TT.button('Use My Word', { onclick: function () {
         var w = custom.value.toUpperCase().replace(/[^A-Z]/g, ''); if (w.length < 2) return; custom.value = ''; start(w, 'Teacher’s word');
       } }))));
     document.addEventListener('keydown', function (e) {

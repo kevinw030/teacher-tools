@@ -374,16 +374,38 @@ body.board-mode .nav { display: none; }
 .w-body .presets { gap: 4px; }
 .w-body .preset { padding: 4px 10px; font-size: 13px; }
 .w-body .btn.big { padding: 9px 16px; font-size: 15px; }
-.note-area { flex: 1; width: 100%; resize: none; border: 0; background: transparent; padding: 4px; line-height: 1.2; font-family: var(--display); letter-spacing: -.01em; }
+.note-area { flex: 1; width: 100%; resize: none; border: 0; background: transparent; padding: 4px; line-height: 1.25; font-family: var(--display); }
 .note-area:focus { box-shadow: none; }
-.text-toolbar { display: flex; align-items: center; gap: 4px; padding-top: 6px; opacity: 0; transition: opacity .15s ease; flex-wrap: wrap; }
-.widget:hover .text-toolbar, .widget:focus-within .text-toolbar { opacity: 1; }
+.w-body.middle { justify-content: center; }
+.w-body.middle .note-area { flex: none; }
+.widget.w-text { overflow: visible; }
+.widget.w-text .w-title, .widget.w-text .w-close { color: var(--w-ink, var(--muted)); }
+.widget.box-clear { box-shadow: none; border-color: transparent; }
+.widget.box-clear .w-head, .widget.box-clear .w-resize { opacity: 0; transition: opacity .15s ease; }
+.widget.box-clear:hover, .widget.box-clear:focus-within { border-color: rgba(255,255,255,.7); outline: 2px dashed rgba(14,17,32,.35); outline-offset: -2px; }
+.widget.box-clear:hover .w-head, .widget.box-clear:hover .w-resize, .widget.box-clear:focus-within .w-head { opacity: 1; }
+/* Floating toolbar under (or above) the text box */
+.text-toolbar { position: absolute; left: 0; top: 100%; padding-top: 8px; z-index: 6; opacity: 0; visibility: hidden; transition: opacity .15s ease; width: max-content; max-width: min(520px, 92vw); }
+.widget.tb-up .text-toolbar { top: auto; bottom: 100%; padding-top: 0; padding-bottom: 8px; }
+.widget:hover .text-toolbar, .widget:focus-within .text-toolbar { opacity: 1; visibility: visible; }
+.tb-panel { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px 10px; display: flex; flex-direction: column; gap: 8px; }
+.tb-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.tb-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); width: 36px; }
 .tb { appearance: none; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 700 13px var(--body); height: 30px; min-width: 30px; padding: 0 8px; border-radius: 8px; cursor: pointer; display: grid; place-items: center; }
-.tb svg { width: 15px; height: 15px; }
-.tb.on { background: var(--ink); color: var(--bg); }
-.tb-sep { width: 1px; height: 20px; background: var(--line); margin: 0 4px; }
+.tb:hover { border-color: var(--muted); }
+.tb svg { width: 16px; height: 16px; }
+.tb.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.tb-italic { font-style: italic; font-family: Georgia, serif; }
+.tb-underline { text-decoration: underline; }
+.tb-shadow { text-shadow: 1px 2px 0 rgba(0,0,0,.35); }
+.tb-select { font: 600 13px var(--body); height: 30px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 0 6px; cursor: pointer; }
+.tb-sep { width: 1px; height: 20px; background: var(--line); margin: 0 3px; }
 .dot { appearance: none; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--line); cursor: pointer; padding: 0; }
-.dot.on { box-shadow: 0 0 0 2px var(--ink); }
+.dot.on { box-shadow: 0 0 0 2px var(--focus); }
+.dot-auto { background: linear-gradient(135deg, #0E1120 50%, #fff 50%); }
+.dot-default { background: var(--surface); }
+.dot-clear { background: repeating-conic-gradient(#C9CEDB 0 25%, #fff 0 50%) 0 0/10px 10px; }
+.dot-custom { width: 26px; height: 26px; border: 0; padding: 0; background: none; cursor: pointer; }
 .traffic { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3cqh; }
 .traffic-box { background: #1A1D2E; border-radius: min(14cqw, 8cqh); padding: min(6cqw, 3cqh); display: flex; flex-direction: column; gap: min(5cqw, 2.5cqh); }
 .light { appearance: none; border: 0; cursor: pointer; width: min(54cqw, 22cqh); aspect-ratio: 1; border-radius: 50%; opacity: .22; transition: opacity .2s ease, box-shadow .2s ease; }

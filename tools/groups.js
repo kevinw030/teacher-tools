@@ -7,8 +7,8 @@
   TT.mountGroups = function (el) {
     var state = TT.load(KEY, { mode: 'count', n: 4, groups: [] });
 
-    var modeCount = h('button', { type: 'button', class: 'seg', onclick: function () { setMode('count'); } }, 'Number of groups');
-    var modeSize = h('button', { type: 'button', class: 'seg', onclick: function () { setMode('size'); } }, 'Students per group');
+    var modeCount = h('button', { type: 'button', class: 'seg', onclick: function () { setMode('count'); } }, 'Number of Groups');
+    var modeSize = h('button', { type: 'button', class: 'seg', onclick: function () { setMode('size'); } }, 'Students per Group');
     var nEl = h('output', { class: 'stepper-value' });
     var hint = h('p', { class: 'muted groups-hint' });
     var grid = h('div', { class: 'group-grid' });
@@ -21,7 +21,7 @@
           nEl,
           TT.button('', { icon: 'plus', kind: 'icon-only', aria: 'More', onclick: function () { setN(state.n + 1); } })
         ),
-        TT.button('Make groups', { icon: 'shuffle', kind: 'primary big', onclick: make })
+        TT.button('Make Groups', { icon: 'shuffle', kind: 'primary big', onclick: make })
       ),
       hint,
       grid

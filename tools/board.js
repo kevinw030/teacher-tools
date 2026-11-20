@@ -13,18 +13,19 @@
     clock: { title: 'Clock', icon: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', w: 300, h: 190 },
     timer: { title: 'Timer', icon: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/>', w: 300, h: 380 },
     text: { title: 'Text', icon: '<path d="M5 6V4h14v2M12 4v16M9 20h6"/>', w: 420, h: 240 },
-    traffic: { title: 'Traffic light', icon: '<rect x="7" y="2" width="10" height="20" rx="3"/><circle cx="12" cy="7" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="17" r="1.6"/>', w: 200, h: 400 },
-    picker: { title: 'Name picker', icon: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M18 4v6M15 7h6"/>', w: 340, h: 250 },
-    wyr: { title: 'Would you rather', icon: '<path d="M4 4h7v7H4zM13 13h7v7h-7z"/><path d="M13 7h4l-2-2M11 17H7l2 2"/>', w: 560, h: 300 }
+    traffic: { title: 'Traffic Light', icon: '<rect x="7" y="2" width="10" height="20" rx="3"/><circle cx="12" cy="7" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="17" r="1.6"/>', w: 200, h: 400 },
+    picker: { title: 'Name Picker', icon: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M18 4v6M15 7h6"/>', w: 340, h: 250 },
+    wyr: { title: 'Would You Rather', icon: '<path d="M4 4h7v7H4zM13 13h7v7h-7z"/><path d="M13 7h4l-2-2M11 17H7l2 2"/>', w: 560, h: 300 }
   };
 
   TT.mountBoard = function (el) {
     // Saved screens: each one keeps its own widgets and background, and saves itself as you work.
     var screens = TT.load('board-screens', null);
     if (!screens || !Array.isArray(screens.list) || !screens.list.length) {
-      var first = { id: 's' + Date.now().toString(36), name: 'My board', state: TT.load(KEY, null) };
+      var first = { id: 's' + Date.now().toString(36), name: 'My Board', state: TT.load(KEY, null) };
       screens = { active: first.id, list: [first] };
     }
+    screens.list.forEach(function (x) { if (x.name === 'My board') x.name = 'My Board'; });
     function activeScreen() { return screens.list.filter(function (x) { return x.id === screens.active; })[0] || screens.list[0]; }
     var state = activeScreen().state;
     var canvas = h('div', { class: 'board-canvas' });
@@ -39,8 +40,8 @@
     var photoMsg = h('p', { class: 'form-msg', hidden: true });
     var bgPanel = h('div', { class: 'bg-panel', hidden: true, role: 'dialog', 'aria-label': 'Choose a background' },
       h('div', { class: 'bg-own' },
-        h('label', { class: 'btn small', for: 'bgPhoto', html: TT.icon('image') + '<span>Use my own photo</span>' }), fileInput,
-        h('label', { class: 'btn small color-btn', for: 'bgColor' }, colorInput, h('span', { text: 'Any color' }))),
+        h('label', { class: 'btn small', for: 'bgPhoto', html: TT.icon('image') + '<span>Use My Own Photo</span>' }), fileInput,
+        h('label', { class: 'btn small color-btn', for: 'bgColor' }, colorInput, h('span', { text: 'Any Color' }))),
       photoMsg,
       (TT.BACKGROUNDS || []).map(function (g) {
         return h('div', { class: 'bg-group' }, h('h4', { text: g.group }),
@@ -66,13 +67,13 @@
     var screenMsg = h('p', { class: 'roster-note', hidden: true });
     var renameInput = h('input', { type: 'text', id: 'screenRename', maxlength: 30, 'aria-label': 'Rename this screen' });
     var screenPanel = h('div', { class: 'bg-panel screen-panel', hidden: true, role: 'dialog', 'aria-label': 'Saved screens' },
-      h('div', { class: 'bg-group' }, h('h4', { text: 'Saved screens' }), screenList),
-      h('div', { class: 'bg-group' }, h('h4', { text: 'Save a new screen' }),
+      h('div', { class: 'bg-group' }, h('h4', { text: 'Saved Screens' }), screenList),
+      h('div', { class: 'bg-group' }, h('h4', { text: 'Save a New Screen' }),
         h('div', { class: 'screen-form' }, screenName,
-          TT.button('Copy this screen', { kind: 'small', onclick: function () { addScreen(true); } }),
-          TT.button('Start blank', { kind: 'small primary', onclick: function () { addScreen(false); } })),
+          TT.button('Copy This Screen', { kind: 'small', onclick: function () { addScreen(true); } }),
+          TT.button('Start Blank', { kind: 'small primary', onclick: function () { addScreen(false); } })),
         screenMsg),
-      h('div', { class: 'bg-group' }, h('h4', { text: 'This screen' }),
+      h('div', { class: 'bg-group' }, h('h4', { text: 'This Screen' }),
         h('div', { class: 'screen-form' }, renameInput,
           TT.button('Rename', { kind: 'small', onclick: function () { if (renameInput.value.trim()) { activeScreen().name = renameInput.value.trim(); save(); paintScreens(); } } }),
           delWrap())));
@@ -141,9 +142,9 @@
     }
 
     var top = h('div', { class: 'board-top' },
-      h('div', { class: 'row' }, h('a', { class: 'btn glass', href: '#home', html: TT.icon('back') + '<span>All tools</span>' }), h('div', { class: 'bg-wrap' }, screenBtn, screenPanel)),
+      h('div', { class: 'row' }, h('a', { class: 'btn glass', href: '#home', html: TT.icon('back') + '<span>All Tools</span>' }), h('div', { class: 'bg-wrap' }, screenBtn, screenPanel)),
       h('div', { class: 'row' }, clearConfirm, clearBtn, h('div', { class: 'bg-wrap' }, bgBtn, bgPanel),
-        TT.canFullscreen ? TT.button('Full screen', { icon: 'expand', kind: 'glass', onclick: function () { TT.toggleFullscreen(); } }) : null)
+        TT.canFullscreen ? TT.button('Full Screen', { icon: 'expand', kind: 'glass', onclick: function () { TT.toggleFullscreen(); } }) : null)
     );
 
     var dock = h('div', { class: 'dock', role: 'toolbar', 'aria-label': 'Add a widget' });
@@ -171,6 +172,7 @@
       root.style.background = css;
       root.classList.toggle('dark-bg', dark);
       bgPanel.querySelectorAll('.bg-swatch').forEach(function (s) { s.classList.toggle('on', s.getAttribute('data-bg') === id); });
+      Object.keys(mounted).forEach(function (k) { if (mounted[k] && mounted[k].restyle) mounted[k].restyle(); });
     }
     function isDark(hex) {
       var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
@@ -283,27 +285,109 @@
         return TT.mountTimer(body, { compact: true, state: w.data, onChange: function (d) { w.data = d; save(); } });
       },
       text: function (body, w, save) {
-        var d = w.data;
-        var area = h('textarea', { class: 'note-area', 'aria-label': 'Message', id: 'txt-' + w.id });
+        var d = w.data, node = body.parentNode;
+        var FONTS = [
+          ['modern', 'Modern', '"Bricolage Grotesque", sans-serif'],
+          ['clean', 'Clean', '"Plus Jakarta Sans", sans-serif'],
+          ['rounded', 'Rounded', '"Fredoka", sans-serif'],
+          ['easy', 'Easy Read', '"Lexend", sans-serif'],
+          ['hand', 'Handwriting', '"Patrick Hand", cursive'],
+          ['marker', 'Marker', '"Permanent Marker", cursive'],
+          ['comic', 'Comic', '"Bangers", cursive'],
+          ['fancy', 'Fancy', '"Pacifico", cursive'],
+          ['book', 'Storybook', '"Merriweather", serif'],
+          ['type', 'Typewriter', '"Courier Prime", monospace']
+        ];
+        var TEXT_COLORS = ['auto', '#0E1120', '#FFFFFF', '#2563EB', '#F2643D', '#0FA974', '#E5397A', '#7B4DEB', '#E89A00'];
+        var BOX_COLORS = ['default', 'clear', '#FFFFFF', '#161A2B', '#FFF3B0', '#FFD6E0', '#CDE7FF', '#D5F5E3', '#E6DBFF', '#FFD9B8', '#2563EB', '#0FA974', '#E5397A'];
+        if (!d.font) d.font = 'modern';
+        if (!d.align) d.align = 'left';
+        if (!d.box) d.box = 'default';
+        if (!d.color || d.color === 'ink') d.color = 'auto';
+
+        var area = h('textarea', { class: 'note-area', 'aria-label': 'Message', id: 'txt-' + w.id, placeholder: 'Type here' });
         area.value = d.text || '';
-        function style() {
-          area.style.fontSize = d.size + 'px';
-          area.style.fontWeight = d.bold ? '700' : '500';
-          area.style.color = 'var(--' + (d.color || 'ink') + ')';
-          boldBtn.classList.toggle('on', !!d.bold);
-          dots.forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-c') === d.color); });
-        }
         area.addEventListener('input', function () { d.text = area.value; save(); });
-        var boldBtn = h('button', { type: 'button', class: 'tb', 'aria-label': 'Bold', html: TT.icon('bold'), onclick: function () { d.bold = !d.bold; style(); save(); } });
-        var dots = ['ink', 'cobalt', 'coral', 'emerald', 'rose', 'violet'].map(function (c) {
-          return h('button', { type: 'button', class: 'dot', 'data-c': c, style: 'background:var(--' + c + ')', 'aria-label': c + ' text', onclick: function () { d.color = c; style(); save(); } });
+
+        function lum(hex) { var n = parseInt(hex.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000; }
+        function set(k, v) { d[k] = v; style(); save(); }
+        function tb(label, aria, key, html) {
+          return h('button', { type: 'button', class: 'tb tb-' + key, 'aria-label': aria, title: aria, html: html || label, onclick: function () { set(key, !d[key]); } });
+        }
+        var fontSel = h('select', { class: 'tb-select', 'aria-label': 'Font', id: 'font-' + w.id }, FONTS.map(function (f) {
+          var o = h('option', { value: f[0], text: f[1] }); o.style.fontFamily = f[2]; return o;
+        }));
+        fontSel.addEventListener('change', function () { set('font', fontSel.value); });
+        var boldBtn = tb('B', 'Bold', 'bold'), italBtn = tb('I', 'Italic', 'italic'), undBtn = tb('U', 'Underline', 'underline');
+        var shadowBtn = tb('S', 'Text shadow', 'shadow');
+        var alignIcons = {
+          left: '<path d="M4 6h16M4 11h10M4 16h14"/>', center: '<path d="M4 6h16M7 11h10M5 16h14"/>', right: '<path d="M4 6h16M10 11h10M6 16h14"/>'
+        };
+        var aligns = ['left', 'center', 'right'].map(function (al) {
+          return h('button', { type: 'button', class: 'tb', 'data-al': al, 'aria-label': 'Align ' + al, title: 'Align ' + al,
+            html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">' + alignIcons[al] + '</svg>', onclick: function () { set('align', al); } });
         });
+        var midBtn = h('button', { type: 'button', class: 'tb', 'aria-label': 'Center up and down', title: 'Center up and down',
+          html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 12h16M12 3v5M9.5 5.5 12 8l2.5-2.5M12 21v-5M9.5 18.5 12 16l2.5 2.5"/></svg>',
+          onclick: function () { set('middle', !d.middle); } });
+
+        function swatches(list, key, label) {
+          var custom = h('input', { type: 'color', class: 'dot-custom', 'aria-label': label + ': any color', title: 'Any color' });
+          custom.addEventListener('input', function () { set(key, custom.value); });
+          var btns = list.map(function (c) {
+            var special = c === 'auto' || c === 'default' || c === 'clear';
+            return h('button', { type: 'button', class: 'dot' + (special ? ' dot-' + c : ''), 'data-c': c, style: special ? null : 'background:' + c,
+              'aria-label': label + ': ' + (c === 'auto' ? 'automatic' : c === 'default' ? 'standard' : c === 'clear' ? 'see-through' : c),
+              title: c === 'auto' ? 'Automatic' : c === 'default' ? 'Standard' : c === 'clear' ? 'See-through' : c, onclick: function () { set(key, c); } });
+          });
+          return { el: h('div', { class: 'tb-row' }, h('span', { class: 'tb-label', text: label }), btns, custom), btns: btns, custom: custom };
+        }
+        var textSw = swatches(TEXT_COLORS, 'color', 'Text');
+        var boxSw = swatches(BOX_COLORS, 'box', 'Box');
+
         var bar = h('div', { class: 'text-toolbar' },
-          h('button', { type: 'button', class: 'tb', 'aria-label': 'Smaller text', text: 'A−', onclick: function () { d.size = Math.max(14, d.size - 6); style(); save(); } }),
-          h('button', { type: 'button', class: 'tb', 'aria-label': 'Bigger text', text: 'A+', onclick: function () { d.size = Math.min(160, d.size + 6); style(); save(); } }),
-          boldBtn, h('span', { class: 'tb-sep' }), dots);
+          h('div', { class: 'tb-panel' },
+            h('div', { class: 'tb-row' }, fontSel,
+              h('button', { type: 'button', class: 'tb', 'aria-label': 'Smaller text', title: 'Smaller', text: 'A−', onclick: function () { set('size', Math.max(12, d.size - 4)); } }),
+              h('button', { type: 'button', class: 'tb', 'aria-label': 'Bigger text', title: 'Bigger', text: 'A+', onclick: function () { set('size', Math.min(200, d.size + 4)); } }),
+              h('span', { class: 'tb-sep' }), boldBtn, italBtn, undBtn, shadowBtn,
+              h('span', { class: 'tb-sep' }), aligns, midBtn),
+            textSw.el, boxSw.el));
         body.append(area, bar);
+
+        function style() {
+          var f = FONTS.filter(function (x) { return x[0] === d.font; })[0] || FONTS[0];
+          fontSel.value = f[0];
+          area.style.fontFamily = f[2];
+          area.style.fontSize = d.size + 'px';
+          area.style.fontWeight = d.bold ? '700' : '400';
+          area.style.fontStyle = d.italic ? 'italic' : 'normal';
+          area.style.textDecoration = d.underline ? 'underline' : 'none';
+          area.style.textAlign = d.align;
+          // Box color
+          var clear = d.box === 'clear', custom = d.box.charAt(0) === '#';
+          node.classList.toggle('box-clear', clear);
+          node.style.background = clear ? 'transparent' : custom ? d.box : '';
+          // Text color: "auto" picks a readable color for the box behind it
+          var color;
+          if (d.color === 'auto') color = custom ? (lum(d.box) < 140 ? '#FFFFFF' : '#0E1120') : clear ? (root.classList.contains('dark-bg') ? '#FFFFFF' : '#0E1120') : 'var(--ink)';
+          else color = d.color.charAt(0) === '#' ? d.color : 'var(--' + d.color + ')';
+          area.style.color = color;
+          node.style.setProperty('--w-ink', custom ? (lum(d.box) < 140 ? 'rgba(255,255,255,.75)' : 'rgba(14,17,32,.6)') : '');
+          area.style.textShadow = d.shadow ? '0 2px 0 rgba(0,0,0,.18), 0 4px 14px rgba(0,0,0,.28)' : 'none';
+          body.classList.toggle('middle', !!d.middle);
+          if (d.middle) { area.style.height = 'auto'; area.style.height = Math.min(area.scrollHeight, body.clientHeight - 8) + 'px'; } else area.style.height = '';
+          boldBtn.classList.toggle('on', !!d.bold); italBtn.classList.toggle('on', !!d.italic);
+          undBtn.classList.toggle('on', !!d.underline); shadowBtn.classList.toggle('on', !!d.shadow); midBtn.classList.toggle('on', !!d.middle);
+          aligns.forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-al') === d.align); });
+          textSw.btns.forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-c') === d.color); });
+          boxSw.btns.forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-c') === d.box); });
+        }
+        area.addEventListener('input', function () { if (d.middle) style(); });
+        // Open the toolbar above the box when there is no room below it.
+        node.addEventListener('pointerenter', function () { node.classList.toggle('tb-up', w.y + w.h + 150 > bounds().h); });
         style();
+        return { restyle: style };
       },
       traffic: function (body, w, save) {
         var labels = { red: 'Stop and listen', yellow: 'Quiet voices', green: 'Go ahead' };

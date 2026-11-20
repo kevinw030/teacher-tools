@@ -18,8 +18,8 @@
     canvas.addEventListener('click', spin);
 
     // ----- Side panel: entries -----
-    var srcClass = h('button', { type: 'button', class: 'seg', onclick: function () { setSource('class'); } }, 'Class list');
-    var srcCustom = h('button', { type: 'button', class: 'seg', onclick: function () { setSource('custom'); } }, 'My own list');
+    var srcClass = h('button', { type: 'button', class: 'seg', onclick: function () { setSource('class'); } }, 'Class List');
+    var srcCustom = h('button', { type: 'button', class: 'seg', onclick: function () { setSource('custom'); } }, 'My Own List');
     var area = h('textarea', { class: 'roster-input', id: 'wheelCustom', rows: 10, 'aria-label': 'Wheel entries, one per line' });
     area.value = state.custom;
     area.addEventListener('input', function () { state.custom = area.value; state.removed = []; save(); draw(); paintSide(); });
@@ -31,8 +31,8 @@
       classInfo, area,
       h('div', { class: 'row' },
         TT.button('Shuffle', { icon: 'shuffle', kind: 'small', onclick: function () { shuffled = TT.shuffle(entries()); draw(); } }),
-        TT.button('Put everyone back', { icon: 'reset', kind: 'small', onclick: function () { state.removed = []; save(); shuffled = null; draw(); paintSide(); } })),
-      h('div', { class: 'picked-head' }, h('h3', { text: 'Taken off the wheel' })), removedBox,
+        TT.button('Put Everyone Back', { icon: 'reset', kind: 'small', onclick: function () { state.removed = []; save(); shuffled = null; draw(); paintSide(); } })),
+      h('div', { class: 'picked-head' }, h('h3', { text: 'Taken Off the Wheel' })), removedBox,
       h('div', { class: 'picked-head' }, h('h3', { text: 'Results' }),
         TT.button('Clear', { kind: 'small', onclick: function () { state.history = []; save(); paintSide(); } })),
       historyBox));
@@ -147,11 +147,11 @@
       state.history.unshift(name); state.history = state.history.slice(0, 50); save(); paintSide();
       result.textContent = '';
       result.append(
-        h('span', { class: 'eyebrow', text: 'The wheel picked' }),
+        h('span', { class: 'eyebrow', text: 'The Wheel Picked' }),
         h('div', { class: 'wheel-winner', text: name }),
         h('div', { class: 'row center' },
-          TT.button('Take off the wheel', { kind: 'primary', onclick: function () { state.removed.push(name); save(); result.hidden = true; draw(); paintSide(); } }),
-          TT.button('Keep on the wheel', { onclick: function () { result.hidden = true; } })));
+          TT.button('Take Off the Wheel', { kind: 'primary', onclick: function () { state.removed.push(name); save(); result.hidden = true; draw(); paintSide(); } }),
+          TT.button('Keep on the Wheel', { onclick: function () { result.hidden = true; } })));
       result.hidden = false;
     }
 

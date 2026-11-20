@@ -55,7 +55,7 @@
       root.classList.toggle('running', running);
       root.classList.toggle('done', done);
       root.classList.toggle('warning', running && remaining <= 10 && remaining > 0);
-      status.textContent = done ? 'Time’s up!' : running ? 'Counting down' : (remaining < total ? 'Paused' : 'Ready');
+      status.textContent = done ? 'Time’s up!' : running ? 'Counting Down' : (remaining < total ? 'Paused' : 'Ready');
       startBtn.innerHTML = TT.icon(running ? 'pause' : 'play') + '<span>' + (running ? 'Pause' : (remaining < total && !done ? 'Resume' : 'Start')) + '</span>';
     }
     function loop() {

@@ -21,11 +21,11 @@
   TT.PETS = PETS;
 
   var CORE = [
-    { id: 'hello', label: 'Say good morning', icon: '👋', stat: 'Love' },
+    { id: 'hello', label: 'Say Good Morning', icon: '👋', stat: 'Love' },
     { id: 'food', label: 'Feed', icon: '🍽️', stat: 'Food' },
-    { id: 'water', label: 'Fresh water', icon: '💧', stat: 'Water' },
-    { id: 'play', label: 'Play time', icon: '🎾', stat: 'Fun' },
-    { id: 'clean', label: 'Clean the home', icon: '🧽', stat: 'Clean' }
+    { id: 'water', label: 'Fresh Water', icon: '💧', stat: 'Water' },
+    { id: 'play', label: 'Play Time', icon: '🎾', stat: 'Fun' },
+    { id: 'clean', label: 'Clean the Home', icon: '🧽', stat: 'Clean' }
   ];
 
   // A different class challenge each day. Finishing it earns bonus hearts.
@@ -54,6 +54,7 @@
     { level: 5, emoji: '👑', name: 'a crown' }
   ];
 
+  function titleCase(t) { return t.replace(/\b(?!(?:a|an|of|the|and|or|to|in|on|for)\b)[a-z]/g, function (c) { return c.toUpperCase(); }); }
   function dayNumber(d) { return Math.floor((d.getTime() - d.getTimezoneOffset() * 60000) / 86400000); }
   function isSchoolDay(n) { var wd = new Date(n * 86400000).getUTCDay(); return wd !== 0 && wd !== 6; }
 
@@ -70,7 +71,7 @@
       if (!st || !st.pet) {
         el.append(h('a', { class: 'pet-mini empty-pet', href: '#pet' },
           h('span', { class: 'pet-mini-emoji', text: '🐾' }),
-          h('span', null, h('b', { text: 'Adopt a class pet' }), h('small', { text: 'Choose a pet to care for together' }))));
+          h('span', null, h('b', { text: 'Adopt a Class Pet' }), h('small', { text: 'Choose a pet to care for together' }))));
         return;
       }
       pet = PETS.filter(function (p) { return p.id === st.pet; })[0] || PETS[0];
@@ -214,7 +215,7 @@
       var msg = h('p', { class: 'form-msg', hidden: true });
       root.append(
         h('div', { class: 'pet-setup' },
-          h('h2', { text: 'Choose your classroom pet' }),
+          h('h2', { text: 'Choose Your Classroom Pet' }),
           h('p', { class: 'muted', text: 'Your class will take care of it every day. Vote together, then type a name.' }),
           grid,
           h('div', { class: 'add-form' }, nameInput,
@@ -248,20 +249,20 @@
         h('div', { class: 'habitat-top' },
           h('div', null, h('h2', { class: 'pet-name', text: state.name }), h('span', { class: 'muted', text: 'Your class ' + p.name.toLowerCase() })),
           h('div', { class: 'stats' },
-            h('span', { class: 'stat' }, h('span', { text: '❤️' }), heartsEl, h('small', { text: 'hearts' })),
-            h('span', { class: 'stat' }, h('span', { text: '⭐' }), levelEl, h('small', { text: 'level' })),
-            h('span', { class: 'stat' }, h('span', { text: '🔥' }), streakEl, h('small', { text: 'day streak' })))),
+            h('span', { class: 'stat' }, h('span', { text: '❤️' }), heartsEl, h('small', { text: 'Hearts' })),
+            h('span', { class: 'stat' }, h('span', { text: '⭐' }), levelEl, h('small', { text: 'Level' })),
+            h('span', { class: 'stat' }, h('span', { text: '🔥' }), streakEl, h('small', { text: 'Day Streak' })))),
         petEl,
         moodEl,
         h('div', { class: 'day-progress' }, h('span', { class: 'track' }, progressEl))
       );
 
       var side = h('section', { class: 'care' },
-        h('div', { class: 'care-head' }, h('h3', { text: 'Today’s care' }), h('span', { class: 'muted', id: 'careCount' })),
+        h('div', { class: 'care-head' }, h('h3', { text: 'Today’s Care' }), h('span', { class: 'muted', id: 'careCount' })),
         taskList,
-        h('h3', { class: 'care-sub', text: 'Class challenge' }),
+        h('h3', { class: 'care-sub', text: 'Class Challenge' }),
         bonusBtn,
-        h('h3', { class: 'care-sub', text: 'Pet helper today' }),
+        h('h3', { class: 'care-sub', text: 'Pet Helper Today' }),
         helperEl,
         h('div', { class: 'care-foot' }, changeArea())
       );
@@ -273,9 +274,9 @@
     function changeArea() {
       var confirm = h('span', { class: 'confirm', hidden: true },
         h('span', { text: 'Pick a different pet? Hearts and streak are kept.' }),
-        TT.button('Yes, choose', { kind: 'primary small', onclick: renderChooser }),
+        TT.button('Yes, Choose', { kind: 'primary small', onclick: renderChooser }),
         TT.button('Cancel', { kind: 'small', onclick: function () { confirm.hidden = true; btn.hidden = false; } }));
-      var btn = TT.button('Change pet', { kind: 'small', onclick: function () { btn.hidden = true; confirm.hidden = false; } });
+      var btn = TT.button('Change Pet', { kind: 'small', onclick: function () { btn.hidden = true; confirm.hidden = false; } });
       return h('div', null, btn, confirm);
     }
 
@@ -325,10 +326,10 @@
       taskList.textContent = '';
       CORE.forEach(function (c) {
         var done = !!state.done[c.id];
-        var label = c.id === 'food' ? 'Feed ' + p.food : c.label;
+        var label = c.id === 'food' ? 'Feed ' + titleCase(p.food) : c.label;
         taskList.append(h('button', { type: 'button', class: 'task' + (done ? ' done' : ''), 'aria-pressed': done ? 'true' : 'false', disabled: done, onclick: function () { doTask(c.id, 2); } },
           h('span', { class: 'task-icon', text: c.icon }),
-          h('span', { class: 'task-text' }, h('b', { text: label }), h('small', { text: done ? 'Done today' : '+2 hearts' })),
+          h('span', { class: 'task-text' }, h('b', { text: label }), h('small', { text: done ? 'Done Today' : '+2 Hearts' })),
           h('span', { class: 'task-check', html: done ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>' : '' })));
       });
 
@@ -336,16 +337,16 @@
       bonusBtn.className = 'bonus' + (state.bonusDone ? ' done' : '');
       bonusBtn.disabled = !!state.bonusDone;
       bonusBtn.append(h('span', { class: 'bonus-text', text: bonusText() }),
-        h('span', { class: 'bonus-cta', text: state.bonusDone ? 'Challenge complete' : 'We did it! +5 hearts' }));
+        h('span', { class: 'bonus-cta', text: state.bonusDone ? 'Challenge Complete' : 'We Did It! +5 Hearts' }));
       bonusBtn.onclick = function () { if (!state.bonusDone) { state.bonusDone = true; state.hearts = (state.hearts || 0) + 5; save(); celebrate(5); paint(); } };
 
       helperEl.textContent = '';
       if (state.helper) {
         helperEl.append(h('span', { class: 'helper-name', text: state.helper }),
-          TT.button('Pick again', { icon: 'shuffle', kind: 'small', onclick: pickHelper }));
+          TT.button('Pick Again', { icon: 'shuffle', kind: 'small', onclick: pickHelper }));
       } else {
         helperEl.append(h('span', { class: 'muted', text: 'Choose a student to do today’s pet jobs.' }),
-          TT.button('Pick a helper', { icon: 'sparkle', kind: 'small', onclick: pickHelper }));
+          TT.button('Pick a Helper', { icon: 'sparkle', kind: 'small', onclick: pickHelper }));
       }
     }
 

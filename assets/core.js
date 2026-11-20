@@ -128,10 +128,11 @@
   var classes = TT.load('classes', null);
   if (!classes || !Array.isArray(classes.lists) || !classes.lists.length) {
     var old = TT.load('roster', null);
-    var first = { id: newId(), name: 'My class', names: (old && old.names) || [], absent: { day: '', names: [] } };
+    var first = { id: newId(), name: 'My Class', names: (old && old.names) || [], absent: { day: '', names: [] } };
     classes = { active: first.id, lists: [first] };
     TT.save('classes', classes);
   }
+  classes.lists.forEach(function (l) { if (l.name === 'My class') l.name = 'My Class'; });
   function cur() {
     var c = classes.lists.filter(function (l) { return l.id === classes.active; })[0];
     if (!c) { c = classes.lists[0]; classes.active = c.id; }
@@ -170,12 +171,12 @@
     activeId: function () { return cur().id; },
     select: function (id) { classes.active = id; emit(); },
     create: function (name, names) {
-      var l = { id: newId(), name: (name || 'New class').trim().slice(0, 40), names: clean(names || []), absent: { day: TT.today(), names: [] } };
+      var l = { id: newId(), name: (name || 'New Class').trim().slice(0, 40), names: clean(names || []), absent: { day: TT.today(), names: [] } };
       classes.lists.push(l); classes.active = l.id; emit(); return l.id;
     },
     rename: function (name) { if (name && name.trim()) { cur().name = name.trim().slice(0, 40); emit(); } },
     remove: function () {
-      if (classes.lists.length <= 1) { cur().names = []; cur().name = 'My class'; emit(); return; }
+      if (classes.lists.length <= 1) { cur().names = []; cur().name = 'My Class'; emit(); return; }
       var id = cur().id;
       classes.lists = classes.lists.filter(function (l) { return l.id !== id; });
       classes.active = classes.lists[0].id; emit();
@@ -226,8 +227,8 @@
     });
     return TT.h('div', { class: 'backup' },
       TT.h('div', { class: 'row' },
-        TT.button('Save backup file', { icon: 'download', kind: 'small', onclick: TT.backup.download }),
-        TT.h('label', { class: 'btn small', for: id, html: TT.icon('upload') + '<span>Load backup file</span>' }), input),
+        TT.button('Save Backup File', { icon: 'download', kind: 'small', onclick: TT.backup.download }),
+        TT.h('label', { class: 'btn small', for: id, html: TT.icon('upload') + '<span>Load Backup File</span>' }), input),
       msg);
   };
 
@@ -249,13 +250,13 @@
       h('span', { text: 'Delete this class list?' }),
       TT.button('Delete', { kind: 'primary small', onclick: function () { TT.roster.remove(); closeEditor(); } }),
       TT.button('Keep', { kind: 'small', onclick: function () { delConfirm.hidden = true; delBtn.hidden = false; } }));
-    var delBtn = TT.button('Delete class', { icon: 'trash', kind: 'small', onclick: function () { delBtn.hidden = true; delConfirm.hidden = false; } });
+    var delBtn = TT.button('Delete Class', { icon: 'trash', kind: 'small', onclick: function () { delBtn.hidden = true; delConfirm.hidden = false; } });
     var editor = h('div', { class: 'roster-editor', hidden: true },
       nameInput, area,
       h('div', { class: 'row' },
         TT.button('Save', { kind: 'primary', onclick: function () {
           var names = area.value.split(/\n|,/);
-          if (creating) TT.roster.create(nameInput.value || 'New class', names);
+          if (creating) TT.roster.create(nameInput.value || 'New Class', names);
           else { TT.roster.rename(nameInput.value); TT.roster.setNames(names); }
           closeEditor();
         } }),
@@ -264,11 +265,11 @@
     var count = h('span', { class: 'roster-count' });
     var view = h('div', { class: 'roster-view' }, note, chips);
     var editBtn = TT.button('Edit', { icon: 'edit', kind: 'small', onclick: function () { openEditor(false); } });
-    var newBtn = TT.button('New class', { icon: 'plus', kind: 'small', onclick: function () { openEditor(true); } });
+    var newBtn = TT.button('New Class', { icon: 'plus', kind: 'small', onclick: function () { openEditor(true); } });
     el.append(h('div', { class: 'roster' },
-      h('div', { class: 'roster-head' }, h('h3', { text: 'Class list' }), h('div', { class: 'row' }, editBtn, newBtn)),
+      h('div', { class: 'roster-head' }, h('h3', { text: 'Class List' }), h('div', { class: 'row' }, editBtn, newBtn)),
       select, count, view, editor,
-      h('details', { class: 'move' }, h('summary', { text: 'Use these lists on another computer' }),
+      h('details', { class: 'move' }, h('summary', { text: 'Use These Lists on Another Computer' }),
         h('p', { class: 'roster-note', text: 'Lists are saved only on this computer. Save a backup file, put it on a USB drive or email it to yourself, then load it on the other computer. It includes your classes, links, board and pet.' }),
         TT.backupControls())));
 
@@ -288,7 +289,7 @@
         if (l.id === TT.roster.activeId()) o.selected = true;
         select.append(o);
       });
-      select.append(h('option', { value: '__new', text: '+ New class…' }));
+      select.append(h('option', { value: '__new', text: '+ New Class…' }));
     }
     function paint() {
       paintSelect();

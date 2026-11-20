@@ -12,17 +12,17 @@
     var nameEl = h('div', { class: 'pick-name', 'aria-live': 'polite' }, 'Ready?');
     var subEl = h('div', { class: 'pick-sub' });
     var stage = h('div', { class: 'pick-stage' }, nameEl, subEl);
-    var pickBtn = TT.button('Pick a name', { icon: 'sparkle', kind: 'primary big', onclick: pick });
+    var pickBtn = TT.button('Pick a Name', { icon: 'sparkle', kind: 'primary big', onclick: pick });
     var fairBox = h('input', { type: 'checkbox', id: 'fair-' + Math.random().toString(36).slice(2, 7) });
     fairBox.checked = state.fair !== false;
     fairBox.addEventListener('change', function () { state.fair = fairBox.checked; save(); paint(); });
     var picked = h('div', { class: 'chips small' });
-    var resetBtn = TT.button('Start over', { icon: 'reset', kind: 'small', onclick: function () { state.picked = []; save(); nameEl.textContent = 'Ready?'; paint(); } });
+    var resetBtn = TT.button('Start Over', { icon: 'reset', kind: 'small', onclick: function () { state.picked = []; save(); nameEl.textContent = 'Ready?'; paint(); } });
 
     var controls = h('div', { class: 'row center' }, pickBtn);
     var extra = compact ? null : h('div', { class: 'pick-extra' },
       h('label', { class: 'check', for: fairBox.id }, fairBox, h('span', { text: 'Give everyone a turn before anyone is picked twice' })),
-      h('div', { class: 'picked-head' }, h('h3', { text: 'Already picked' }), resetBtn),
+      h('div', { class: 'picked-head' }, h('h3', { text: 'Already Picked' }), resetBtn),
       picked
     );
     el.append(h('div', { class: 'picker' + (compact ? ' compact' : '') }, stage, controls, extra));

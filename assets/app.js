@@ -65,7 +65,7 @@
     var mount = h('section', { class: 'panel' });
     $('gameViews').append(h('main', { class: 'page c-' + g.color, id: 'view-' + g.id, 'data-view': g.id, hidden: true },
       h('header', { class: 'tool-head' },
-        h('div', null, h('a', { class: 'btn small', href: '#games', html: TT.icon('back') + '<span>All games</span>' }), h('h1', { text: g.title }), h('p', { text: g.desc })),
+        h('div', null, h('a', { class: 'btn small', href: '#games', html: TT.icon('back') + '<span>All Games</span>' }), h('h1', { text: g.title }), h('p', { text: g.desc })),
         h('div', { class: 'row js-fs-slot' })),
       mount));
     gameMounters[g.id] = function () { g.mount(mount); return {}; };
@@ -76,7 +76,7 @@
   document.querySelectorAll('.js-fs-slot').forEach(function (slot) {
     if (!TT.canFullscreen) return;
     var page = slot.closest('.page');
-    slot.append(TT.button('Full screen', { icon: 'expand', onclick: function () { TT.toggleFullscreen(page); } }));
+    slot.append(TT.button('Full Screen', { icon: 'expand', onclick: function () { TT.toggleFullscreen(page); } }));
   });
   document.addEventListener('fullscreenchange', function () {
     document.querySelectorAll('.page.fs').forEach(function (p) { p.classList.remove('fs'); });
