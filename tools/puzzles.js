@@ -286,6 +286,14 @@
       ['Who gave the “I Have a Dream” speech?', 'Dr. Martin Luther King Jr.'], ['How many colonies became the first states?', '13'], ['Which president is on the penny?', 'Abraham Lincoln'], ['What document begins with “We the People”?', 'The U.S. Constitution']]
   };
 
+  // Every trivia question (built-in plus the teacher's own), for other games to use: [question, answer, category].
+  TT.triviaPool = function () {
+    var out = [];
+    Object.keys(TRIVIA).forEach(function (c) { TRIVIA[c].forEach(function (q) { out.push([q[0], q[1], c]); }); });
+    ((TT.load('custom', {}) || {}).trivia || []).forEach(function (t) { if (t && t.q && t.a) out.push([t.q, t.a, t.cat || 'My Questions']); });
+    return out;
+  };
+
   function trivia(el) {
     var POINTS = [100, 200, 300, 400];
     var state = TT.load('trivia', null);
