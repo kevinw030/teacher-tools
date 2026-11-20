@@ -112,7 +112,7 @@
     document.body.classList.toggle('board-mode', name === 'board');
     if (!mounted[name] && mounters[name]) mounted[name] = mounters[name]() || {};
     if (mounted[name] && mounted[name].show) mounted[name].show();
-    if (name === 'home') paintToday();
+    if (name === 'home') { paintToday(); if (petMini) petMini.refresh(); }
     document.title = name === 'home' ? 'Teacher Tools' : titles[name] + ' · Teacher Tools';
     window.scrollTo(0, 0);
   }
@@ -124,6 +124,7 @@
   }, 60000);
 
   $('homeBackup').append(TT.backupControls());
+  var petMini = TT.mountPetMini ? TT.mountPetMini($('petMini')) : null;
   paintDate();
   paintLinks();
   route();

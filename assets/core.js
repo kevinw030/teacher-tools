@@ -2,6 +2,10 @@
 (function () {
   var TT = window.TT = window.TT || {};
 
+  // Site settings. maxScreens: how many Classroom Board screens a teacher can save
+  // (set to 1 for a free plan later, and raise it for premium).
+  TT.config = { maxScreens: 10 };
+
   // ---------- Storage (safe if the browser blocks it) ----------
   TT.load = function (key, fallback) {
     try { var v = JSON.parse(localStorage.getItem('tt:' + key)); return v == null ? fallback : v; }
@@ -52,6 +56,7 @@
       home: '<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/>',
       volume: '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6"/>',
       mute: '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l4 6M21 9l-4 6"/>',
+      board: '<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
       download: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
       upload: '<path d="M12 20V9M7 14l5-5 5 5M5 4h14"/>'
     };

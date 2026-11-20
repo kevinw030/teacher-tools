@@ -4,19 +4,21 @@
   var KEY = 'pet';
 
   var PETS = [
-    { id: 'puppy', name: 'Puppy', emoji: '🐶', color: 'amber', food: 'a bowl of kibble' },
-    { id: 'kitten', name: 'Kitten', emoji: '🐱', color: 'coral', food: 'some tuna' },
-    { id: 'bunny', name: 'Bunny', emoji: '🐰', color: 'rose', food: 'fresh carrots' },
-    { id: 'hamster', name: 'Hamster', emoji: '🐹', color: 'amber', food: 'sunflower seeds' },
-    { id: 'turtle', name: 'Turtle', emoji: '🐢', color: 'emerald', food: 'leafy greens' },
-    { id: 'fish', name: 'Goldfish', emoji: '🐠', color: 'sky', food: 'fish flakes' },
-    { id: 'parrot', name: 'Parrot', emoji: '🦜', color: 'lime', food: 'a fruit snack' },
-    { id: 'panda', name: 'Panda', emoji: '🐼', color: 'violet', food: 'bamboo' },
-    { id: 'dragon', name: 'Baby Dragon', emoji: '🐲', color: 'emerald', food: 'spicy peppers' },
-    { id: 'unicorn', name: 'Unicorn', emoji: '🦄', color: 'violet', food: 'rainbow oats' },
-    { id: 'penguin', name: 'Penguin', emoji: '🐧', color: 'cobalt', food: 'a tiny fish' },
-    { id: 'frog', name: 'Frog', emoji: '🐸', color: 'lime', food: 'crunchy crickets' }
+    { id: 'puppy', name: 'Puppy', emoji: '🐶', color: 'amber', food: 'a bowl of kibble', home: 'yard', move: 'walk', say: 'Woof woof!' },
+    { id: 'kitten', name: 'Kitten', emoji: '🐱', color: 'coral', food: 'some tuna', home: 'yard', move: 'walk', say: 'Meow!' },
+    { id: 'bunny', name: 'Bunny', emoji: '🐰', color: 'rose', food: 'fresh carrots', home: 'yard', move: 'hop', say: '*wiggles nose*' },
+    { id: 'hamster', name: 'Hamster', emoji: '🐹', color: 'amber', food: 'sunflower seeds', home: 'den', move: 'walk', say: 'Squeak!' },
+    { id: 'turtle', name: 'Turtle', emoji: '🐢', color: 'emerald', food: 'leafy greens', home: 'terrarium', move: 'slow', say: 'Hello… slowly.', side: 'right' },
+    { id: 'fish', name: 'Goldfish', emoji: '🐠', color: 'sky', food: 'fish flakes', home: 'tank', move: 'swim', say: 'Blub blub!', side: 'left' },
+    { id: 'parrot', name: 'Parrot', emoji: '🦜', color: 'lime', food: 'a fruit snack', home: 'sky', move: 'fly', say: 'Squawk! Hello!', side: 'left' },
+    { id: 'panda', name: 'Panda', emoji: '🐼', color: 'violet', food: 'bamboo', home: 'bamboo', move: 'walk', say: '*munch munch*' },
+    { id: 'dragon', name: 'Baby Dragon', emoji: '🐲', color: 'emerald', food: 'spicy peppers', home: 'sky', move: 'fly', say: 'Rawr!' },
+    { id: 'unicorn', name: 'Unicorn', emoji: '🦄', color: 'violet', food: 'rainbow oats', home: 'rainbow', move: 'hop', say: 'Neigh!' },
+    { id: 'penguin', name: 'Penguin', emoji: '🐧', color: 'cobalt', food: 'a tiny fish', home: 'ice', move: 'waddle', say: 'Honk honk!' },
+    { id: 'frog', name: 'Frog', emoji: '🐸', color: 'lime', food: 'crunchy crickets', home: 'pond', move: 'hop', say: 'Ribbit!' }
   ];
+
+  TT.PETS = PETS;
 
   var CORE = [
     { id: 'hello', label: 'Say good morning', icon: '👋', stat: 'Love' },
@@ -54,6 +56,117 @@
 
   function dayNumber(d) { return Math.floor((d.getTime() - d.getTimezoneOffset() * 60000) / 86400000); }
   function isSchoolDay(n) { var wd = new Date(n * 86400000).getUTCDay(); return wd !== 0 && wd !== 6; }
+
+  // ---------- Mini habitat for the home page ----------
+  // The pet moves around its home. Tap the pet to say hi, tap anywhere else to call it over.
+  TT.mountPetMini = function (el) {
+    var raf = 0, pet = null, node = null, home = null, bubble = null, info = null;
+    var x = 50, y = 60, tx = 50, ty = 60, vx = 0, face = 1, rest = 0, t0 = 0, lastPick = 0;
+
+    function build() {
+      cancelAnimationFrame(raf);
+      el.textContent = '';
+      var st = TT.load(KEY, null);
+      if (!st || !st.pet) {
+        el.append(h('a', { class: 'pet-mini empty-pet', href: '#pet' },
+          h('span', { class: 'pet-mini-emoji', text: '🐾' }),
+          h('span', null, h('b', { text: 'Adopt a class pet' }), h('small', { text: 'Choose a pet to care for together' }))));
+        return;
+      }
+      pet = PETS.filter(function (p) { return p.id === st.pet; })[0] || PETS[0];
+      var done = st.day === dayNumber(new Date()) ? CORE.filter(function (c) { return st.done && st.done[c.id]; }).length : 0;
+      node = h('button', { type: 'button', class: 'mini-pet', 'aria-label': 'Say hi to ' + st.name }, h('span', { class: 'mini-pet-body', text: pet.emoji }));
+      bubble = h('span', { class: 'mini-bubble', hidden: true });
+      home = h('div', { class: 'mini-home home-' + pet.home }, decor(pet.home), node, bubble);
+      info = h('a', { class: 'mini-info', href: '#pet' },
+        h('span', null, h('b', { text: st.name }), h('small', { text: done === CORE.length ? 'All cared for today ❤️' : done + ' of ' + CORE.length + ' care tasks done' })),
+        h('span', { class: 'mini-go', html: TT.icon('arrow') }));
+      el.append(h('div', { class: 'pet-mini' }, home, info));
+      node.addEventListener('click', function (e) { e.stopPropagation(); hello(st.name); });
+      home.addEventListener('click', function (e) {
+        var r = home.getBoundingClientRect();
+        tx = (e.clientX - r.left) / r.width * 100;
+        ty = (e.clientY - r.top) / r.height * 100;
+        clampTarget(); rest = 0;
+      });
+      x = 30 + Math.random() * 40; y = groundY(); tx = x; ty = y;
+      if (pet.move === 'swim' || pet.move === 'fly') { y = 45; ty = 45; }
+      t0 = performance.now();
+      raf = requestAnimationFrame(loop);
+    }
+
+    function decor(type) {
+      var d = h('div', { class: 'mini-decor', 'aria-hidden': 'true' });
+      if (type === 'tank') { for (var i = 0; i < 6; i++) { var b = h('i', { class: 'bubble' }); b.style.left = (10 + i * 15) + '%'; b.style.animationDelay = (i * 0.7) + 's'; d.append(b); } d.append(h('i', { class: 'weed w1' }), h('i', { class: 'weed w2' }), h('i', { class: 'weed w3' })); }
+      if (type === 'sky' || type === 'rainbow') d.append(h('i', { class: 'cloud c1' }), h('i', { class: 'cloud c2' }));
+      if (type === 'pond') d.append(h('i', { class: 'pad p1' }), h('i', { class: 'pad p2' }), h('i', { class: 'pad p3' }));
+      if (type === 'bamboo') d.append(h('i', { class: 'stalk s1' }), h('i', { class: 'stalk s2' }), h('i', { class: 'stalk s3' }));
+      if (type === 'ice') d.append(h('i', { class: 'flake f1' }), h('i', { class: 'flake f2' }), h('i', { class: 'flake f3' }));
+      return d;
+    }
+    function groundY() { return pet.move === 'swim' ? 50 : pet.move === 'fly' ? 40 : 74; }
+    function clampTarget() {
+      tx = Math.max(12, Math.min(88, tx));
+      if (pet.move === 'swim') ty = Math.max(18, Math.min(72, ty));
+      else if (pet.move === 'fly') ty = Math.max(15, Math.min(65, ty));
+      else ty = groundY();
+    }
+    function wander(now) {
+      if (now - lastPick < 400) return;
+      lastPick = now;
+      tx = 12 + Math.random() * 76;
+      ty = pet.move === 'swim' ? 20 + Math.random() * 50 : pet.move === 'fly' ? 15 + Math.random() * 45 : groundY();
+      clampTarget();
+    }
+    function speed() { return { swim: 0.09, fly: 0.12, walk: 0.07, hop: 0.08, waddle: 0.05, slow: 0.025 }[pet.move] || 0.06; }
+
+    function loop(now) {
+      if (!el.isConnected) return;
+      raf = requestAnimationFrame(loop);
+      if (document.hidden || el.offsetParent === null) return;
+      var dx = tx - x, dy = ty - y, dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 1) {
+        if (!rest) rest = now + 1200 + Math.random() * 2600;
+        if (now > rest) { rest = 0; wander(now); }
+      } else {
+        var sp = speed();
+        x += dx / dist * Math.min(sp * 16, dist) * 0.6;
+        y += dy / dist * Math.min(sp * 16, dist) * 0.6;
+        if (Math.abs(dx) > 0.5) face = dx > 0 ? 1 : -1;
+      }
+      var t = (now - t0) / 1000, moving = dist >= 1, bob = 0, tilt = 0;
+      if (pet.move === 'swim') { bob = Math.sin(t * 2.2) * 1.6; tilt = moving ? Math.sin(t * 6) * 4 : 0; }
+      else if (pet.move === 'fly') { bob = Math.sin(t * 3) * 2.4; tilt = moving ? -6 * face : 0; }
+      else if (pet.move === 'hop') { bob = moving ? -Math.abs(Math.sin(t * 7)) * 9 : 0; }
+      else if (pet.move === 'waddle') { tilt = moving ? Math.sin(t * 9) * 10 : 0; }
+      else if (pet.move === 'walk') { bob = moving ? -Math.abs(Math.sin(t * 9)) * 2.5 : 0; }
+      else if (pet.move === 'slow') { bob = 0; }
+      var flip = pet.side ? (pet.side === 'left' ? -face : face) : 1;
+      node.style.left = x + '%';
+      node.style.top = (y + bob) + '%';
+      node.firstChild.style.transform = 'scaleX(' + flip + ') rotate(' + tilt + 'deg)';
+      bubble.style.left = x + '%';
+      bubble.style.top = (y + bob) + '%';
+    }
+
+    var bubbleTimer = 0;
+    function hello(name) {
+      TT.tick();
+      node.classList.remove('wiggle'); void node.offsetWidth; node.classList.add('wiggle');
+      bubble.textContent = pet.say;
+      bubble.hidden = false;
+      clearTimeout(bubbleTimer);
+      bubbleTimer = setTimeout(function () { bubble.hidden = true; }, 1800);
+      var heart = h('span', { class: 'mini-heart', text: '❤️', 'aria-hidden': 'true' });
+      heart.style.left = x + '%'; heart.style.top = y + '%';
+      home.append(heart);
+      setTimeout(function () { heart.remove(); }, 1300);
+    }
+
+    build();
+    window.addEventListener('storage', function (e) { if (e.key === 'tt:' + KEY) build(); });
+    return { refresh: build };
+  };
 
   TT.mountPet = function (el) {
     var state = TT.load(KEY, null);

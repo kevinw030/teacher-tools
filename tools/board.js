@@ -19,7 +19,14 @@
   };
 
   TT.mountBoard = function (el) {
-    var state = TT.load(KEY, null);
+    // Saved screens: each one keeps its own widgets and background, and saves itself as you work.
+    var screens = TT.load('board-screens', null);
+    if (!screens || !Array.isArray(screens.list) || !screens.list.length) {
+      var first = { id: 's' + Date.now().toString(36), name: 'My board', state: TT.load(KEY, null) };
+      screens = { active: first.id, list: [first] };
+    }
+    function activeScreen() { return screens.list.filter(function (x) { return x.id === screens.active; })[0] || screens.list[0]; }
+    var state = activeScreen().state;
     var canvas = h('div', { class: 'board-canvas' });
     var z = 10;
     var mounted = {};
@@ -50,8 +57,91 @@
       TT.button('Cancel', { kind: 'small', onclick: function () { clearConfirm.hidden = true; clearBtn.hidden = false; } }));
     var clearBtn = TT.button('Clear', { icon: 'trash', kind: 'glass', onclick: function () { clearBtn.hidden = true; clearConfirm.hidden = false; } });
 
+    // ----- Screens menu -----
+    var screenLabel = h('span', { class: 'screen-label' });
+    var screenBtn = h('button', { type: 'button', class: 'btn glass', 'aria-haspopup': 'true', onclick: function () { screenPanel.hidden = !screenPanel.hidden; paintScreens(); } },
+      h('span', { html: TT.icon('board') }), screenLabel, h('span', { class: 'caret', text: '▾' }));
+    var screenList = h('div', { class: 'screen-list' });
+    var screenName = h('input', { type: 'text', id: 'screenName', maxlength: 30, placeholder: 'Name, like Morning Work', 'aria-label': 'New screen name' });
+    var screenMsg = h('p', { class: 'roster-note', hidden: true });
+    var renameInput = h('input', { type: 'text', id: 'screenRename', maxlength: 30, 'aria-label': 'Rename this screen' });
+    var screenPanel = h('div', { class: 'bg-panel screen-panel', hidden: true, role: 'dialog', 'aria-label': 'Saved screens' },
+      h('div', { class: 'bg-group' }, h('h4', { text: 'Saved screens' }), screenList),
+      h('div', { class: 'bg-group' }, h('h4', { text: 'Save a new screen' }),
+        h('div', { class: 'screen-form' }, screenName,
+          TT.button('Copy this screen', { kind: 'small', onclick: function () { addScreen(true); } }),
+          TT.button('Start blank', { kind: 'small primary', onclick: function () { addScreen(false); } })),
+        screenMsg),
+      h('div', { class: 'bg-group' }, h('h4', { text: 'This screen' }),
+        h('div', { class: 'screen-form' }, renameInput,
+          TT.button('Rename', { kind: 'small', onclick: function () { if (renameInput.value.trim()) { activeScreen().name = renameInput.value.trim(); save(); paintScreens(); } } }),
+          delWrap())));
+
+    function delWrap() {
+      var confirm = h('span', { class: 'confirm', hidden: true }, h('span', { text: 'Delete this screen?' }),
+        TT.button('Delete', { kind: 'primary small', onclick: function () { deleteScreen(); confirm.hidden = true; btn.hidden = false; } }),
+        TT.button('Keep', { kind: 'small', onclick: function () { confirm.hidden = true; btn.hidden = false; } }));
+      var btn = TT.button('Delete', { icon: 'trash', kind: 'small', onclick: function () { btn.hidden = true; confirm.hidden = false; } });
+      return h('span', null, btn, confirm);
+    }
+    function paintScreens() {
+      screenLabel.textContent = activeScreen().name;
+      renameInput.value = activeScreen().name;
+      screenList.textContent = '';
+      screens.list.forEach(function (sc) {
+        var n = (sc.state && sc.state.widgets ? sc.state.widgets.length : 0);
+        screenList.append(h('button', { type: 'button', class: 'screen-item' + (sc.id === screens.active ? ' on' : ''), onclick: function () { switchTo(sc.id); } },
+          h('span', { class: 'screen-thumb', style: 'background:' + bgCss(sc.state) }),
+          h('span', { class: 'screen-text' }, h('b', { text: sc.name }), h('small', { text: n + (n === 1 ? ' widget' : ' widgets') }))));
+      });
+      var max = TT.config.maxScreens;
+      screenMsg.hidden = screens.list.length < max;
+      screenMsg.textContent = 'You can save up to ' + max + (max === 1 ? ' screen' : ' screens') + '. Delete one to make room.';
+      screenMsg.classList.add('warn');
+    }
+    function bgCss(st) {
+      if (!st) return '#8EC5FF';
+      if (st.bg === 'color') return st.customColor || '#7CC8FF';
+      if (st.bg === 'photo') return '#555';
+      var b = allBackgrounds().filter(function (x) { return x.id === st.bg; })[0];
+      return b ? b.css : '#8EC5FF';
+    }
+    function unrenderAll() {
+      Object.keys(mounted).forEach(function (k) { if (mounted[k] && mounted[k].destroy) mounted[k].destroy(); });
+      mounted = {}; canvas.textContent = '';
+    }
+    function loadState() {
+      if (!state || !Array.isArray(state.widgets)) { state = { bg: 'sky', widgets: [] }; seed(); }
+      else requestAnimationFrame(function () { state.widgets.forEach(function (w) { clamp(w); renderWidget(w); }); });
+      setBg(state.bg || 'sky');
+      paintScreens();
+    }
+    function switchTo(id) {
+      if (id === screens.active) { screenPanel.hidden = true; return; }
+      save(); unrenderAll();
+      screens.active = id; state = activeScreen().state;
+      loadState(); save(); screenPanel.hidden = true;
+    }
+    function addScreen(copy) {
+      if (screens.list.length >= TT.config.maxScreens) { paintScreens(); return; }
+      save();
+      var st = copy ? JSON.parse(JSON.stringify(state)) : { bg: state.bg || 'sky', widgets: [] };
+      if (copy) st.widgets.forEach(function (w, i) { w.id = 'w' + Date.now().toString(36) + i; });
+      var sc = { id: 's' + Date.now().toString(36), name: screenName.value.trim() || 'Screen ' + (screens.list.length + 1), state: st };
+      screens.list.push(sc); screenName.value = '';
+      unrenderAll(); screens.active = sc.id; state = st;
+      loadState(); save(); screenPanel.hidden = true;
+    }
+    function deleteScreen() {
+      if (screens.list.length <= 1) { unrenderAll(); state.widgets = []; save(); paintScreens(); return; }
+      unrenderAll();
+      screens.list = screens.list.filter(function (x) { return x.id !== screens.active; });
+      screens.active = screens.list[0].id; state = activeScreen().state;
+      loadState(); save(); screenPanel.hidden = true;
+    }
+
     var top = h('div', { class: 'board-top' },
-      h('a', { class: 'btn glass', href: '#home', html: TT.icon('back') + '<span>All tools</span>' }),
+      h('div', { class: 'row' }, h('a', { class: 'btn glass', href: '#home', html: TT.icon('back') + '<span>All tools</span>' }), h('div', { class: 'bg-wrap' }, screenBtn, screenPanel)),
       h('div', { class: 'row' }, clearConfirm, clearBtn, h('div', { class: 'bg-wrap' }, bgBtn, bgPanel),
         TT.canFullscreen ? TT.button('Full screen', { icon: 'expand', kind: 'glass', onclick: function () { TT.toggleFullscreen(); } }) : null)
     );
@@ -68,9 +158,10 @@
 
     document.addEventListener('pointerdown', function (e) {
       if (!bgPanel.hidden && !bgPanel.contains(e.target) && !bgBtn.contains(e.target)) bgPanel.hidden = true;
+      if (!screenPanel.hidden && !screenPanel.contains(e.target) && !screenBtn.contains(e.target)) screenPanel.hidden = true;
     });
 
-    function save() { TT.save(KEY, state); }
+    function save() { activeScreen().state = state; TT.save('board-screens', screens); }
     function setBg(id) {
       state.bg = id; save();
       var css, dark = false;
@@ -232,8 +323,7 @@
     };
 
     // ----- First visit: start with a useful board -----
-    if (!state || !Array.isArray(state.widgets)) {
-      state = { bg: 'sky', widgets: [] };
+    function seed() {
       requestAnimationFrame(function () {
         var b = bounds();
         state.widgets = [
@@ -242,12 +332,10 @@
           { id: 'w-timer', type: 'timer', x: Math.max(32, b.w - 332), y: 24, w: 300, h: 380, data: { total: 300 } }
         ];
         state.widgets.forEach(function (w) { clamp(w); renderWidget(w); });
-        save();
+        save(); paintScreens();
       });
-    } else {
-      requestAnimationFrame(function () { state.widgets.forEach(function (w) { clamp(w); renderWidget(w); }); });
     }
-    setBg(state.bg || 'sky');
+    loadState();
 
     window.addEventListener('resize', function () {
       state.widgets.forEach(function (w) { clamp(w); var n = canvas.querySelector('[data-id="' + w.id + '"]'); if (n) place(n, w); });
