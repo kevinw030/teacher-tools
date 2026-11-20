@@ -98,12 +98,32 @@
     'morning-meeting': function () { return TT.mountMorning($('morningMount')); },
     'brain-breaks': function () { return TT.mountBreaks($('breaksMount')); },
     settings: function () { return TT.mountSettings($('settingsMount')); },
-    'my-questions': function () { return TT.mountCustom($('customMount')); }
+    'my-questions': function () { return TT.mountCustom($('customMount')); },
+    'sound-level': function () { return TT.mountSound($('soundMount')); },
+    schedule: function () { return TT.mountSchedule($('scheduleMount')); },
+    jobs: function () { return TT.mountJobs($('jobsMount')); },
+    points: function () { return TT.mountPoints($('pointsMount')); }
   };
   Object.keys(gameMounters).forEach(function (k) { mounters[k] = gameMounters[k]; });
   var views = document.querySelectorAll('[data-view]:not(a)');
-  var titles = { home: 'Teacher Tools', board: 'Classroom Board', timer: 'Timer', 'name-picker': 'Name Picker', groups: 'Group Maker', 'would-you-rather': 'Would You Rather', pet: 'Classroom Pet', games: 'Games', 'name-wheel': 'Name Wheel', 'morning-meeting': 'Morning Meeting', 'brain-breaks': 'Brain Breaks', settings: 'Settings', 'my-questions': 'My Questions' };
+  var titles = { home: 'Teacher Tools', board: 'Classroom Board', timer: 'Timer', 'name-picker': 'Name Picker', groups: 'Group Maker', 'would-you-rather': 'Would You Rather', pet: 'Classroom Pet', games: 'Games', 'name-wheel': 'Name Wheel', 'morning-meeting': 'Morning Meeting', 'brain-breaks': 'Brain Breaks', settings: 'Settings', 'my-questions': 'My Questions', 'sound-level': 'Sound Level', schedule: 'Daily Schedule', jobs: 'Class Jobs', points: 'Class Points' };
   Object.keys(gameTitles).forEach(function (k) { titles[k] = gameTitles[k]; });
+
+  // ---------- Menus in the top bar ----------
+  var last = null;
+  function closeMenus(except) {
+    document.querySelectorAll('.nav-menu').forEach(function (m) {
+      if (m === except) return;
+      m.querySelector('.nav-pop').hidden = true; m.querySelector('.nav-drop').setAttribute('aria-expanded', 'false');
+    });
+  }
+  document.querySelectorAll('.nav-menu').forEach(function (m) {
+    var btn = m.querySelector('.nav-drop'), pop = m.querySelector('.nav-pop');
+    btn.addEventListener('click', function () { closeMenus(m); pop.hidden = !pop.hidden; btn.setAttribute('aria-expanded', pop.hidden ? 'false' : 'true'); });
+    pop.addEventListener('click', function (e) { if (e.target.closest('a')) closeMenus(); });
+  });
+  document.addEventListener('pointerdown', function (e) { if (!e.target.closest('.nav-menu')) closeMenus(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenus(); });
 
   function route() {
     var name = location.hash.replace('#', '') || 'home';
@@ -114,6 +134,12 @@
       a.classList.toggle('active', on);
       if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
     });
+    document.querySelectorAll('.nav-menu').forEach(function (m) {
+      m.querySelector('.nav-drop').classList.toggle('active', !!m.querySelector('a.active'));
+    });
+    closeMenus();
+    if (last && last !== name && mounted[last] && mounted[last].hide) mounted[last].hide();
+    last = name;
     document.body.classList.toggle('board-mode', name === 'board');
     if (!mounted[name] && mounters[name]) mounted[name] = mounters[name]() || {};
     if (mounted[name] && mounted[name].show) mounted[name].show();

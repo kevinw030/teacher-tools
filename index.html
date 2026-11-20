@@ -21,15 +21,31 @@
     </a>
     <div class="nav-links">
       <a href="#home" data-view="home">Home</a>
-      <a href="#morning-meeting" data-view="morning-meeting">Morning Meeting</a>
       <a href="#board" data-view="board">Classroom Board</a>
-      <a href="#timer" data-view="timer">Timer</a>
-      <a href="#name-picker" data-view="name-picker">Name Picker</a>
-      <a href="#name-wheel" data-view="name-wheel">Name Wheel</a>
-      <a href="#groups" data-view="groups">Group Maker</a>
-      <a href="#pet" data-view="pet">Class Pet</a>
+      <div class="nav-menu">
+        <button type="button" class="nav-drop" aria-haspopup="true" aria-expanded="false">Daily <span aria-hidden="true">▾</span></button>
+        <div class="nav-pop" hidden>
+          <a href="#morning-meeting" data-view="morning-meeting">Morning Meeting</a>
+          <a href="#schedule" data-view="schedule">Daily Schedule</a>
+          <a href="#jobs" data-view="jobs">Class Jobs</a>
+          <a href="#points" data-view="points">Class Points</a>
+          <a href="#pet" data-view="pet">Classroom Pet</a>
+          <a href="#would-you-rather" data-view="would-you-rather">Would You Rather</a>
+        </div>
+      </div>
+      <div class="nav-menu">
+        <button type="button" class="nav-drop" aria-haspopup="true" aria-expanded="false">Tools <span aria-hidden="true">▾</span></button>
+        <div class="nav-pop" hidden>
+          <a href="#timer" data-view="timer">Timer</a>
+          <a href="#name-picker" data-view="name-picker">Name Picker</a>
+          <a href="#name-wheel" data-view="name-wheel">Name Wheel</a>
+          <a href="#groups" data-view="groups">Group Maker</a>
+          <a href="#sound-level" data-view="sound-level">Sound Level</a>
+          <a href="#brain-breaks" data-view="brain-breaks">Brain Breaks</a>
+          <a href="#my-questions" data-view="my-questions">My Questions</a>
+        </div>
+      </div>
       <a href="#games" data-view="games">Games</a>
-      <a href="#brain-breaks" data-view="brain-breaks">Brain Breaks</a>
     </div>
     <a class="nav-gear" href="#settings" data-view="settings" aria-label="Settings" title="Settings"></a>
   </div>
@@ -60,10 +76,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
   </section>
 
-  <section aria-labelledby="toolsHead">
+  <section aria-labelledby="dailyHead">
     <div class="section-head">
-      <h2 id="toolsHead">Classroom Tools</h2>
-      <p>Open one on the board, or set up the Classroom Board with several at once.</p>
+      <h2 id="dailyHead">Daily Routines</h2>
+      <p>The things you open every morning.</p>
     </div>
     <div class="tools">
       <a class="tool c-amber" href="#morning-meeting">
@@ -72,6 +88,45 @@
         <p>Greeting, date, weather, today's question and your pet on one screen.</p>
         <span class="go">Start the Day <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
       </a>
+      <a class="tool c-sky" href="#schedule">
+        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18M8 14h5M8 17h8"/></svg></span>
+        <h3>Daily Schedule</h3>
+        <p>Your day’s blocks with the current one highlighted and a countdown to the next.</p>
+        <span class="go">See the Day <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+      </a>
+      <a class="tool c-emerald" href="#jobs">
+        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/></svg></span>
+        <h3>Class Jobs</h3>
+        <p>Give out classroom jobs and rotate them each week in one click.</p>
+        <span class="go">Assign Jobs <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+      </a>
+      <a class="tool c-rose" href="#points">
+        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h8M7 6h10l1 3v9a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3V9z"/><circle cx="10" cy="16" r="1.4" fill="currentColor"/><circle cx="14" cy="16" r="1.4" fill="currentColor"/><circle cx="12" cy="12.5" r="1.4" fill="currentColor"/></svg></span>
+        <h3>Class Points</h3>
+        <p>Fill a marble jar toward a class reward, or keep team points.</p>
+        <span class="go">Add Points <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+      </a>
+      <a class="tool c-lime" href="#pet">
+        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5.5" cy="10" r="2"/><circle cx="9.5" cy="5.5" r="2"/><circle cx="14.5" cy="5.5" r="2"/><circle cx="18.5" cy="10" r="2"/><path d="M12 11c-3 0-6 4.5-6 7a2.5 2.5 0 0 0 3.5 2.2c1.6-.7 3.4-.7 5 0A2.5 2.5 0 0 0 18 18c0-2.5-3-7-6-7z"/></svg></span>
+        <h3>Classroom Pet</h3>
+        <p>Adopt a class pet and take care of it together every day.</p>
+        <span class="go">Visit Your Pet <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+      </a>
+      <a class="tool c-coral" href="#would-you-rather">
+        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4zM13 13h7v7h-7z"/><path d="M13 7h4l-2-2M11 17H7l2 2"/></svg></span>
+        <h3>Would You Rather</h3>
+        <p>A new question every day for discussion and quick class votes.</p>
+        <span class="go">Today's Question <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+      </a>
+    </div>
+  </section>
+
+  <section aria-labelledby="toolsHead">
+    <div class="section-head">
+      <h2 id="toolsHead">Classroom Tools</h2>
+      <p>Open one on the board, or set up the Classroom Board with several at once.</p>
+    </div>
+    <div class="tools">
       <a class="tool c-cobalt" href="#board">
         <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
         <h3>Classroom Board</h3>
@@ -102,23 +157,11 @@
         <p>Split the students who are here today into random groups in one click.</p>
         <span class="go">Make Groups <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
       </a>
-      <a class="tool c-coral" href="#would-you-rather">
-        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4zM13 13h7v7h-7z"/><path d="M13 7h4l-2-2M11 17H7l2 2"/></svg></span>
-        <h3>Would You Rather</h3>
-        <p>A new question every day for discussion and quick class votes.</p>
-        <span class="go">Today's Question <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
-      </a>
-      <a class="tool c-lime" href="#pet">
-        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5.5" cy="10" r="2"/><circle cx="9.5" cy="5.5" r="2"/><circle cx="14.5" cy="5.5" r="2"/><circle cx="18.5" cy="10" r="2"/><path d="M12 11c-3 0-6 4.5-6 7a2.5 2.5 0 0 0 3.5 2.2c1.6-.7 3.4-.7 5 0A2.5 2.5 0 0 0 18 18c0-2.5-3-7-6-7z"/></svg></span>
-        <h3>Classroom Pet</h3>
-        <p>Adopt a class pet and take care of it together every day.</p>
-        <span class="go">Visit Your Pet <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
-      </a>
-      <a class="tool c-rose" href="#games">
-        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v3M5.5 12.5h3"/><circle cx="16" cy="11.5" r="1" fill="currentColor"/><circle cx="18" cy="13.5" r="1" fill="currentColor"/></svg></span>
-        <h3>Games</h3>
-        <p>Team games, riddles, a mini escape room, trivia and more.</p>
-        <span class="go">Play a Game <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+      <a class="tool c-sky" href="#sound-level">
+        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2"/></svg></span>
+        <h3>Sound Level</h3>
+        <p>Shows how loud the room is so students can check themselves.</p>
+        <span class="go">Open Meter <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
       </a>
       <a class="tool c-emerald" href="#brain-breaks">
         <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="4.5" r="2"/><path d="M5 9l7 2 7-2M12 11v5M12 16l-4 5M12 16l4 5"/></svg></span>
@@ -126,18 +169,18 @@
         <p>Spin for a quick movement break with a built-in timer.</p>
         <span class="go">Take a Break <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
       </a>
+      <a class="tool c-rose" href="#games">
+        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v3M5.5 12.5h3"/><circle cx="16" cy="11.5" r="1" fill="currentColor"/><circle cx="18" cy="13.5" r="1" fill="currentColor"/></svg></span>
+        <h3>Games</h3>
+        <p>Team games, riddles, a mini escape room, trivia and more.</p>
+        <span class="go">Play a Game <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+      </a>
       <a class="tool c-violet" href="#my-questions">
         <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3l4 4L8 20l-5 1 1-5z"/><path d="M14 6l4 4"/></svg></span>
         <h3>My Questions</h3>
         <p>Write your own Would You Rather questions, trivia and escape rooms.</p>
         <span class="go">Write Your Own <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
       </a>
-      <div class="tool soon c-sky">
-        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2"/></svg></span>
-        <h3>Sound Level</h3>
-        <p>Shows how loud the room is so students can check themselves.</p>
-        <span class="go">Coming Soon</span>
-      </div>
     </div>
   </section>
 
@@ -256,6 +299,42 @@
   <section class="panel" id="settingsMount"></section>
 </main>
 
+<!-- SOUND LEVEL -->
+<main class="page c-sky" id="view-sound-level" data-view="sound-level" hidden>
+  <header class="tool-head">
+    <div><span class="eyebrow">Classroom tool</span><h1>Sound Level</h1><p>Set a limit and let the class watch their own volume. Nothing is recorded or saved.</p></div>
+    <div class="row js-fs-slot"></div>
+  </header>
+  <section class="panel" id="soundMount"></section>
+</main>
+
+<!-- DAILY SCHEDULE -->
+<main class="page c-sky" id="view-schedule" data-view="schedule" hidden>
+  <header class="tool-head">
+    <div><span class="eyebrow">Daily routine</span><h1>Daily Schedule</h1><p>See what’s happening now and what’s next.</p></div>
+    <div class="row js-fs-slot"></div>
+  </header>
+  <section class="panel" id="scheduleMount"></section>
+</main>
+
+<!-- CLASS JOBS -->
+<main class="page c-emerald" id="view-jobs" data-view="jobs" hidden>
+  <header class="tool-head">
+    <div><span class="eyebrow">Daily routine</span><h1>Class Jobs</h1><p>Jobs come from your class list. Rotate them whenever you’re ready.</p></div>
+    <div class="row js-fs-slot"></div>
+  </header>
+  <section class="panel" id="jobsMount"></section>
+</main>
+
+<!-- CLASS POINTS -->
+<main class="page c-rose" id="view-points" data-view="points" hidden>
+  <header class="tool-head">
+    <div><span class="eyebrow">Daily routine</span><h1>Class Points</h1><p>Work toward a reward together, or keep score for teams.</p></div>
+    <div class="row js-fs-slot"></div>
+  </header>
+  <section class="panel" id="pointsMount"></section>
+</main>
+
 <!-- MY QUESTIONS -->
 <main class="page c-violet" id="view-my-questions" data-view="my-questions" hidden>
   <header class="tool-head">
@@ -281,6 +360,7 @@
 <script src="would-you-rather/app.js"></script>
 <script src="assets/backgrounds.js"></script>
 <script src="tools/widgets.js"></script>
+<script src="tools/daily.js"></script>
 <script src="tools/board.js"></script>
 <script src="tools/pet.js"></script>
 <script src="tools/wheel.js"></script>

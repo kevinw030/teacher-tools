@@ -80,6 +80,17 @@
           TT.button('Rename', { kind: 'small', onclick: function () { if (renameInput.value.trim()) { activeScreen().name = renameInput.value.trim(); save(); paintScreens(); } } }),
           delWrap())));
 
+    // Quick switcher: flip between saved screens without opening the menu.
+    var navLabel = h('span', { class: 'screen-count', 'aria-live': 'polite' });
+    var navPrev = h('button', { type: 'button', title: 'Previous Screen', 'aria-label': 'Previous screen', onclick: function () { stepScreen(-1); } }, '‹');
+    var navNext = h('button', { type: 'button', title: 'Next Screen', 'aria-label': 'Next screen', onclick: function () { stepScreen(1); } }, '›');
+    var navAdd = h('button', { type: 'button', title: 'New Blank Screen', 'aria-label': 'New blank screen', html: TT.icon('plus'), onclick: function () { addScreen(false); } });
+    var screenNav = h('div', { class: 'screen-nav', role: 'group', 'aria-label': 'Switch screens' }, navPrev, navLabel, navNext, navAdd);
+    function stepScreen(d) {
+      var n = screens.list.length, i = screens.list.indexOf(activeScreen());
+      if (n > 1) switchTo(screens.list[(i + d + n) % n].id);
+    }
+
     function delWrap() {
       var confirm = h('span', { class: 'confirm', hidden: true }, h('span', { text: 'Delete this screen?' }),
         TT.button('Delete', { kind: 'primary small', onclick: function () { deleteScreen(); confirm.hidden = true; btn.hidden = false; } }),
@@ -98,6 +109,11 @@
           h('span', { class: 'screen-text' }, h('b', { text: sc.name }), h('small', { text: n + (n === 1 ? ' widget' : ' widgets') }))));
       });
       var max = TT.config.maxScreens;
+      navLabel.textContent = (screens.list.indexOf(activeScreen()) + 1) + ' / ' + screens.list.length;
+      navLabel.title = activeScreen().name;
+      navPrev.disabled = navNext.disabled = screens.list.length < 2;
+      navAdd.disabled = screens.list.length >= max;
+      navAdd.title = navAdd.disabled ? 'You can save up to ' + max + ' screens' : 'New Blank Screen';
       screenMsg.hidden = screens.list.length < max;
       screenMsg.textContent = 'You can save up to ' + max + (max === 1 ? ' screen' : ' screens') + '. Delete one to make room.';
       screenMsg.classList.add('warn');
@@ -147,7 +163,7 @@
     var fsBtn = TT.canFullscreen ? TT.button('Full Screen', { icon: 'expand', kind: 'glass', title: 'Full Screen', onclick: function () { TT.toggleFullscreen(); } }) : null;
     bgBtn.title = 'Background'; clearBtn.title = 'Clear the Board'; screenBtn.title = 'Saved Screens';
     var top = h('div', { class: 'board-top' },
-      h('div', { class: 'row' }, h('a', { class: 'btn glass', href: '#home', title: 'All Tools', html: TT.icon('back') + '<span>All Tools</span>' }), h('div', { class: 'bg-wrap' }, screenBtn, screenPanel)),
+      h('div', { class: 'row' }, h('a', { class: 'btn glass', href: '#home', title: 'All Tools', html: TT.icon('back') + '<span>All Tools</span>' }), h('div', { class: 'bg-wrap' }, screenBtn, screenPanel), screenNav),
       h('div', { class: 'row' }, clearConfirm, clearBtn, h('div', { class: 'bg-wrap' }, bgBtn, bgPanel),
         fsBtn)
     );
