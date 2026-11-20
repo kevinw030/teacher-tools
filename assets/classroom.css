@@ -283,3 +283,4 @@
 @keyframes sl2-dance { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-14px) rotate(5deg); } }
 @media (max-width: 760px) { .sl2-top { justify-content: center; } .sl2-goal { align-items: center; } }
 @media (prefers-reduced-motion: reduce) { .sl2 *, .sl2 .sl-label { animation: none !important; } }
+.board-ink { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }

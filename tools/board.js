@@ -205,45 +205,86 @@
       penBtn.classList.toggle('on', on); penBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
       paintPen();
     }
+    // Strokes are drawn as smooth curves through the midpoints between pen points, so there are
+    // no corners. `from` redraws only the newest part while the pen is moving.
     function line(ctx, st, b, from) {
-      var p = st.p;
-      ctx.strokeStyle = st.c; ctx.lineWidth = st.s; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      var p = st.p, n = p.length / 2;
+      function X(i) { return p[i * 2] * b.w; } function Y(i) { return p[i * 2 + 1] * b.h; }
+      ctx.strokeStyle = st.c; ctx.fillStyle = st.c; ctx.lineWidth = st.s; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      if (n === 1) { ctx.beginPath(); ctx.arc(X(0), Y(0), st.s / 2, 0, Math.PI * 2); ctx.fill(); return; }
       ctx.beginPath();
-      var i0 = Math.max(0, (from || 0));
-      ctx.moveTo(p[i0] * b.w, p[i0 + 1] * b.h);
-      if (p.length - i0 === 2) ctx.lineTo(p[i0] * b.w + 0.01, p[i0 + 1] * b.h);
-      for (var i = i0 + 2; i < p.length; i += 2) ctx.lineTo(p[i] * b.w, p[i + 1] * b.h);
+      if (from == null) {
+        ctx.moveTo(X(0), Y(0));
+        for (var i = 1; i < n - 1; i++) ctx.quadraticCurveTo(X(i), Y(i), (X(i) + X(i + 1)) / 2, (Y(i) + Y(i + 1)) / 2);
+        ctx.lineTo(X(n - 1), Y(n - 1));
+      } else {
+        // the piece that ends at the midpoint before the newest point
+        var k = n - 1;
+        if (k === 1) { ctx.moveTo(X(0), Y(0)); ctx.lineTo((X(0) + X(1)) / 2, (Y(0) + Y(1)) / 2); }
+        else { ctx.moveTo((X(k - 2) + X(k - 1)) / 2, (Y(k - 2) + Y(k - 1)) / 2); ctx.quadraticCurveTo(X(k - 1), Y(k - 1), (X(k - 1) + X(k)) / 2, (Y(k - 1) + Y(k)) / 2); }
+      }
       ctx.stroke();
     }
     function drawInk() {
       var b = bounds(), dpr = window.devicePixelRatio || 1;
       if (ink.width !== Math.round(b.w * dpr) || ink.height !== Math.round(b.h * dpr)) { ink.width = Math.round(b.w * dpr); ink.height = Math.round(b.h * dpr); }
-      var ctx = ink.getContext('2d');
+      var ctx = inkCtx();
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, b.w, b.h);
       (state.strokes || []).forEach(function (st) { if (st.p && st.p.length >= 2) line(ctx, st, b); });
     }
-    function inkPoint(e) {
-      var r = ink.getBoundingClientRect();
-      return [Math.round((e.clientX - r.left) / r.width * 1e4) / 1e4, Math.round((e.clientY - r.top) / r.height * 1e4) / 1e4];
+    function inkCtx() { return ink.getContext('2d', { desynchronized: true }); }
+    // Pen input. Every reading the device reports is used (not only one per frame), then eased
+    // a little toward the pen so shaky hands and noisy touch panels still give a clean line.
+    var penId = null, penKind = '', sx = 0, sy = 0, inkRect = null;
+    function raw(e) { return [(e.clientX - inkRect.left) / inkRect.width, (e.clientY - inkRect.top) / inkRect.height]; }
+    function r5(v) { return Math.round(v * 1e5) / 1e5; }
+    function addPoint(x, y, b) {
+      var n = stroke.p.length, dx = (x - stroke.p[n - 2]) * b.w, dy = (y - stroke.p[n - 1]) * b.h;
+      if (dx * dx + dy * dy < 2.25) return;
+      stroke.p.push(r5(x), r5(y));
+      line(inkCtx(), stroke, b, n / 2);
     }
     ink.addEventListener('pointerdown', function (e) {
-      if (!pen.on) return;
-      e.preventDefault(); ink.setPointerCapture(e.pointerId);
+      if (!pen.on || e.button) return;
+      // one pen at a time: a resting palm or second finger never starts or breaks a line
+      if (penId !== null) { if (e.pointerType === 'pen' && penKind !== 'pen') endStroke(); else return; }
+      e.preventDefault();
+      try { ink.setPointerCapture(e.pointerId); } catch (err) {}
+      penId = e.pointerId; penKind = e.pointerType; inkRect = ink.getBoundingClientRect();
       if (!Array.isArray(state.strokes)) state.strokes = [];
-      stroke = { c: pen.color, s: pen.size, p: inkPoint(e) };
+      var pt = raw(e); sx = pt[0]; sy = pt[1];
+      stroke = { c: pen.color, s: pen.size, p: [r5(sx), r5(sy)] };
       state.strokes.push(stroke);
-      line(ink.getContext('2d'), stroke, bounds());
+      line(inkCtx(), stroke, bounds());
     });
     ink.addEventListener('pointermove', function (e) {
-      if (!stroke) return;
-      var pt = inkPoint(e), b = bounds(), n = stroke.p.length;
-      if (Math.abs(pt[0] - stroke.p[n - 2]) * b.w + Math.abs(pt[1] - stroke.p[n - 1]) * b.h < 2) return;
-      stroke.p.push(pt[0], pt[1]);
-      line(ink.getContext('2d'), stroke, b, n - 2);
+      if (!stroke || e.pointerId !== penId) return;
+      e.preventDefault();
+      var b = bounds(), list = e.getCoalescedEvents ? e.getCoalescedEvents() : null;
+      if (!list || !list.length) list = [e];
+      // Small wobbles are eased away; quick, deliberate moves are followed exactly so corners and
+      // fast writing stay crisp. Fingers on a touch panel get a little more easing than a mouse or stylus.
+      var base = penKind === 'touch' ? 0.35 : 0.5;
+      for (var i = 0; i < list.length; i++) {
+        var pt = raw(list[i]);
+        var d = Math.sqrt(Math.pow((pt[0] - sx) * b.w, 2) + Math.pow((pt[1] - sy) * b.h, 2)), ease = Math.min(1, base + d / 60);
+        sx += (pt[0] - sx) * ease; sy += (pt[1] - sy) * ease;
+        addPoint(sx, sy, b);
+      }
     });
-    function endStroke() { if (stroke) { stroke = null; save(); } }
+    function endStroke(e) {
+      if (!stroke || (e && e.pointerId !== penId)) return;
+      // finish exactly where the pen lifted, then redraw the whole stroke as one clean curve
+      if (e && e.type === 'pointerup' && inkRect) {
+        var pt = raw(e), n = stroke.p.length, b = bounds();
+        if (Math.abs(pt[0] - stroke.p[n - 2]) * b.w + Math.abs(pt[1] - stroke.p[n - 1]) * b.h > 0.5) stroke.p.push(r5(pt[0]), r5(pt[1]));
+      }
+      stroke = null; penId = null; save(); drawInk();
+    }
     ink.addEventListener('pointerup', endStroke);
     ink.addEventListener('pointercancel', endStroke);
+    ink.addEventListener('lostpointercapture', endStroke);
+    ink.addEventListener('contextmenu', function (e) { if (pen.on) e.preventDefault(); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && pen.on) setPen(false); });
 
     // ----- Minimize the widget bar; full screen keeps everything small -----
