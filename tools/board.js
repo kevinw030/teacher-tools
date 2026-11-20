@@ -10,13 +10,15 @@
   }
 
   var TYPES = {
-    clock: { title: 'Clock', icon: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', w: 300, h: 190 },
-    timer: { title: 'Timer', icon: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/>', w: 300, h: 380 },
-    text: { title: 'Text', icon: '<path d="M5 6V4h14v2M12 4v16M9 20h6"/>', w: 420, h: 240 },
-    traffic: { title: 'Traffic Light', icon: '<rect x="7" y="2" width="10" height="20" rx="3"/><circle cx="12" cy="7" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="17" r="1.6"/>', w: 200, h: 400 },
-    picker: { title: 'Name Picker', icon: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M18 4v6M15 7h6"/>', w: 340, h: 250 },
-    wyr: { title: 'Would You Rather', icon: '<path d="M4 4h7v7H4zM13 13h7v7h-7z"/><path d="M13 7h4l-2-2M11 17H7l2 2"/>', w: 560, h: 300 }
+    clock: { color: '#2563EB', title: 'Clock', icon: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', w: 300, h: 190 },
+    timer: { color: '#0FA974', title: 'Timer', icon: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/>', w: 300, h: 380 },
+    text: { color: '#F2643D', title: 'Text', icon: '<path d="M5 6V4h14v2M12 4v16M9 20h6"/>', w: 420, h: 240 },
+    traffic: { color: '#E89A00', title: 'Traffic Light', icon: '<rect x="7" y="2" width="10" height="20" rx="3"/><circle cx="12" cy="7" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="17" r="1.6"/>', w: 200, h: 400 },
+    picker: { color: '#7B4DEB', title: 'Name Picker', icon: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M18 4v6M15 7h6"/>', w: 340, h: 250 },
+    wyr: { title: 'Would You Rather', color: '#E5397A', icon: '<path d="M4 4h7v7H4zM13 13h7v7h-7z"/><path d="M13 7h4l-2-2M11 17H7l2 2"/>', w: 560, h: 300 }
   };
+
+  Object.keys(TT.boardWidgets || {}).forEach(function (k) { TYPES[k] = TT.boardWidgets[k]; });
 
   TT.mountBoard = function (el) {
     // Saved screens: each one keeps its own widgets and background, and saves itself as you work.
@@ -109,13 +111,14 @@
     }
     function unrenderAll() {
       Object.keys(mounted).forEach(function (k) { if (mounted[k] && mounted[k].destroy) mounted[k].destroy(); });
-      mounted = {}; canvas.textContent = '';
+      mounted = {}; canvas.querySelectorAll('.widget').forEach(function (n) { n.remove(); });
     }
     function loadState() {
       if (!state || !Array.isArray(state.widgets)) { state = { bg: 'sky', widgets: [] }; seed(); }
       else requestAnimationFrame(function () { state.widgets.forEach(function (w) { clamp(w); renderWidget(w); }); });
       setBg(state.bg || 'sky');
       paintScreens();
+      requestAnimationFrame(drawInk);
     }
     function switchTo(id) {
       if (id === screens.active) { screenPanel.hidden = true; return; }
@@ -150,9 +153,80 @@
     var dock = h('div', { class: 'dock', role: 'toolbar', 'aria-label': 'Add a widget' });
     Object.keys(TYPES).forEach(function (t) {
       dock.append(h('button', { type: 'button', class: 'dock-btn', title: 'Add ' + TYPES[t].title.toLowerCase(), onclick: function () { addWidget(t); } },
-        h('span', { class: 'dock-icon', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + TYPES[t].icon + '</svg>' }),
+        h('span', { class: 'dock-icon', style: 'background:' + (TYPES[t].color || '#0E1120'), html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + TYPES[t].icon + '</svg>' }),
         h('span', { class: 'dock-label', text: TYPES[t].title })));
     });
+
+    // ----- Drawing pen: draw right on the board, on top of everything -----
+    var PEN_COLORS = [['#0E1120', 'Black'], ['#FFFFFF', 'White'], ['#E5484D', 'Red'], ['#2563EB', 'Blue'], ['#0FA974', 'Green'], ['#F5AE14', 'Yellow'], ['#8B5CF6', 'Purple']];
+    var PEN_SIZES = [[3, 'Thin'], [7, 'Medium'], [14, 'Thick']];
+    var pen = { on: false, color: '#E5484D', size: 7 }, stroke = null;
+    var ink = h('canvas', { class: 'board-ink', 'aria-hidden': 'true' });
+    var penColors = h('div', { class: 'pen-group', role: 'group', 'aria-label': 'Pen color' }, PEN_COLORS.map(function (c) {
+      return h('button', { type: 'button', class: 'pen-color', 'data-c': c[0], title: c[1], 'aria-label': c[1], style: 'background:' + c[0], onclick: function () { pen.color = c[0]; paintPen(); } });
+    }));
+    var penSizes = h('div', { class: 'pen-group', role: 'group', 'aria-label': 'Pen size' }, PEN_SIZES.map(function (z) {
+      return h('button', { type: 'button', class: 'pen-size', 'data-s': z[0], title: z[1], 'aria-label': z[1], onclick: function () { pen.size = z[0]; paintPen(); } },
+        h('i', { style: 'width:' + (z[0] + 3) + 'px;height:' + (z[0] + 3) + 'px' }));
+    }));
+    var penBar = h('div', { class: 'pen-bar', hidden: true, role: 'toolbar', 'aria-label': 'Drawing tools' }, penColors, penSizes,
+      TT.button('Undo', { icon: 'reset', kind: 'small', onclick: function () { if (state.strokes && state.strokes.length) { state.strokes.pop(); save(); drawInk(); } } }),
+      TT.button('Erase All', { icon: 'trash', kind: 'small', onclick: function () { state.strokes = []; save(); drawInk(); } }),
+      TT.button('Done', { kind: 'small primary', onclick: function () { setPen(false); } }));
+    var penBtn = h('button', { type: 'button', class: 'dock-btn dock-pen', title: 'Draw on the board', 'aria-pressed': 'false', onclick: function () { setPen(!pen.on); } },
+      h('span', { class: 'dock-icon', style: 'background:#0E1120', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3l4 4L8 20l-5 1 1-5z"/><path d="M14 6l4 4"/></svg>' }),
+      h('span', { class: 'dock-label', text: 'Draw' }));
+    dock.append(penBtn);
+    canvas.append(ink, penBar);
+    function paintPen() {
+      penColors.querySelectorAll('.pen-color').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-c') === pen.color); });
+      penSizes.querySelectorAll('.pen-size').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-s') === pen.size); });
+    }
+    function setPen(on) {
+      pen.on = on; ink.classList.toggle('on', on); penBar.hidden = !on;
+      penBtn.classList.toggle('on', on); penBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      paintPen();
+    }
+    function line(ctx, st, b, from) {
+      var p = st.p;
+      ctx.strokeStyle = st.c; ctx.lineWidth = st.s; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.beginPath();
+      var i0 = Math.max(0, (from || 0));
+      ctx.moveTo(p[i0] * b.w, p[i0 + 1] * b.h);
+      if (p.length - i0 === 2) ctx.lineTo(p[i0] * b.w + 0.01, p[i0 + 1] * b.h);
+      for (var i = i0 + 2; i < p.length; i += 2) ctx.lineTo(p[i] * b.w, p[i + 1] * b.h);
+      ctx.stroke();
+    }
+    function drawInk() {
+      var b = bounds(), dpr = window.devicePixelRatio || 1;
+      if (ink.width !== Math.round(b.w * dpr) || ink.height !== Math.round(b.h * dpr)) { ink.width = Math.round(b.w * dpr); ink.height = Math.round(b.h * dpr); }
+      var ctx = ink.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, b.w, b.h);
+      (state.strokes || []).forEach(function (st) { if (st.p && st.p.length >= 2) line(ctx, st, b); });
+    }
+    function inkPoint(e) {
+      var r = ink.getBoundingClientRect();
+      return [Math.round((e.clientX - r.left) / r.width * 1e4) / 1e4, Math.round((e.clientY - r.top) / r.height * 1e4) / 1e4];
+    }
+    ink.addEventListener('pointerdown', function (e) {
+      if (!pen.on) return;
+      e.preventDefault(); ink.setPointerCapture(e.pointerId);
+      if (!Array.isArray(state.strokes)) state.strokes = [];
+      stroke = { c: pen.color, s: pen.size, p: inkPoint(e) };
+      state.strokes.push(stroke);
+      line(ink.getContext('2d'), stroke, bounds());
+    });
+    ink.addEventListener('pointermove', function (e) {
+      if (!stroke) return;
+      var pt = inkPoint(e), b = bounds(), n = stroke.p.length;
+      if (Math.abs(pt[0] - stroke.p[n - 2]) * b.w + Math.abs(pt[1] - stroke.p[n - 1]) * b.h < 2) return;
+      stroke.p.push(pt[0], pt[1]);
+      line(ink.getContext('2d'), stroke, b, n - 2);
+    });
+    function endStroke() { if (stroke) { stroke = null; save(); } }
+    ink.addEventListener('pointerup', endStroke);
+    ink.addEventListener('pointercancel', endStroke);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && pen.on) setPen(false); });
 
     var root = h('div', { class: 'board' }, top, canvas, h('div', { class: 'dock-wrap' }, dock));
     el.append(root);
@@ -215,6 +289,7 @@
         x: (b.w - t.w) / 2 + (n % 5) * 24, y: Math.max(0, (b.h - t.h) / 2 - 40) + (n % 5) * 24, data: {} };
       if (type === 'text') w.data = { text: 'Type your message here', size: 40, bold: true, color: 'ink' };
       if (type === 'traffic') w.data = { on: 'green' };
+      if (t.init) w.data = t.init();
       clamp(w);
       state.widgets.push(w); save();
       renderWidget(w, true);
@@ -259,7 +334,8 @@
       drag(head, function (dx, dy, start) { w.x = start.x + dx; w.y = start.y + dy; clamp(w); place(node, w); }, w, head.querySelector('.w-btns'));
       drag(grip, function (dx, dy, start) { w.w = start.w + dx; w.h = start.h + dy; clamp(w); place(node, w); }, w);
 
-      mounted[w.id] = WIDGETS[w.type](body, w, save) || {};
+      if (!w.data) w.data = {};
+      mounted[w.id] = (WIDGETS[w.type] || t.mount)(body, w, save) || {};
     }
 
     function drag(handle, move, w, ignore) {
@@ -431,12 +507,14 @@
     loadState();
 
     window.addEventListener('resize', function () {
+      drawInk();
       state.widgets.forEach(function (w) { clamp(w); var n = canvas.querySelector('[data-id="' + w.id + '"]'); if (n) place(n, w); });
     });
 
     return {
       show: function () {
         requestAnimationFrame(function () {
+          drawInk();
           state.widgets.forEach(function (w) { clamp(w); var n = canvas.querySelector('[data-id="' + w.id + '"]'); if (n) place(n, w); });
         });
       }
