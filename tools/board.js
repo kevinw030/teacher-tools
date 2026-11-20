@@ -144,10 +144,12 @@
       loadState(); save(); screenPanel.hidden = true;
     }
 
+    var fsBtn = TT.canFullscreen ? TT.button('Full Screen', { icon: 'expand', kind: 'glass', title: 'Full Screen', onclick: function () { TT.toggleFullscreen(); } }) : null;
+    bgBtn.title = 'Background'; clearBtn.title = 'Clear the Board'; screenBtn.title = 'Saved Screens';
     var top = h('div', { class: 'board-top' },
-      h('div', { class: 'row' }, h('a', { class: 'btn glass', href: '#home', html: TT.icon('back') + '<span>All Tools</span>' }), h('div', { class: 'bg-wrap' }, screenBtn, screenPanel)),
+      h('div', { class: 'row' }, h('a', { class: 'btn glass', href: '#home', title: 'All Tools', html: TT.icon('back') + '<span>All Tools</span>' }), h('div', { class: 'bg-wrap' }, screenBtn, screenPanel)),
       h('div', { class: 'row' }, clearConfirm, clearBtn, h('div', { class: 'bg-wrap' }, bgBtn, bgPanel),
-        TT.canFullscreen ? TT.button('Full Screen', { icon: 'expand', kind: 'glass', onclick: function () { TT.toggleFullscreen(); } }) : null)
+        fsBtn)
     );
 
     var dock = h('div', { class: 'dock', role: 'toolbar', 'aria-label': 'Add a widget' });
@@ -228,7 +230,22 @@
     ink.addEventListener('pointercancel', endStroke);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && pen.on) setPen(false); });
 
-    var root = h('div', { class: 'board' }, top, canvas, h('div', { class: 'dock-wrap' }, dock));
+    // ----- Minimize the widget bar; full screen keeps everything small -----
+    var ui = TT.load('board-ui', { dockMin: false }), fsHide = false;
+    dock.append(h('button', { type: 'button', class: 'dock-min', title: 'Hide the Widget Bar', 'aria-label': 'Hide the widget bar', html: TT.icon('chevdown'), onclick: function () { setDock(true); } }));
+    var dockShow = h('button', { type: 'button', class: 'dock-show', title: 'Show Widgets', 'aria-label': 'Show the widget bar', html: TT.icon('grid'), onclick: function () { setDock(false); } });
+    var dockWrap = h('div', { class: 'dock-wrap' }, dock, dockShow);
+    function paintDock() { var min = ui.dockMin || fsHide; dockWrap.classList.toggle('min', min); dockShow.hidden = !min; }
+    function setDock(min) { fsHide = false; ui.dockMin = min; TT.save('board-ui', ui); paintDock(); }
+    document.addEventListener('fullscreenchange', function () {
+      var fs = !!document.fullscreenElement;
+      root.classList.toggle('fs-min', fs);
+      fsHide = fs; paintDock();
+      if (fsBtn) { fsBtn.innerHTML = TT.icon(fs ? 'shrink' : 'expand') + '<span>' + (fs ? 'Exit Full Screen' : 'Full Screen') + '</span>'; fsBtn.title = fs ? 'Exit Full Screen' : 'Full Screen'; }
+    });
+
+    var root = h('div', { class: 'board' }, top, canvas, dockWrap);
+    paintDock();
     el.append(root);
 
     document.addEventListener('pointerdown', function (e) {

@@ -939,3 +939,17 @@ button.cb-peg.big:hover { transform: scale(1.1); }
 .tr-legend b { color: var(--ink); }
 @media (max-width: 760px) { .tr-tile { aspect-ratio: 1; border-width: 1.5px; } .tr-n { left: 4px; top: 2px; } .tr-card { position: fixed; } }
 @media (prefers-reduced-motion: reduce) { .tr-token.now { animation: none; } }
+
+/* Board: minimize the widget bar, and a small-icon look in full screen */
+.dock-min { appearance: none; flex: none; align-self: center; width: 34px; height: 34px; margin-left: 4px; border: 0; border-radius: 10px; background: none; color: #0E1120; opacity: .55; cursor: pointer; display: grid; place-items: center; }
+.dock-min:hover { opacity: 1; background: rgba(14,17,32,.08); }
+.dock-min svg, .dock-show svg { width: 20px; height: 20px; }
+.dock-wrap.min .dock { visibility: hidden; }
+.dock-show { appearance: none; position: absolute; left: 50%; bottom: max(14px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: 46px; height: 46px; border-radius: 14px; border: 1px solid rgba(255,255,255,.7);
+  background: rgba(255,255,255,.82); color: #0E1120; cursor: pointer; display: grid; place-items: center; box-shadow: var(--shadow); backdrop-filter: blur(12px); opacity: .8; }
+.dock-show:hover { opacity: 1; }
+.board.fs-min .board-top > .row > .btn > span:not(:has(svg)), .board.fs-min .board-top .bg-wrap > .btn > span:not(:has(svg)) { display: none; }
+.board.fs-min .board-top > .row > .btn, .board.fs-min .board-top .bg-wrap > .btn { padding: 10px; border-radius: 12px; opacity: .7; }
+.board.fs-min .board-top > .row > .btn:hover, .board.fs-min .board-top .bg-wrap > .btn:hover, .board.fs-min .board-top .btn:focus-visible { opacity: 1; }
+.board.fs-min .board-top { gap: 6px; }
+.clock-time { white-space: nowrap; font-size: min(21cqw, 52cqh); }
