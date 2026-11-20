@@ -140,83 +140,9 @@
     }));
   }
 
-  function escape(el) {
-    var room = null, idx = 0, start = 0, iv = 0, hintsUsed = 0;
-    var root = h('div', { class: 'game escape' });
-    el.append(root);
-
-    function menu() {
-      clearInterval(iv); root.textContent = ''; room = null;
-      var best = TT.load('escape-best', {});
-      root.append(h('p', { class: 'game-status', text: 'Choose a room. Work together to open every lock.' }),
-        h('div', { class: 'row center' }, TT.button('Make Your Own Room', { icon: 'plus', kind: 'small', onclick: function () { TT.custom.open('rooms'); } })),
-        h('div', { class: 'room-grid' }, allRooms().map(function (r) {
-          return h('button', { type: 'button', class: 'room-card c-' + r.color, onclick: function () { begin(r); } },
-            h('span', { class: 'room-emoji', text: r.emoji }), h('b', { text: r.title }),
-            h('small', { text: best[r.id] ? 'Best time ' + fmt(best[r.id]) : (r.mine ? 'My room · ' : '') + r.locks.length + (r.locks.length === 1 ? ' lock' : ' locks') }));
-        })));
-    }
-    function fmt(s) { return Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + s % 60; }
-    function begin(r) {
-      room = r; idx = -1; hintsUsed = 0; root.textContent = '';
-      root.append(h('div', { class: 'room-intro c-' + r.color },
-        h('span', { class: 'room-emoji big', text: r.emoji }), h('h2', { text: r.title }), h('p', { text: r.intro }),
-        h('div', { class: 'row center' }, TT.button('Start the Clock', { icon: 'play', kind: 'primary big', onclick: function () { idx = 0; start = Date.now(); lock(); } }),
-          TT.button('Choose Another Room', { kind: 'big', onclick: menu }))));
-    }
-    function lock() {
-      clearInterval(iv); root.textContent = '';
-      var L = room.locks[idx];
-      var clock = h('span', { class: 'esc-clock' });
-      var input = h('input', { type: 'text', id: 'escAnswer', class: 'esc-input', placeholder: 'Type the answer', autocomplete: 'off', 'aria-label': 'Answer' });
-      var msg = h('p', { class: 'esc-msg', 'aria-live': 'polite' });
-      var hintBox = h('div', { class: 'hint', hidden: true }, h('b', { text: 'Hint' }), h('span', { text: L.hint }));
-      var card = h('div', { class: 'lock-card c-' + room.color });
-      function tryIt() {
-        var v = norm(input.value);
-        if (!v) return;
-        if (L.a.indexOf(v) >= 0) {
-          TT.chime(); card.classList.add('open'); msg.textContent = 'Click! The lock opens.';
-          setTimeout(function () { idx++; if (idx >= room.locks.length) finish(); else lock(); }, 1100);
-        } else {
-          TT.tick(); card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
-          msg.textContent = 'Not quite. Talk it over and try again.'; input.select();
-        }
-      }
-      input.addEventListener('keydown', function (e) { if (e.key === 'Enter') tryIt(); });
-      card.append(
-        h('div', { class: 'lock-top' },
-          h('div', { class: 'lock-dots' }, room.locks.map(function (_, i) { return h('span', { class: 'lock-dot' + (i < idx ? ' done' : i === idx ? ' now' : ''), text: i < idx ? '🔓' : '🔒' }); })),
-          clock),
-        h('span', { class: 'eyebrow', text: room.title + ' · Lock ' + (idx + 1) + ' of ' + room.locks.length }),
-        h('h2', { class: 'lock-q', text: L.q }),
-        hintBox,
-        h('div', { class: 'row center' }, input, TT.button('Unlock', { kind: 'primary big', onclick: tryIt })),
-        msg,
-        h('div', { class: 'row center' },
-          TT.button('Show Hint', { icon: 'sparkle', kind: 'small', onclick: function () { if (hintBox.hidden) { hintBox.hidden = false; hintsUsed++; } } }),
-          TT.button('Quit Room', { kind: 'small', onclick: menu })));
-      root.append(card);
-      function tick() { clock.textContent = '⏱ ' + fmt(Math.floor((Date.now() - start) / 1000)); }
-      tick(); iv = setInterval(tick, 500);
-      input.focus();
-    }
-    function finish() {
-      clearInterval(iv);
-      var secs = Math.floor((Date.now() - start) / 1000);
-      var best = TT.load('escape-best', {});
-      var record = !best[room.id] || secs < best[room.id];
-      if (record) { best[room.id] = secs; TT.save('escape-best', best); }
-      root.textContent = '';
-      root.append(h('div', { class: 'room-intro c-' + room.color },
-        h('span', { class: 'room-emoji big', text: '🎉' }), h('h2', { text: 'You Escaped!' }), h('p', { text: room.win }),
-        h('p', { class: 'game-status', text: 'Time: ' + fmt(secs) + (record ? ' · New best time!' : '') + ' · Hints used: ' + hintsUsed }),
-        h('div', { class: 'row center' }, TT.button('Choose Another Room', { kind: 'primary big', onclick: menu }))));
-      TT.chime();
-    }
-    menu();
-    return { show: function () { if (!room) menu(); } };
-  }
+  // The game itself lives in tools/escape.js (rooms you explore) and tools/escape-art.js (the pictures).
+  TT.escapeRooms = allRooms; TT.escapeNorm = norm;
+  function escape(el) { return TT.mountEscape(el); }
 
   // ---------- Code Breaker ----------
   function code(el) {
@@ -359,7 +285,7 @@
   TT.games = (TT.games || []).concat([
     { id: 'riddle', title: 'Mystery Riddle', desc: 'A riddle a day with two hints and a big reveal.', color: 'amber', mount: riddle,
       icon: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 1-1 1.7"/><circle cx="12" cy="17" r=".6" fill="currentColor"/>' },
-    { id: 'escape-room', title: 'Mini Escape Room', desc: 'Solve five locks together to escape before time runs out.', color: 'violet', mount: escape,
+    { id: 'escape-room', title: 'Mini Escape Room', desc: 'Explore the room, find the clues and open every lock to escape together.', color: 'violet', mount: escape,
       icon: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/><circle cx="12" cy="16" r="1.3" fill="currentColor"/>' },
     { id: 'code-breaker', title: 'Code Breaker', desc: 'Crack the secret color code using clues from each guess.', color: 'sky', mount: code,
       icon: '<circle cx="6" cy="12" r="2.5"/><circle cx="12" cy="12" r="2.5"/><circle cx="18" cy="12" r="2.5"/><path d="M3 19h18M3 5h18"/>' },

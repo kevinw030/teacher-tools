@@ -1,0 +1,157 @@
+// Mini Escape Room: explore an illustrated room, tap the things that glow, solve each puzzle to
+// earn a key, then open the exit. Pictures come from tools/escape-art.js, puzzles from tools/puzzles.js.
+(function () {
+  var TT = window.TT, h = TT.h;
+  var KEYS = ['#FF5C8A', '#FFB020', '#22C58B', '#3B9BFF', '#9B6BFF'];
+  var KEY_SVG = '<svg viewBox="0 0 48 24" aria-hidden="true"><circle cx="11" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="5"/><path d="M19 12h24M34 12v8M41 12v6" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg>';
+  function fmt(s) { return Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + s % 60; }
+  function sceneOf(room) { return TT.escapeScenes[room.id] ? room.id : 'classroom'; }
+  function pct(v, of) { return (v / of * 100).toFixed(2) + '%'; }
+  function box(node, s) { node.style.left = pct(s.x, 1600); node.style.top = pct(s.y, 900); node.style.width = pct(s.w, 1600); node.style.height = pct(s.h, 900); }
+
+  TT.mountEscape = function (el) {
+    var room = null, scene = null, solved = [], start = 0, iv = 0, hintsUsed = 0, escaped = false, playing = false;
+    var root = h('div', { class: 'game escape er' });
+    el.append(root);
+
+    // ---------- Choose a room ----------
+    function menu() {
+      clearInterval(iv); root.textContent = ''; room = null; playing = false;
+      var best = TT.load('escape-best', {});
+      root.append(h('p', { class: 'game-status', text: 'Choose a room. Look around, solve the clues and escape together.' }),
+        h('div', { class: 'er-grid' }, TT.escapeRooms().map(function (r, i) {
+          var pic = h('span', { class: 'er-thumb' }); pic.innerHTML = TT.escapeArt(sceneOf(r), 'm' + i);
+          return h('button', { type: 'button', class: 'er-card', onclick: function () { begin(r); } }, pic,
+            h('span', { class: 'er-card-text' }, h('b', { text: r.title }),
+              h('small', { text: best[r.id] ? 'Best Time ' + fmt(best[r.id]) : (r.mine ? 'My Room · ' : '') + r.locks.length + (r.locks.length === 1 ? ' Lock' : ' Locks') })));
+        })),
+        h('div', { class: 'row center' }, TT.button('Make Your Own Room', { icon: 'plus', kind: 'small', onclick: function () { TT.custom.open('rooms'); } })));
+    }
+
+    // ---------- The room ----------
+    var stage, overlay, bar, clock, status, spotBtns, exitBtn, keyRow;
+    function begin(r) {
+      room = r; scene = TT.escapeScenes[sceneOf(r)]; solved = r.locks.map(function () { return false; });
+      hintsUsed = 0; escaped = false; playing = false; clearInterval(iv); root.textContent = '';
+      var art = h('div', { class: 'er-art' }); art.innerHTML = TT.escapeArt(sceneOf(r), 'p');
+      overlay = h('div', { class: 'er-over' });
+      spotBtns = r.locks.slice(0, scene.spots.length).map(function (_, i) {
+        var s = scene.spots[i];
+        var b = h('button', { type: 'button', class: 'er-spot', 'aria-label': 'Look at ' + s.name, onclick: function () { if (playing && !solved[i]) puzzle(i); } },
+          h('span', { class: 'er-ping', 'aria-hidden': 'true' }), h('span', { class: 'er-tag', text: s.name }));
+        box(b, s); return b;
+      });
+      exitBtn = h('button', { type: 'button', class: 'er-spot er-exit', 'aria-label': scene.exit.name, onclick: tryExit },
+        h('span', { class: 'er-ping', 'aria-hidden': 'true' }), h('span', { class: 'er-tag', text: scene.exit.name }));
+      box(exitBtn, scene.exit);
+      stage = h('div', { class: 'er-stage dark' }, art, spotBtns, exitBtn, overlay);
+      clock = h('span', { class: 'er-clock', text: '0:00' });
+      keyRow = h('div', { class: 'er-keys', role: 'img' }, r.locks.map(function (_, i) { var k = h('span', { class: 'er-key' }); k.innerHTML = KEY_SVG; k.style.color = KEYS[i % KEYS.length]; return k; }));
+      status = h('span', { class: 'er-status', 'aria-live': 'polite' });
+      bar = h('div', { class: 'er-bar' }, keyRow, status, clock, TT.button('Leave Room', { kind: 'small', onclick: menu }));
+      root.append(stage, bar);
+      paint();
+      card([h('span', { class: 'er-eyebrow', text: 'Escape Room' }), h('h2', { text: r.title }), h('p', { text: r.intro }),
+        h('p', { class: 'er-how', text: 'Tap the things that glow. Each one hides a puzzle and a key.' }),
+        h('div', { class: 'row center' }, TT.button('Turn On the Lights', { icon: 'play', kind: 'primary big', onclick: function () {
+          closeCard(); playing = true; start = Date.now(); stage.classList.remove('dark'); tick(); iv = setInterval(tick, 500); paint();
+        } }), TT.button('Choose Another Room', { kind: 'big', onclick: menu }))]);
+    }
+    function tick() { if (clock) clock.textContent = fmt(Math.floor((Date.now() - start) / 1000)); }
+    function left() { return solved.filter(function (v) { return !v; }).length; }
+    function paint() {
+      var n = left();
+      solved.forEach(function (v, i) {
+        stage.classList.toggle('done-' + i, v);
+        if (spotBtns[i]) { spotBtns[i].classList.toggle('solved', v); spotBtns[i].disabled = v; }
+        keyRow.children[i].classList.toggle('got', v);
+      });
+      stage.classList.toggle('ready', n === 0 && !escaped);
+      stage.classList.toggle('escaped', escaped);
+      stage.style.setProperty('--lit', (0.72 + 0.28 * (solved.length - n) / solved.length).toFixed(2));
+      keyRow.setAttribute('aria-label', (solved.length - n) + ' of ' + solved.length + ' keys found');
+      status.textContent = !playing ? '' : n === 0 ? 'You have every key! Tap ' + scene.exit.name.replace(/^The /, 'the ') + '.' :
+        n === solved.length ? 'Look around the room. What do you notice?' : n + (n === 1 ? ' key' : ' keys') + ' to go. Keep exploring!';
+    }
+    function card(children, cls) {
+      overlay.textContent = '';
+      var c = h('div', { class: 'er-card-panel ' + (cls || ''), role: 'dialog', 'aria-modal': 'true' });
+      children.forEach(function (n) { if (n) c.append(n); });
+      overlay.append(c); overlay.classList.add('show');
+      return c;
+    }
+    function closeCard() { overlay.classList.remove('show'); overlay.textContent = ''; }
+
+    // ---------- One puzzle ----------
+    function puzzle(i) {
+      var L = room.locks[i], s = scene.spots[i];
+      var input = h('input', { type: 'text', id: 'escAnswer', class: 'esc-input', placeholder: 'Type the Answer', autocomplete: 'off', 'aria-label': 'Answer' });
+      var msg = h('p', { class: 'esc-msg', 'aria-live': 'polite' });
+      var hintBox = h('div', { class: 'hint', hidden: true }, h('b', { text: 'Hint' }), h('span', { text: L.hint }));
+      var keyIcon = h('span', { class: 'er-key big' }); keyIcon.innerHTML = KEY_SVG; keyIcon.style.color = KEYS[i % KEYS.length];
+      var panel;
+      function tryIt() {
+        var v = TT.escapeNorm(input.value);
+        if (!v) return;
+        if (L.a.indexOf(v) >= 0) {
+          TT.chime(); solved[i] = true; panel.classList.add('open');
+          msg.textContent = 'Click! You found a key.'; input.disabled = true;
+          setTimeout(function () { closeCard(); paint(); flyKey(i); if (left() === 0) setTimeout(allFound, 900); }, 1100);
+        } else {
+          TT.tick(); panel.classList.remove('shake'); void panel.offsetWidth; panel.classList.add('shake');
+          msg.textContent = 'Not quite. Talk it over and try again.'; input.select();
+        }
+      }
+      input.addEventListener('keydown', function (e) { if (e.key === 'Enter') tryIt(); });
+      panel = card([
+        h('div', { class: 'er-panel-top' }, keyIcon, h('span', { class: 'er-eyebrow', text: 'You look closely at' }), h('h2', { text: s.name })),
+        h('p', { class: 'er-q', text: L.q }), hintBox,
+        h('div', { class: 'row center' }, input, TT.button('Unlock', { kind: 'primary big', onclick: tryIt })), msg,
+        h('div', { class: 'row center' },
+          TT.button('Show Hint', { icon: 'sparkle', kind: 'small', onclick: function () { if (hintBox.hidden) { hintBox.hidden = false; hintsUsed++; } } }),
+          TT.button('Back to the Room', { kind: 'small', onclick: closeCard }))], 'puzzle');
+      panel.style.setProperty('--k', KEYS[i % KEYS.length]);
+      setTimeout(function () { input.focus(); }, 50);
+    }
+    // The new key flies from the object down to its slot.
+    function flyKey(i) {
+      var from = spotBtns[i], to = keyRow.children[i];
+      if (!from || !to || !from.animate) return;
+      var a = from.getBoundingClientRect(), b = to.getBoundingClientRect(), r = root.getBoundingClientRect(), k = root.offsetWidth / r.width || 1;
+      var fly = h('span', { class: 'er-key fly' }); fly.innerHTML = KEY_SVG; fly.style.color = KEYS[i % KEYS.length];
+      root.append(fly);
+      var x0 = (a.left + a.width / 2 - r.left) * k, y0 = (a.top + a.height / 2 - r.top) * k, x1 = (b.left + b.width / 2 - r.left) * k, y1 = (b.top + b.height / 2 - r.top) * k;
+      to.classList.add('wait');
+      fly.animate([{ transform: 'translate(' + x0 + 'px,' + y0 + 'px) translate(-50%,-50%) scale(.4) rotate(-40deg)', opacity: 0 },
+        { transform: 'translate(' + x0 + 'px,' + (y0 - 50) + 'px) translate(-50%,-50%) scale(2.4) rotate(10deg)', opacity: 1, offset: 0.35 },
+        { transform: 'translate(' + x1 + 'px,' + y1 + 'px) translate(-50%,-50%) scale(1) rotate(0)', opacity: 1 }], { duration: 950, easing: 'ease-in-out' })
+        .onfinish = function () { fly.remove(); to.classList.remove('wait'); to.classList.add('pop'); TT.tick(); };
+    }
+    function allFound() { if (!room || escaped) return; TT.chime(); paint(); }
+    function tryExit() {
+      if (!playing || escaped) return;
+      if (left() > 0) {
+        exitBtn.classList.remove('nope'); void exitBtn.offsetWidth; exitBtn.classList.add('nope'); TT.tick();
+        status.textContent = 'It’s locked tight. You still need ' + left() + (left() === 1 ? ' key.' : ' keys.');
+        return;
+      }
+      escaped = true; clearInterval(iv); paint(); TT.chime();
+      var secs = Math.floor((Date.now() - start) / 1000);
+      var best = TT.load('escape-best', {}), record = !best[room.id] || secs < best[room.id];
+      if (record) { best[room.id] = secs; TT.save('escape-best', best); }
+      status.textContent = 'You escaped!';
+      setTimeout(function () {
+        if (!room) return;
+        if (TT.celebrate) TT.celebrate(stage, ['🗝️', '⭐', '🎉', '✨']);
+        card([h('span', { class: 'er-eyebrow', text: room.title }), h('h2', { text: 'You Escaped!' }), h('p', { text: room.win }),
+          h('div', { class: 'er-stats' },
+            h('span', null, h('b', { text: fmt(secs) }), record ? 'New Best Time' : 'Your Time'),
+            h('span', null, h('b', { text: String(hintsUsed) }), hintsUsed === 1 ? 'Hint Used' : 'Hints Used'),
+            h('span', null, h('b', { text: String(room.locks.length) }), 'Keys Found')),
+          h('div', { class: 'row center' }, TT.button('Choose Another Room', { kind: 'primary big', onclick: menu }), TT.button('Play Again', { kind: 'big', onclick: function () { begin(room); } }))], 'win');
+      }, 1700);
+    }
+    menu();
+    return { show: function () { if (!room) menu(); }, hide: function () { clearInterval(iv); } };
+  };
+})();
