@@ -1,0 +1,20 @@
+/* Seasonal themes, Exit Tickets and Seating Chart. */
+
+/* ---------- Seasonal themes ---------- */
+.hero.seasonal { position: relative; isolation: isolate; padding: clamp(18px, 3vw, 32px); border-radius: 28px;
+  background: radial-gradient(90% 140% at 0% 0%, color-mix(in srgb, var(--season-a) 20%, transparent) 0%, transparent 60%), radial-gradient(90% 140% at 100% 100%, color-mix(in srgb, var(--season-b) 22%, transparent) 0%, transparent 60%), var(--surface);
+  border: 1px solid color-mix(in srgb, var(--season-a) 25%, var(--line)); overflow: hidden; }
+:root:not([data-season]) .hero.seasonal { padding: 0; background: none; border: 0; overflow: visible; }
+.season-decor { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; border-radius: inherit; }
+.season-decor span { position: absolute; opacity: .5; transform: rotate(var(--r, 0deg)); animation: season-float 7s ease-in-out infinite; line-height: 1; }
+@keyframes season-float { 50% { transform: translateY(-8px) rotate(calc(var(--r, 0deg) + 8deg)); } }
+.season-chip { display: inline-flex; margin-top: 14px; padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 14px; background: color-mix(in srgb, var(--season-a) 18%, var(--surface)); border: 1px solid color-mix(in srgb, var(--season-a) 40%, var(--line)); }
+.mm-hero { position: relative; isolation: isolate; overflow: hidden; }
+.mm-hero .season-decor span { opacity: .55; }
+.set-select { font: inherit; font-weight: 600; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); max-width: 100%; }
+.tr-deco { font-size: clamp(14px, 2.6vw, 30px); opacity: .5; line-height: 1; }
+.party { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 20; }
+.party span { position: absolute; top: -12%; line-height: 1; animation: party-fall 2.6s ease-in forwards; opacity: 0; }
+@keyframes party-fall { 0% { opacity: 1; transform: translateY(0) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translateY(900px) rotate(var(--r, 180deg)); } }
+.pts-body { position: relative; }
+@media (prefers-reduced-motion: reduce) { .season-decor span { animation: none; } }

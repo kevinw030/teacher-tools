@@ -20,6 +20,14 @@
     var classInput = h('input', { type: 'text', id: 'setClass', maxlength: 30, placeholder: 'Like Room 12 or 4th Grade Stars', 'aria-label': 'What you call your class' });
     classInput.value = s.className || '';
     classInput.addEventListener('input', function () { s.className = classInput.value.trim(); TT.saveSettings(); });
+    function seasonPick() {
+      var sel = h('select', { id: 'setSeason', class: 'set-select', 'aria-label': 'Seasonal theme' });
+      [['auto', 'Follow the Calendar'], ['off', 'Off']].concat((TT.SEASONS || []).map(function (x) { return [x.id, x.name]; })).forEach(function (o) {
+        var opt = h('option', { value: o[0], text: o[1] }); if ((s.season || 'auto') === o[0]) opt.selected = true; sel.append(opt);
+      });
+      sel.addEventListener('change', function () { s.season = sel.value; TT.saveSettings(); if (TT.applySeason) TT.applySeason(); });
+      return sel;
+    }
     function row(title, desc, control) {
       return h('div', { class: 'set-row' }, h('div', null, h('h3', { text: title }), h('p', { class: 'muted', text: desc })), h('div', { class: 'set-control' }, control));
     }
@@ -27,6 +35,7 @@
       row('Your Name', 'Shown in the greeting on the home page.', nameInput),
       row('Class Name', 'Shown on the Morning Meeting screen, like “Good morning, Room 12!”', classInput),
       row('Theme', 'Light, dark, or match this computer.', seg([['auto', 'Match Computer'], ['light', 'Light'], ['dark', 'Dark']], 'theme', TT.applyTheme)),
+      row('Seasonal Theme', 'Holiday touches on the home page, board backgrounds and games.', seasonPick()),
       row('Sounds', 'Chimes, ticks and spinner sounds.', seg([[true, 'On'], [false, 'Off']], 'sound', function () { if (s.sound) TT.chime(); })),
       row('My Questions', 'Write your own Would You Rather questions, trivia and escape rooms.', TT.button('Open My Questions', { icon: 'edit', onclick: function () { TT.custom.open('wyr'); } })),
       row('Backup', 'Save everything to a file, or load it on another computer.', TT.backupControls())));
@@ -73,6 +82,7 @@
       if (document.activeElement !== temp) temp.value = state.temp && state.temp.day === TT.today() ? state.temp.v : '';
     }
     paint();
+    if (TT.applySeason) TT.applySeason();
     return { show: function () { paint(); pet.refresh(); } };
   };
 

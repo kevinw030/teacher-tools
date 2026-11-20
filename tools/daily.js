@@ -243,7 +243,7 @@
       rewardIn.addEventListener('input', function () { j.reward = rewardIn.value; save(); rewardEl.textContent = rewardText(); });
       function rewardText() { return full ? 'You earned: ' + (j.reward || 'your reward') + '!' : 'Working toward: ' + (j.reward || 'a class reward'); }
       var rewardEl = h('p', { class: 'jar-reward', text: rewardText() });
-      function add(n) { var was = j.count >= goal; j.count = Math.max(0, Math.min(goal, j.count + n)); save(); if (n > 0) TT.tick(); if (!was && j.count >= goal) TT.chime(); paint(); }
+      function add(n) { var was = j.count >= goal; j.count = Math.max(0, Math.min(goal, j.count + n)); save(); if (n > 0) TT.tick(); var won = !was && j.count >= goal; if (won) TT.chime(); paint(); if (won && TT.celebrate) TT.celebrate(box); }
       box.append(h('div', { class: 'jar-layout' },
         h('div', { class: 'jar' + (full ? ' full' : '') }, h('div', { class: 'jar-lid' }), h('div', { class: 'jar-glass' }, marbles)),
         h('div', { class: 'jar-side' },

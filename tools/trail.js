@@ -85,6 +85,7 @@
       });
       counts.querySelectorAll('.seg').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-n') === state.n); });
       board.textContent = '';
+      var deco = TT.season && TT.season();
       for (var i = 0; i < N; i++) {
         var row = Math.floor(i / COLS), c = i % COLS, col = row % 2 ? COLS - 1 - c : c;
         var dir = i === N - 1 ? '' : c === COLS - 1 ? ' d' : row % 2 ? ' l' : ' r';
@@ -94,7 +95,7 @@
         var ico = i === 0 ? 'start' : i === N - 1 ? 'finish' : k ? KINDS[k][0] : '';
         var tile = h('div', { class: 'tr-tile' + dir + (k ? ' k-' + k : '') + (i === 0 ? ' start' : i === N - 1 ? ' finish' : ''), title: i === 0 ? 'Start' : i === N - 1 ? 'Finish' : k ? KINDS[k][1] : null },
           h('span', { class: 'tr-n', text: i === 0 ? 'Start' : i === N - 1 ? 'Finish' : String(i) }),
-          ico ? art(ico, 'tr-ico') : null, tokens);
+          ico ? art(ico, 'tr-ico') : (deco ? h('span', { class: 'tr-deco', text: deco.emoji[i % deco.emoji.length] }) : null), tokens);
         tile.style.gridRow = row + 1; tile.style.gridColumn = col + 1;
         board.append(tile);
       }
@@ -174,7 +175,7 @@
     function finishOr(t, next) {
       if (state.pos[t] < N - 1) { next(); return; }
       ask(t, 'finish', 'Finish Line Fact for ' + name(t), function () {
-        state.over = true; busy = false; save(); paint(); TT.chime();
+        state.over = true; busy = false; save(); paint(); TT.chime(); if (TT.celebrate) TT.celebrate(wrap);
         show('finish', name(t) + ' Wins!', 'What a race. Great multiplying, everyone!', [TT.button('Play Again', { kind: 'primary big', onclick: function () { newGame(state.n); } })]);
       }, function () { hide(); walk(t, -2, endTurn); }, 'Got It! Win the Race');
     }
