@@ -2,7 +2,7 @@
 // multiplication facts to get ahead. Artwork lives in assets/race/.
 (function () {
   var TT = window.TT, h = TT.h;
-  var N = 30, COLS = 6, ART = 'assets/race/';
+  var N = 48, COLS = 8, ART = 'assets/race/';
   var TEAMS = [['Blue Team', '#2F6BFF', 'pawn-blue'], ['Orange Team', '#FF7A1A', 'pawn-orange'], ['Green Team', '#22D07A', 'pawn-green'], ['Purple Team', '#9B4DFF', 'pawn-purple']];
   var KINDS = {
     q: ['question', 'Fact Check', 'Solve it to move ahead 2'],
@@ -19,10 +19,18 @@
   function makeLayout() {
     var L = [], bag = [], spots = [], i;
     for (i = 0; i < N; i++) L.push('');
-    [['q', 11], ['move', 3], ['boost', 2], ['slip', 3], ['again', 2], ['swap', 1]].forEach(function (b) { for (var k = 0; k < b[1]; k++) bag.push(b[0]); });
-    for (i = 1; i < N - 1; i++) spots.push(i);
+    // Every space that is not a special space is a multiplication fact, so most turns end on one.
+    for (i = 1; i < N - 1; i++) L[i] = 'q';
+    [['move', 4], ['boost', 3], ['slip', 3], ['again', 3], ['swap', 2]].forEach(function (b) { for (var k = 0; k < b[1]; k++) bag.push(b[0]); });
+    for (i = 3; i < N - 2; i++) spots.push(i);
     spots = TT.shuffle(spots);
-    bag.forEach(function (k, j) { L[spots[j]] = k; });
+    // keep special spaces apart so facts sit between them
+    var used = [];
+    spots.forEach(function (sp) {
+      if (!bag.length) return;
+      if (used.some(function (u) { return Math.abs(u - sp) < 2; })) return;
+      L[sp] = bag.pop(); used.push(sp);
+    });
     return L;
   }
 
@@ -95,7 +103,7 @@
         var ico = i === 0 ? 'start' : i === N - 1 ? 'finish' : k ? KINDS[k][0] : '';
         var tile = h('div', { class: 'tr-tile' + dir + (k ? ' k-' + k : '') + (i === 0 ? ' start' : i === N - 1 ? ' finish' : ''), title: i === 0 ? 'Start' : i === N - 1 ? 'Finish' : k ? KINDS[k][1] : null },
           h('span', { class: 'tr-n', text: i === 0 ? 'Start' : i === N - 1 ? 'Finish' : String(i) }),
-          ico ? art(ico, 'tr-ico') : (deco ? h('span', { class: 'tr-deco', text: deco.emoji[i % deco.emoji.length] }) : null), tokens);
+          ico ? art(ico, 'tr-ico') : null, (deco && k === 'q' && i % 3 === 0) ? h('span', { class: 'tr-deco corner', text: deco.emoji[i % deco.emoji.length] }) : null, tokens);
         tile.style.gridRow = row + 1; tile.style.gridColumn = col + 1;
         board.append(tile);
       }

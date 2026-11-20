@@ -43,6 +43,8 @@
           <a href="#groups" data-view="groups">Group Maker</a>
           <a href="#sound-level" data-view="sound-level">Sound Level</a>
           <a href="#brain-breaks" data-view="brain-breaks">Brain Breaks</a>
+          <a href="#exit-tickets" data-view="exit-tickets">Exit Tickets</a>
+          <a href="#seating" data-view="seating">Seating Chart</a>
           <a href="#my-questions" data-view="my-questions">My Questions</a>
         </div>
       </div>
@@ -169,6 +171,18 @@
         <h3>Brain Breaks</h3>
         <p>Spin for a quick movement break with a built-in timer.</p>
         <span class="go">Take a Break <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+      </a>
+      <a class="tool c-coral" href="#exit-tickets">
+        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4z"/><path d="m9 12 2 2 4-4"/></svg></span>
+        <h3>Exit Tickets</h3>
+        <p>Ask one quick question at the end of a lesson and see how the class did.</p>
+        <span class="go">Ask a Question <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+      </a>
+      <a class="tool c-violet" href="#seating">
+        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="7" height="5" rx="1"/><rect x="14" y="4" width="7" height="5" rx="1"/><rect x="3" y="14" width="7" height="5" rx="1"/><rect x="14" y="14" width="7" height="5" rx="1"/></svg></span>
+        <h3>Seating Chart</h3>
+        <p>Build your room, then drag students to their seats or shuffle them.</p>
+        <span class="go">Arrange Seats <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
       </a>
       <a class="tool c-rose" href="#games">
         <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v3M5.5 12.5h3"/><circle cx="16" cy="11.5" r="1" fill="currentColor"/><circle cx="18" cy="13.5" r="1" fill="currentColor"/></svg></span>
@@ -336,6 +350,24 @@
   <section class="panel" id="pointsMount"></section>
 </main>
 
+<!-- EXIT TICKETS -->
+<main class="page c-coral" id="view-exit-tickets" data-view="exit-tickets" hidden>
+  <header class="tool-head">
+    <div><span class="eyebrow">Classroom tool</span><h1>Exit Tickets</h1><p>One quick question to end a lesson. Students answer right here on the board.</p></div>
+    <div class="row js-fs-slot"></div>
+  </header>
+  <section class="panel" id="ticketsMount"></section>
+</main>
+
+<!-- SEATING CHART -->
+<main class="page c-violet" id="view-seating" data-view="seating" hidden>
+  <header class="tool-head">
+    <div><span class="eyebrow">Classroom tool</span><h1>Seating Chart</h1><p>Set up the room, then seat your class. Each class list keeps its own chart.</p></div>
+    <div class="row js-fs-slot"></div>
+  </header>
+  <section class="panel" id="seatingMount"></section>
+</main>
+
 <!-- MY QUESTIONS -->
 <main class="page c-violet" id="view-my-questions" data-view="my-questions" hidden>
   <header class="tool-head">
@@ -370,6 +402,8 @@
 <script src="tools/puzzles.js"></script>
 <script src="tools/trail.js"></script>
 <script src="tools/custom.js"></script>
+<script src="tools/tickets.js"></script>
+<script src="tools/seating.js"></script>
 <script src="tools/extras.js"></script>
 <script src="assets/app.js"></script>
 </body>
