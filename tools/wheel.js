@@ -60,7 +60,7 @@
       classInfo.hidden = state.source !== 'class';
       classInfo.textContent = TT.roster.isSample()
         ? 'Using sample names. Add your class on the Name Picker or Group Maker page.'
-        : 'Using the ' + TT.roster.present().length + ' students here today. Absent students are left off.';
+        : 'Using “' + TT.roster.activeName() + '”: ' + TT.roster.present().length + ' students here today. Change classes on the Name Picker page.';
       classInfo.classList.toggle('warn', TT.roster.isSample());
       removedBox.textContent = '';
       if (!state.removed.length) removedBox.append(h('span', { class: 'muted', text: 'Nobody yet.' }));

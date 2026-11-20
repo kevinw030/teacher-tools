@@ -123,6 +123,7 @@
     if (new Date().toDateString() !== shown) { shown = new Date().toDateString(); paintDate(); paintToday(); }
   }, 60000);
 
+  $('homeBackup').append(TT.backupControls());
   paintDate();
   paintLinks();
   route();

@@ -51,7 +51,9 @@
       bold: '<path d="M7 5h6a3.5 3.5 0 0 1 0 7H7zM7 12h7a3.5 3.5 0 0 1 0 7H7z"/>',
       home: '<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/>',
       volume: '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6"/>',
-      mute: '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l4 6M21 9l-4 6"/>'
+      mute: '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l4 6M21 9l-4 6"/>',
+      download: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+      upload: '<path d="M12 20V9M7 14l5-5 5 5M5 4h14"/>'
     };
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (paths[name] || '') + '</svg>';
   };
@@ -111,67 +113,180 @@
     } catch (e) {}
   };
 
-  // ---------- Class list (shared by Name Picker and Group Maker) ----------
-  // Names stay in this browser only. "Absent today" clears itself each new day.
+  // ---------- Class lists (shared by Name Picker, Name Wheel, Group Maker, Pet) ----------
+  // Several named lists can be saved. Names stay in this browser only.
+  // "Absent today" clears itself each new day.
   var SAMPLE = ['Ava', 'Ben', 'Carlos', 'Daisy', 'Eli', 'Fatima', 'Grace', 'Hiro', 'Isla', 'Jayden',
     'Kira', 'Leo', 'Maya', 'Noah', 'Olivia', 'Priya', 'Quinn', 'Ruby', 'Sam', 'Theo', 'Uma', 'Victor'];
   var listeners = [];
-  var data = TT.load('roster', { names: [], absent: { day: '', names: [] } });
-  if (!data.absent || data.absent.day !== TT.today()) data.absent = { day: TT.today(), names: [] };
-
-  function emit() { TT.save('roster', data); listeners.forEach(function (fn) { fn(); }); }
+  function newId() { return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+  var classes = TT.load('classes', null);
+  if (!classes || !Array.isArray(classes.lists) || !classes.lists.length) {
+    var old = TT.load('roster', null);
+    var first = { id: newId(), name: 'My class', names: (old && old.names) || [], absent: { day: '', names: [] } };
+    classes = { active: first.id, lists: [first] };
+    TT.save('classes', classes);
+  }
+  function cur() {
+    var c = classes.lists.filter(function (l) { return l.id === classes.active; })[0];
+    if (!c) { c = classes.lists[0]; classes.active = c.id; }
+    if (!c.absent || c.absent.day !== TT.today()) c.absent = { day: TT.today(), names: [] };
+    return c;
+  }
+  function emit() { TT.save('classes', classes); listeners.forEach(function (fn) { fn(); }); }
+  function clean(list) {
+    var seen = {};
+    return list.map(function (s) { return String(s).trim(); }).filter(function (s) {
+      if (!s || seen[s.toLowerCase()]) return false; seen[s.toLowerCase()] = 1; return true;
+    });
+  }
 
   TT.roster = {
-    isSample: function () { return !data.names.length; },
-    all: function () { return data.names.length ? data.names.slice() : SAMPLE.slice(); },
+    isSample: function () { return !cur().names.length; },
+    all: function () { var c = cur(); return c.names.length ? c.names.slice() : SAMPLE.slice(); },
     present: function () {
-      var abs = {}; data.absent.names.forEach(function (n) { abs[n] = 1; });
+      var abs = {}; cur().absent.names.forEach(function (n) { abs[n] = 1; });
       return TT.roster.all().filter(function (n) { return !abs[n]; });
     },
-    isAbsent: function (n) { return data.absent.names.indexOf(n) >= 0; },
+    isAbsent: function (n) { return cur().absent.names.indexOf(n) >= 0; },
     toggleAbsent: function (n) {
-      if (data.absent.day !== TT.today()) data.absent = { day: TT.today(), names: [] };
-      var i = data.absent.names.indexOf(n);
-      if (i >= 0) data.absent.names.splice(i, 1); else data.absent.names.push(n);
+      var a = cur().absent.names, i = a.indexOf(n);
+      if (i >= 0) a.splice(i, 1); else a.push(n);
       emit();
     },
     setNames: function (list) {
-      var seen = {};
-      data.names = list.map(function (s) { return s.trim(); }).filter(function (s) {
-        if (!s || seen[s.toLowerCase()]) return false; seen[s.toLowerCase()] = 1; return true;
-      });
-      data.absent.names = data.absent.names.filter(function (n) { return data.names.indexOf(n) >= 0; });
+      var c = cur();
+      c.names = clean(list);
+      c.absent.names = c.absent.names.filter(function (n) { return c.names.indexOf(n) >= 0; });
       emit();
+    },
+    lists: function () { return classes.lists.map(function (l) { return { id: l.id, name: l.name, count: l.names.length }; }); },
+    activeName: function () { return cur().name; },
+    activeId: function () { return cur().id; },
+    select: function (id) { classes.active = id; emit(); },
+    create: function (name, names) {
+      var l = { id: newId(), name: (name || 'New class').trim().slice(0, 40), names: clean(names || []), absent: { day: TT.today(), names: [] } };
+      classes.lists.push(l); classes.active = l.id; emit(); return l.id;
+    },
+    rename: function (name) { if (name && name.trim()) { cur().name = name.trim().slice(0, 40); emit(); } },
+    remove: function () {
+      if (classes.lists.length <= 1) { cur().names = []; cur().name = 'My class'; emit(); return; }
+      var id = cur().id;
+      classes.lists = classes.lists.filter(function (l) { return l.id !== id; });
+      classes.active = classes.lists[0].id; emit();
     },
     onChange: function (fn) { listeners.push(fn); }
   };
 
-  // Class list panel: tap a name to mark absent; "Edit list" opens a text box.
+  // ---------- Backup file: move everything to another computer ----------
+  TT.backup = {
+    download: function () {
+      var out = { app: 'teacher-tools', version: 1, saved: new Date().toISOString(), data: {} };
+      try {
+        for (var i = 0; i < localStorage.length; i++) {
+          var k = localStorage.key(i);
+          if (k.indexOf('tt:') === 0) out.data[k] = localStorage.getItem(k);
+        }
+      } catch (e) {}
+      var blob = new Blob([JSON.stringify(out, null, 1)], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'teacher-tools-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+    },
+    // Calls done(message, ok)
+    load: function (file, done) {
+      var r = new FileReader();
+      r.onload = function () {
+        try {
+          var obj = JSON.parse(r.result);
+          if (!obj || obj.app !== 'teacher-tools' || !obj.data) throw 0;
+          Object.keys(obj.data).forEach(function (k) { if (k.indexOf('tt:') === 0) localStorage.setItem(k, obj.data[k]); });
+          done('Backup loaded. Reloading…', true);
+          setTimeout(function () { location.reload(); }, 900);
+        } catch (e) { done('That file isn’t a Teacher Tools backup. Choose the .json file you saved before.', false); }
+      };
+      r.readAsText(file);
+    }
+  };
+  TT.backupControls = function () {
+    var id = 'bk-' + Math.random().toString(36).slice(2, 7);
+    var input = TT.h('input', { type: 'file', id: id, accept: '.json,application/json', hidden: true });
+    var msg = TT.h('p', { class: 'roster-note', hidden: true });
+    input.addEventListener('change', function () {
+      if (!input.files[0]) return;
+      TT.backup.load(input.files[0], function (m, ok) { msg.textContent = m; msg.hidden = false; msg.classList.toggle('warn', !ok); });
+      input.value = '';
+    });
+    return TT.h('div', { class: 'backup' },
+      TT.h('div', { class: 'row' },
+        TT.button('Save backup file', { icon: 'download', kind: 'small', onclick: TT.backup.download }),
+        TT.h('label', { class: 'btn small', for: id, html: TT.icon('upload') + '<span>Load backup file</span>' }), input),
+      msg);
+  };
+
+  // Class list panel: choose a class, tap a name to mark absent, edit or add classes.
   TT.mountRoster = function (el) {
     var h = TT.h;
+    var uid = Math.random().toString(36).slice(2, 7);
     var chips = h('div', { class: 'chips' });
     var note = h('p', { class: 'roster-note' });
-    var area = h('textarea', { class: 'roster-input', id: 'rosterInput-' + Math.random().toString(36).slice(2, 7), rows: 10, placeholder: 'One name per line', 'aria-label': 'Class list, one name per line' });
+    var select = h('select', { class: 'class-select', id: 'classSel-' + uid, 'aria-label': 'Choose a class' });
+    select.addEventListener('change', function () {
+      if (select.value === '__new') { openEditor(true); return; }
+      TT.roster.select(select.value);
+    });
+    var nameInput = h('input', { type: 'text', id: 'className-' + uid, maxlength: 40, placeholder: 'Class name, like Reading Group A', 'aria-label': 'Class name' });
+    var area = h('textarea', { class: 'roster-input', id: 'rosterInput-' + uid, rows: 10, placeholder: 'Type or paste names, one per line', 'aria-label': 'Class list, one name per line' });
+    var creating = false;
+    var delConfirm = h('span', { class: 'confirm', hidden: true },
+      h('span', { text: 'Delete this class list?' }),
+      TT.button('Delete', { kind: 'primary small', onclick: function () { TT.roster.remove(); closeEditor(); } }),
+      TT.button('Keep', { kind: 'small', onclick: function () { delConfirm.hidden = true; delBtn.hidden = false; } }));
+    var delBtn = TT.button('Delete class', { icon: 'trash', kind: 'small', onclick: function () { delBtn.hidden = true; delConfirm.hidden = false; } });
     var editor = h('div', { class: 'roster-editor', hidden: true },
-      area,
+      nameInput, area,
       h('div', { class: 'row' },
-        TT.button('Save class list', { kind: 'primary', onclick: function () {
-          TT.roster.setNames(area.value.split(/\n|,/)); editor.hidden = true; view.hidden = false;
+        TT.button('Save', { kind: 'primary', onclick: function () {
+          var names = area.value.split(/\n|,/);
+          if (creating) TT.roster.create(nameInput.value || 'New class', names);
+          else { TT.roster.rename(nameInput.value); TT.roster.setNames(names); }
+          closeEditor();
         } }),
-        TT.button('Cancel', { onclick: function () { editor.hidden = true; view.hidden = false; } })
-      )
-    );
+        TT.button('Cancel', { onclick: closeEditor }),
+        delBtn, delConfirm));
     var count = h('span', { class: 'roster-count' });
     var view = h('div', { class: 'roster-view' }, note, chips);
-    var editBtn = TT.button('Edit list', { icon: 'edit', kind: 'small', onclick: function () {
-      area.value = TT.roster.isSample() ? '' : TT.roster.all().join('\n');
-      view.hidden = true; editor.hidden = false; area.focus();
-    } });
+    var editBtn = TT.button('Edit', { icon: 'edit', kind: 'small', onclick: function () { openEditor(false); } });
+    var newBtn = TT.button('New class', { icon: 'plus', kind: 'small', onclick: function () { openEditor(true); } });
     el.append(h('div', { class: 'roster' },
-      h('div', { class: 'roster-head' }, h('div', null, h('h3', { text: 'Class list' }), count), editBtn),
-      view, editor));
+      h('div', { class: 'roster-head' }, h('h3', { text: 'Class list' }), h('div', { class: 'row' }, editBtn, newBtn)),
+      select, count, view, editor,
+      h('details', { class: 'move' }, h('summary', { text: 'Use these lists on another computer' }),
+        h('p', { class: 'roster-note', text: 'Lists are saved only on this computer. Save a backup file, put it on a USB drive or email it to yourself, then load it on the other computer. It includes your classes, links, board and pet.' }),
+        TT.backupControls())));
 
+    function openEditor(isNew) {
+      creating = isNew;
+      nameInput.value = isNew ? '' : TT.roster.activeName();
+      area.value = isNew || TT.roster.isSample() ? '' : TT.roster.all().join('\n');
+      delBtn.hidden = isNew; delConfirm.hidden = true;
+      view.hidden = true; editor.hidden = false; (isNew ? nameInput : area).focus();
+      paintSelect();
+    }
+    function closeEditor() { editor.hidden = true; view.hidden = false; paint(); }
+    function paintSelect() {
+      select.textContent = '';
+      TT.roster.lists().forEach(function (l) {
+        var o = h('option', { value: l.id, text: l.name + (l.count ? ' (' + l.count + ')' : '') });
+        if (l.id === TT.roster.activeId()) o.selected = true;
+        select.append(o);
+      });
+      select.append(h('option', { value: '__new', text: '+ New class…' }));
+    }
     function paint() {
+      paintSelect();
       chips.textContent = '';
       var all = TT.roster.all();
       all.forEach(function (n) {
@@ -185,7 +300,7 @@
       var present = TT.roster.present().length;
       count.textContent = present + ' here today' + (all.length !== present ? ' · ' + (all.length - present) + ' absent' : '');
       note.textContent = TT.roster.isSample()
-        ? 'These are sample names. Choose “Edit list” to add your class.'
+        ? 'These are sample names. Choose “Edit” to type or paste your class.'
         : 'Tap a name to mark someone absent today. It resets tomorrow.';
       note.classList.toggle('warn', TT.roster.isSample());
     }
