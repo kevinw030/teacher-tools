@@ -238,16 +238,25 @@
       var t = TYPES[w.type];
       if (!t) return;
       var body = h('div', { class: 'w-body' });
-      var closeBtn = h('button', { type: 'button', class: 'w-close', 'aria-label': 'Close ' + t.title, html: TT.icon('close'), onclick: function () { removeWidget(w.id); } });
-      var head = h('div', { class: 'w-head' }, h('span', { class: 'w-title', text: t.title }), closeBtn);
+      var closeBtn = h('button', { type: 'button', class: 'w-close', 'aria-label': 'Close ' + t.title, title: 'Close', html: TT.icon('close'), onclick: function () { removeWidget(w.id); } });
+      var lockBtn = h('button', { type: 'button', class: 'w-close w-lock', onclick: function () { w.locked = !w.locked; paintLock(); save(); } });
+      var head = h('div', { class: 'w-head' }, h('span', { class: 'w-title', text: t.title }), h('span', { class: 'w-btns' }, lockBtn, closeBtn));
       var grip = h('div', { class: 'w-resize', 'aria-hidden': 'true' });
       var node = h('div', { class: 'widget w-' + w.type + (fresh ? ' fresh' : ''), 'data-id': w.id }, head, body, grip);
+      function paintLock() {
+        node.classList.toggle('locked', !!w.locked);
+        lockBtn.innerHTML = TT.icon(w.locked ? 'lock' : 'unlock');
+        lockBtn.title = w.locked ? 'Locked in place. Click to unlock.' : 'Lock in place';
+        lockBtn.setAttribute('aria-label', lockBtn.title);
+        lockBtn.setAttribute('aria-pressed', w.locked ? 'true' : 'false');
+      }
+      paintLock();
       place(node, w);
       node.style.zIndex = ++z;
       canvas.append(node);
       node.addEventListener('pointerdown', function () { node.style.zIndex = ++z; });
 
-      drag(head, function (dx, dy, start) { w.x = start.x + dx; w.y = start.y + dy; clamp(w); place(node, w); }, w, closeBtn);
+      drag(head, function (dx, dy, start) { w.x = start.x + dx; w.y = start.y + dy; clamp(w); place(node, w); }, w, head.querySelector('.w-btns'));
       drag(grip, function (dx, dy, start) { w.w = start.w + dx; w.h = start.h + dy; clamp(w); place(node, w); }, w);
 
       mounted[w.id] = WIDGETS[w.type](body, w, save) || {};
@@ -255,7 +264,7 @@
 
     function drag(handle, move, w, ignore) {
       handle.addEventListener('pointerdown', function (e) {
-        if (ignore && ignore.contains(e.target)) return;
+        if (w.locked || (ignore && ignore.contains(e.target))) return;
         e.preventDefault();
         var sx = e.clientX, sy = e.clientY, start = { x: w.x, y: w.y, w: w.w, h: w.h };
         handle.setPointerCapture(e.pointerId);
