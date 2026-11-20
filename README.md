@@ -1,6 +1,6 @@
 # Teacher Tools
 
-Classroom tools for the board: Classroom Board, Timer, Name Picker, Group Maker and a daily Would You Rather.
+Classroom tools for the board: Classroom Board, Timer, Name Picker, Group Maker, Classroom Pet, team games and a daily Would You Rather.
 
 Live site: https://kevinw030.github.io/teacher-tools/
 

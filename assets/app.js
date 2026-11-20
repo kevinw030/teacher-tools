@@ -55,6 +55,23 @@
     paintLinks();
   });
 
+  // ---------- Games: one card and one page per game ----------
+  var arrow = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>';
+  var gameMounters = {}, gameTitles = {};
+  (TT.games || []).forEach(function (g) {
+    $('gamesList').append(h('a', { class: 'tool c-' + g.color, href: '#' + g.id },
+      h('span', { class: 'tool-icon', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + g.icon + '</svg>' }),
+      h('h3', { text: g.title }), h('p', { text: g.desc }), h('span', { class: 'go', html: 'Play ' + arrow })));
+    var mount = h('section', { class: 'panel' });
+    $('gameViews').append(h('main', { class: 'page c-' + g.color, id: 'view-' + g.id, 'data-view': g.id, hidden: true },
+      h('header', { class: 'tool-head' },
+        h('div', null, h('a', { class: 'btn small', href: '#games', html: TT.icon('back') + '<span>All games</span>' }), h('h1', { text: g.title }), h('p', { text: g.desc })),
+        h('div', { class: 'row js-fs-slot' })),
+      mount));
+    gameMounters[g.id] = function () { g.mount(mount); return {}; };
+    gameTitles[g.id] = g.title;
+  });
+
   // ---------- Full screen buttons on tool pages ----------
   document.querySelectorAll('.js-fs-slot').forEach(function (slot) {
     if (!TT.canFullscreen) return;
@@ -74,17 +91,20 @@
     timer: function () { return TT.mountTimer($('timerMount'), { state: TT.load('timer', {}), onChange: function (d) { TT.save('timer', d); } }); },
     'name-picker': function () { TT.mountRoster($('pickerRoster')); return TT.mountPicker($('pickerMount')); },
     groups: function () { TT.mountRoster($('groupsRoster')); return TT.mountGroups($('groupsMount')); },
-    'would-you-rather': function () { return TT.mountWYR($('wyrMount')); }
+    'would-you-rather': function () { return TT.mountWYR($('wyrMount')); },
+    pet: function () { return TT.mountPet($('petMount')); }
   };
+  Object.keys(gameMounters).forEach(function (k) { mounters[k] = gameMounters[k]; });
   var views = document.querySelectorAll('[data-view]:not(a)');
-  var titles = { home: 'Teacher Tools', board: 'Classroom Board', timer: 'Timer', 'name-picker': 'Name Picker', groups: 'Group Maker', 'would-you-rather': 'Would You Rather' };
+  var titles = { home: 'Teacher Tools', board: 'Classroom Board', timer: 'Timer', 'name-picker': 'Name Picker', groups: 'Group Maker', 'would-you-rather': 'Would You Rather', pet: 'Classroom Pet', games: 'Games' };
+  Object.keys(gameTitles).forEach(function (k) { titles[k] = gameTitles[k]; });
 
   function route() {
     var name = location.hash.replace('#', '') || 'home';
     if (!titles[name]) name = 'home';
     views.forEach(function (v) { v.hidden = v.getAttribute('data-view') !== name; });
     document.querySelectorAll('.nav-links a').forEach(function (a) {
-      var on = a.getAttribute('data-view') === name;
+      var on = a.getAttribute('data-view') === name || (a.getAttribute('data-view') === 'games' && !!gameTitles[name]);
       a.classList.toggle('active', on);
       if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
     });

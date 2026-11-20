@@ -25,6 +25,8 @@
       <a href="#timer" data-view="timer">Timer</a>
       <a href="#name-picker" data-view="name-picker">Name Picker</a>
       <a href="#groups" data-view="groups">Group Maker</a>
+      <a href="#pet" data-view="pet">Class Pet</a>
+      <a href="#games" data-view="games">Games</a>
       <a href="#would-you-rather" data-view="would-you-rather">Would You Rather</a>
     </div>
   </div>
@@ -87,6 +89,18 @@
         <h3>Would You Rather</h3>
         <p>A new question every day for discussion and quick class votes.</p>
         <span class="go">Today's question <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+      </a>
+      <a class="tool c-lime" href="#pet">
+        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5.5" cy="10" r="2"/><circle cx="9.5" cy="5.5" r="2"/><circle cx="14.5" cy="5.5" r="2"/><circle cx="18.5" cy="10" r="2"/><path d="M12 11c-3 0-6 4.5-6 7a2.5 2.5 0 0 0 3.5 2.2c1.6-.7 3.4-.7 5 0A2.5 2.5 0 0 0 18 18c0-2.5-3-7-6-7z"/></svg></span>
+        <h3>Classroom Pet</h3>
+        <p>Adopt a class pet and take care of it together every day.</p>
+        <span class="go">Visit your pet <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+      </a>
+      <a class="tool c-rose" href="#games">
+        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v3M5.5 12.5h3"/><circle cx="16" cy="11.5" r="1" fill="currentColor"/><circle cx="18" cy="13.5" r="1" fill="currentColor"/></svg></span>
+        <h3>Games</h3>
+        <p>Four in a Row, Tic-Tac-Toe, Checkers, Memory Match and Word Guess for teams.</p>
+        <span class="go">Play a game <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
       </a>
       <div class="tool soon c-sky">
         <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2"/></svg></span>
@@ -151,6 +165,24 @@
   </div>
 </main>
 
+<!-- CLASSROOM PET -->
+<main class="page c-lime" id="view-pet" data-view="pet" hidden>
+  <header class="tool-head">
+    <div><span class="eyebrow">Daily routine</span><h1>Classroom Pet</h1><p>Check in every day. Finish all five care tasks to keep your streak going and earn hearts.</p></div>
+    <div class="row js-fs-slot"></div>
+  </header>
+  <section class="panel" id="petMount"></section>
+</main>
+
+<!-- GAMES -->
+<main class="page c-rose" id="view-games" data-view="games" hidden>
+  <header class="tool-head">
+    <div><span class="eyebrow">Brain breaks</span><h1>Games</h1><p>Split the class into two teams and take turns on the board.</p></div>
+  </header>
+  <div class="tools" id="gamesList"></div>
+</main>
+<div id="gameViews"></div>
+
 <!-- WOULD YOU RATHER -->
 <main class="page c-coral" id="view-would-you-rather" data-view="would-you-rather" hidden>
   <header class="tool-head">
@@ -167,6 +199,8 @@
 <script src="would-you-rather/questions.js"></script>
 <script src="would-you-rather/app.js"></script>
 <script src="tools/board.js"></script>
+<script src="tools/pet.js"></script>
+<script src="tools/games.js"></script>
 <script src="assets/app.js"></script>
 </body>
 </html>
