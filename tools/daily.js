@@ -37,6 +37,7 @@
     if (state.bestDay !== TT.today()) { state.bestDay = TT.today(); state.best = 0; }
     var stream = null, actx = null, analyser = null, buf = null, raf = 0, level = 0, overSince = 0, loud = false, alerts = 0, lastChime = 0;
     var stars = 0, streak = 0, sinceStar = 0, lastT = 0, done = false, fake = null, cur = '';
+    var calm = 0, quietNow = false, loudOff = 0, want = '', wantSince = 0, sceneAt = 0, lastSub = '';
     var SEGS = 24;
     var bars = h('div', { class: 'sl-bars', 'aria-hidden': 'true' });
     for (var i = 0; i < SEGS; i++) bars.append(h('i'));
@@ -48,10 +49,11 @@
     var next = h('span'), nextBar = h('div', { class: 'sl2-next', 'aria-hidden': 'true' }, next);
     var streakPill = h('div', { class: 'sl2-pill' });
     var sky = h('div', { class: 'sl2-sky', 'aria-hidden': 'true' });
+    var bgs = ['quiet', 'ok', 'loud', 'win'].map(function (n) { return h('div', { class: 'sl2-bg bg-' + n, 'aria-hidden': 'true' }); });
     for (var k = 0; k < 14; k++) { var dot = h('i'); dot.style.left = (4 + (k * 37) % 92) + '%'; dot.style.top = (6 + (k * 23) % 44) + '%'; dot.style.animationDelay = -(k * 0.37) + 's'; sky.append(dot); }
     var again = TT.button('Start a New Round', { kind: 'primary big', onclick: function () { stars = 0; sinceStar = 0; done = false; again.hidden = true; paintStars(); } });
     again.hidden = true;
-    var stage = h('div', { class: 'sl-stage sl2', 'data-s': 'idle' }, sky,
+    var stage = h('div', { class: 'sl-stage sl2', 'data-s': 'idle' }, bgs, sky,
       h('div', { class: 'sl2-top' }, h('div', { class: 'sl2-goal' }, h('b', { text: 'Quiet Stars' }), starRow, nextBar), streakPill),
       label, buddy, sub, again, h('div', { class: 'sl-meter' }, bars, marker));
     var startBtn = TT.button('Start Listening', { icon: 'play', kind: 'primary big', onclick: toggle });
@@ -100,19 +102,27 @@
       label.textContent = s === 'loud' ? 'Too Loud!' : s === 'quiet' ? 'Shhh… Nice and Quiet' : s === 'ok' ? 'Just Right' : s === 'win' ? 'Star Goal Reached!' : 'Ready When You Are';
     }
     // One step of the meter. target is 0-100.
+    // The bars follow the sound quickly. The scene follows a slower, steadier reading and only
+    // changes when the room has clearly settled into a new level, so it never flickers.
     function step(target, now) {
-      level += (target - level) * (target > level ? 0.35 : 0.08);
-      paintBars();
-      stage.style.setProperty('--lv', (level / 100).toFixed(3));
-      var over = level >= state.limit;
-      if (over) { if (!overSince) overSince = now; } else overSince = 0;
-      var nowLoud = over && now - overSince > 900;
-      if (nowLoud && !loud) {
-        alerts++; streak = 0; sinceStar = 0;
-        if (state.chime && now - lastChime > 6000) { lastChime = now; TT.chime(); }
-      }
-      loud = nowLoud;
       var dt = lastT ? Math.min(0.25, (now - lastT) / 1000) : 0; lastT = now;
+      level += (target - level) * (target > level ? 0.35 : 0.08);
+      calm += (level - calm) * Math.min(1, dt / 1.6);
+      paintBars();
+      stage.style.setProperty('--lv', (calm / 100).toFixed(2));
+      // Too loud: over the limit for a second to switch on, clearly back under it for two seconds to switch off.
+      if (!loud) {
+        if (level >= state.limit) { if (!overSince) overSince = now; } else if (level < state.limit * 0.92) overSince = 0;
+        if (overSince && now - overSince > 1000) {
+          loud = true; loudOff = 0; alerts++; streak = 0; sinceStar = 0;
+          if (state.chime && now - lastChime > 6000) { lastChime = now; TT.chime(); }
+        }
+      } else {
+        if (calm < state.limit * 0.85) { if (!loudOff) loudOff = now; } else loudOff = 0;
+        if (loudOff && now - loudOff > 2000) { loud = false; overSince = 0; }
+      }
+      // Quiet and just right use two different lines, so a level sitting near one line stays put.
+      if (quietNow) { if (calm > state.limit * 0.6) quietNow = false; } else if (calm < state.limit * 0.4) quietNow = true;
       if (!loud && !done) {
         streak += dt; sinceStar += dt;
         if (streak > state.best) state.best = streak;
@@ -122,11 +132,16 @@
           if (stars >= state.goal) { done = true; again.hidden = false; TT.chime(); if (TT.celebrate) TT.celebrate(stage, ['⭐', '🌟', '✨', '🎉']); }
         }
       }
-      setScene(done ? 'win' : loud ? 'loud' : level < state.limit * 0.45 ? 'quiet' : 'ok');
+      var s = done ? 'win' : loud ? 'loud' : quietNow ? 'quiet' : 'ok';
+      if (s !== want) { want = s; wantSince = now; }
+      // Too loud and the win show right away. Other changes wait until the level has held steady.
+      var ready = s === 'loud' || s === 'win' || cur === 'idle' || (now - wantSince > 1500 && now - sceneAt > 3500);
+      if (s !== cur && ready) { setScene(s); sceneAt = now; }
       paintStars();
-      sub.textContent = done ? 'Amazing teamwork. You earned all ' + state.goal + ' stars!' :
-        loud ? 'The quiet streak starts over. Bring it back down!' :
+      var text = cur === 'win' ? 'Amazing teamwork. You earned all ' + state.goal + ' stars!' :
+        cur === 'loud' ? 'The quiet streak starts over. Bring it back down!' :
         'Next star in ' + Math.max(1, Math.ceil(state.every - sinceStar)) + ' sec' + (alerts ? ' · Too loud ' + alerts + (alerts === 1 ? ' time' : ' times') : '');
+      if (text !== lastSub) { lastSub = text; sub.textContent = text; }
     }
     function frame() {
       raf = requestAnimationFrame(frame);
@@ -147,7 +162,7 @@
       cancelAnimationFrame(raf);
       if (stream && stream.getTracks) stream.getTracks().forEach(function (t) { t.stop(); });
       if (actx) actx.close().catch(function () {});
-      stream = actx = analyser = null; level = 0; loud = false; overSince = 0; lastT = 0; streak = 0; fake = null; paintBars();
+      stream = actx = analyser = null; level = 0; calm = 0; quietNow = false; loud = false; overSince = 0; loudOff = 0; want = ''; lastT = 0; streak = 0; fake = null; lastSub = ''; paintBars();
       TT.save('sound', state);
       setScene('idle'); stage.style.setProperty('--lv', 0);
       sub.textContent = stars ? 'Paused with ' + stars + (stars === 1 ? ' star' : ' stars') + '. Press Start to keep going.' : 'Press Start and allow the microphone.';
