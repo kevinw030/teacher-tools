@@ -230,6 +230,7 @@
           var obj = JSON.parse(r.result);
           if (!obj || obj.app !== 'teacher-tools' || !obj.data) throw 0;
           Object.keys(obj.data).forEach(function (k) { if (k.indexOf('tt:') === 0) localStorage.setItem(k, obj.data[k]); });
+          if (TT.changed) TT.changed();
           done('Backup loaded. Reloading…', true);
           setTimeout(function () { location.reload(); }, 900);
         } catch (e) { done('That file isn’t a Teacher Tools backup. Choose the .json file you saved before.', false); }
@@ -295,6 +296,12 @@
         TT.backupControls())));
 
     function openEditor(isNew) {
+      var max = TT.limit ? TT.limit('classes') : Infinity;
+      if (isNew && TT.roster.lists().length >= max) {
+        paintSelect(); note.textContent = ''; note.classList.add('warn');
+        note.append(TT.upsell('The Free plan saves ' + max + ' class lists. Edit one of them, or go Premium for as many as you like.'));
+        return;
+      }
       creating = isNew;
       nameInput.value = isNew ? '' : TT.roster.activeName();
       area.value = isNew || TT.roster.isSample() ? '' : TT.roster.all().join('\n');

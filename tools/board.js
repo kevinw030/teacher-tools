@@ -42,7 +42,9 @@
     var photoMsg = h('p', { class: 'form-msg', hidden: true });
     var bgPanel = h('div', { class: 'bg-panel', hidden: true, role: 'dialog', 'aria-label': 'Choose a background' },
       h('div', { class: 'bg-own' },
-        h('label', { class: 'btn small', for: 'bgPhoto', html: TT.icon('image') + '<span>Use My Own Photo</span>' }), fileInput,
+        h('label', { class: 'btn small', for: 'bgPhoto', html: TT.icon('image') + '<span>Use My Own Photo</span>', onclick: function (e) {
+          if (TT.limit && !TT.limit('photo')) { e.preventDefault(); photoMsg.textContent = ''; photoMsg.append(TT.upsell('Your own photo backgrounds come with Premium.')); photoMsg.hidden = false; }
+        } }), fileInput,
         h('label', { class: 'btn small color-btn', for: 'bgColor' }, colorInput, h('span', { text: 'Any Color' }))),
       photoMsg,
       (TT.BACKGROUNDS || []).map(function (g) {
@@ -115,7 +117,9 @@
       navAdd.disabled = screens.list.length >= max;
       navAdd.title = navAdd.disabled ? 'You can save up to ' + max + ' screens' : 'New Blank Screen';
       screenMsg.hidden = screens.list.length < max;
-      screenMsg.textContent = 'You can save up to ' + max + (max === 1 ? ' screen' : ' screens') + '. Delete one to make room.';
+      screenMsg.textContent = '';
+      if (TT.account && TT.account.enabled && !TT.account.isPremium()) screenMsg.append(TT.upsell('The Free plan saves ' + max + (max === 1 ? ' screen' : ' screens') + '. Delete one to make room, or save up to 10 with Premium.'));
+      else screenMsg.textContent = 'You can save up to ' + max + (max === 1 ? ' screen' : ' screens') + '. Delete one to make room.';
       screenMsg.classList.add('warn');
     }
     function bgCss(st) {
@@ -296,7 +300,7 @@
           c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
           c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
           var data = c.toDataURL('image/jpeg', 0.82);
-          try { localStorage.setItem('tt:board-photo', JSON.stringify(data)); photoMsg.hidden = true; }
+          try { localStorage.setItem('tt:board-photo', JSON.stringify(data)); photoMsg.hidden = true; if (TT.changed) TT.changed('tt:board-photo'); }
           catch (e) { photoMsg.textContent = 'That photo is too big to save. Try a smaller one.'; photoMsg.hidden = false; return; }
           setBg('photo');
         };

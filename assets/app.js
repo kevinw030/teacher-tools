@@ -98,6 +98,7 @@
     'morning-meeting': function () { return TT.mountMorning($('morningMount')); },
     'brain-breaks': function () { return TT.mountBreaks($('breaksMount')); },
     settings: function () { return TT.mountSettings($('settingsMount')); },
+    account: function () { return TT.mountAccount($('accountMount')); },
     'my-questions': function () { return TT.mountCustom($('customMount')); },
     'sound-level': function () { return TT.mountSound($('soundMount')); },
     schedule: function () { return TT.mountSchedule($('scheduleMount')); },
@@ -106,7 +107,7 @@
   };
   Object.keys(gameMounters).forEach(function (k) { mounters[k] = gameMounters[k]; });
   var views = document.querySelectorAll('[data-view]:not(a)');
-  var titles = { home: 'Teacher Tools', board: 'Classroom Board', timer: 'Timer', 'name-picker': 'Name Picker', groups: 'Group Maker', 'would-you-rather': 'Would You Rather', pet: 'Classroom Pet', games: 'Games', 'name-wheel': 'Name Wheel', 'morning-meeting': 'Morning Meeting', 'brain-breaks': 'Brain Breaks', settings: 'Settings', 'my-questions': 'My Questions', 'sound-level': 'Sound Level', schedule: 'Daily Schedule', jobs: 'Class Jobs', points: 'Class Points' };
+  var titles = { home: 'Teacher Tools', board: 'Classroom Board', timer: 'Timer', 'name-picker': 'Name Picker', groups: 'Group Maker', 'would-you-rather': 'Would You Rather', pet: 'Classroom Pet', games: 'Games', 'name-wheel': 'Name Wheel', 'morning-meeting': 'Morning Meeting', 'brain-breaks': 'Brain Breaks', settings: 'Settings', account: 'My Account', 'my-questions': 'My Questions', 'sound-level': 'Sound Level', schedule: 'Daily Schedule', jobs: 'Class Jobs', points: 'Class Points' };
   Object.keys(gameTitles).forEach(function (k) { titles[k] = gameTitles[k]; });
 
   // ---------- Menus in the top bar ----------
