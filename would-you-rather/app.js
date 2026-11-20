@@ -142,7 +142,6 @@
     }
 
     el.append(wrap = h('div', { class: 'wyr' + (compact ? ' compact' : ' fun') },
-      fun ? h('div', { class: 'wyr-sky', 'aria-hidden': 'true' }, ['?', '★', '?', '●', '★', '?', '●', '★'].map(function (g, i) { return h('i', { class: 'f' + i, text: g }); })) : null,
       fun ? bubble : null,
       h('div', { class: 'choices' }, A.btn, fun ? h('div', { class: 'wyr-mid' }, buddy, h('div', { class: 'or', 'aria-hidden': 'true', text: 'OR' })) : h('div', { class: 'or', 'aria-hidden': 'true', text: 'OR' }), B.btn),
       compact ? null : h('div', { class: 'wyr-foot' },

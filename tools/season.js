@@ -46,14 +46,8 @@
     return SEASONS.filter(function (s) { return s.id === pick; })[0] || byDate(new Date());
   };
 
-  // A repeating emoji pattern as a CSS background (the emoji are drawn in a tiny SVG tile).
-  function pattern(emoji, base, size) {
-    var S = size || 180, spots = [[30, 46, -12, 34], [118, 70, 14, 30], [66, 138, 8, 32], [150, 160, -18, 26]];
-    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + S + '" height="' + S + '" viewBox="0 0 180 180">' +
-      spots.map(function (p, i) { return '<text x="' + p[0] + '" y="' + p[1] + '" font-size="' + p[3] + '" text-anchor="middle" transform="rotate(' + p[2] + ' ' + p[0] + ' ' + p[1] + ')">' + emoji[i % emoji.length] + '</text>'; }).join('') + '</svg>';
-    return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '") 0 0/' + S + 'px ' + S + 'px, ' + base;
-  }
-  TT.seasonPattern = function (s) { return pattern(s.emoji, s.bg.indexOf('radial-gradient(circle,#fff') === 0 ? s.bg.slice(s.bg.lastIndexOf('linear-gradient')) : s.bg); };
+  // A clean gradient for each theme. No tiled icons or repeated shapes: Kevin prefers plain, colorful backgrounds.
+  TT.seasonPattern = function (s) { return s.bg.indexOf('radial-gradient(circle,') === 0 ? s.bg.slice(s.bg.lastIndexOf('linear-gradient')) : s.bg; };
 
   // Classroom Board backgrounds: one for each holiday, plus one that follows the calendar.
   if (TT.BACKGROUNDS) {
@@ -81,18 +75,7 @@
     setTimeout(function () { box.remove(); }, 4500);
   };
 
-  // Dress up the home page and Morning Meeting.
-  var SPOTS = [[4, 12, 34, -14], [22, 78, 26, 10], [44, 6, 24, 18], [58, 84, 30, -8], [72, 14, 28, 12], [90, 70, 36, -16], [97, 8, 22, 6]];
-  function decor(s) {
-    var box = h('div', { class: 'season-decor', 'aria-hidden': 'true' });
-    SPOTS.forEach(function (p, i) {
-      var e = h('span', { text: s.emoji[i % s.emoji.length] });
-      e.style.left = p[0] + '%'; e.style.top = p[1] + '%'; e.style.fontSize = p[2] + 'px';
-      e.style.setProperty('--r', p[3] + 'deg'); e.style.animationDelay = (i * -0.9) + 's';
-      box.append(e);
-    });
-    return box;
-  }
+  // Tint the home page for the season (colors only, no scattered icons).
   TT.applySeason = function () {
     var s = TT.season(), root = document.documentElement;
     document.querySelectorAll('.season-decor, .season-chip').forEach(function (n) { n.remove(); });
@@ -102,11 +85,10 @@
     if (!s) return;
     var hero = document.querySelector('#view-home .hero');
     if (hero) {
-      hero.classList.add('seasonal'); hero.prepend(decor(s));
+      hero.classList.add('seasonal');
       var p = hero.querySelector('p');
       if (p) p.after(h('span', { class: 'season-chip', text: s.emoji[0] + ' ' + s.name }));
     }
-    document.querySelectorAll('.mm-hero').forEach(function (m) { m.prepend(decor(s)); });
   };
   TT.applySeason();
 })();
