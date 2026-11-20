@@ -28,6 +28,7 @@
       row('Class Name', 'Shown on the Morning Meeting screen, like “Good morning, Room 12!”', classInput),
       row('Theme', 'Light, dark, or match this computer.', seg([['auto', 'Match Computer'], ['light', 'Light'], ['dark', 'Dark']], 'theme', TT.applyTheme)),
       row('Sounds', 'Chimes, ticks and spinner sounds.', seg([[true, 'On'], [false, 'Off']], 'sound', function () { if (s.sound) TT.chime(); })),
+      row('My Questions', 'Write your own Would You Rather questions, trivia and escape rooms.', TT.button('Open My Questions', { icon: 'edit', onclick: function () { TT.custom.open('wyr'); } })),
       row('Backup', 'Save everything to a file, or load it on another computer.', TT.backupControls())));
   };
 

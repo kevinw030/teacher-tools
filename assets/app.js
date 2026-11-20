@@ -69,7 +69,7 @@
         h('div', null, h('a', { class: 'btn small', href: '#games', html: TT.icon('back') + '<span>All Games</span>' }), h('h1', { text: g.title }), h('p', { text: g.desc })),
         h('div', { class: 'row js-fs-slot' })),
       mount));
-    gameMounters[g.id] = function () { g.mount(mount); return {}; };
+    gameMounters[g.id] = function () { return g.mount(mount) || {}; };
     gameTitles[g.id] = g.title;
   });
 
@@ -97,11 +97,12 @@
     'name-wheel': function () { return TT.mountWheel($('wheelMount'), $('wheelSide')); },
     'morning-meeting': function () { return TT.mountMorning($('morningMount')); },
     'brain-breaks': function () { return TT.mountBreaks($('breaksMount')); },
-    settings: function () { return TT.mountSettings($('settingsMount')); }
+    settings: function () { return TT.mountSettings($('settingsMount')); },
+    'my-questions': function () { return TT.mountCustom($('customMount')); }
   };
   Object.keys(gameMounters).forEach(function (k) { mounters[k] = gameMounters[k]; });
   var views = document.querySelectorAll('[data-view]:not(a)');
-  var titles = { home: 'Teacher Tools', board: 'Classroom Board', timer: 'Timer', 'name-picker': 'Name Picker', groups: 'Group Maker', 'would-you-rather': 'Would You Rather', pet: 'Classroom Pet', games: 'Games', 'name-wheel': 'Name Wheel', 'morning-meeting': 'Morning Meeting', 'brain-breaks': 'Brain Breaks', settings: 'Settings' };
+  var titles = { home: 'Teacher Tools', board: 'Classroom Board', timer: 'Timer', 'name-picker': 'Name Picker', groups: 'Group Maker', 'would-you-rather': 'Would You Rather', pet: 'Classroom Pet', games: 'Games', 'name-wheel': 'Name Wheel', 'morning-meeting': 'Morning Meeting', 'brain-breaks': 'Brain Breaks', settings: 'Settings', 'my-questions': 'My Questions' };
   Object.keys(gameTitles).forEach(function (k) { titles[k] = gameTitles[k]; });
 
   function route() {

@@ -128,19 +128,32 @@
       ] }
   ];
 
+  function allRooms() {
+    var mine = ((TT.load('custom', {}) || {}).rooms || []).filter(function (r) { return r && r.title && Array.isArray(r.locks) && r.locks.length; });
+    return ROOMS.concat(mine.map(function (r) {
+      return { id: 'my-' + r.id, title: r.title, emoji: '🗝️', color: 'rose', mine: true,
+        intro: r.intro || 'Your teacher built this room just for you. Work together to open every lock!',
+        win: 'Every lock is open. Great teamwork!',
+        locks: r.locks.map(function (L) {
+          return { q: L.q, a: String(L.a).split(',').map(norm).filter(Boolean), hint: L.hint || 'No hint for this one. Talk it over as a team.' };
+        }) };
+    }));
+  }
+
   function escape(el) {
     var room = null, idx = 0, start = 0, iv = 0, hintsUsed = 0;
     var root = h('div', { class: 'game escape' });
     el.append(root);
 
     function menu() {
-      clearInterval(iv); root.textContent = '';
+      clearInterval(iv); root.textContent = ''; room = null;
       var best = TT.load('escape-best', {});
-      root.append(h('p', { class: 'game-status', text: 'Choose a room. Work together to open all five locks.' }),
-        h('div', { class: 'room-grid' }, ROOMS.map(function (r) {
+      root.append(h('p', { class: 'game-status', text: 'Choose a room. Work together to open every lock.' }),
+        h('div', { class: 'row center' }, TT.button('Make Your Own Room', { icon: 'plus', kind: 'small', onclick: function () { TT.custom.open('rooms'); } })),
+        h('div', { class: 'room-grid' }, allRooms().map(function (r) {
           return h('button', { type: 'button', class: 'room-card c-' + r.color, onclick: function () { begin(r); } },
             h('span', { class: 'room-emoji', text: r.emoji }), h('b', { text: r.title }),
-            h('small', { text: best[r.id] ? 'Best time ' + fmt(best[r.id]) : '5 locks' }));
+            h('small', { text: best[r.id] ? 'Best time ' + fmt(best[r.id]) : (r.mine ? 'My room · ' : '') + r.locks.length + (r.locks.length === 1 ? ' lock' : ' locks') }));
         })));
     }
     function fmt(s) { return Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + s % 60; }
@@ -202,6 +215,7 @@
       TT.chime();
     }
     menu();
+    return { show: function () { if (!room) menu(); } };
   }
 
   // ---------- Code Breaker ----------
@@ -277,9 +291,19 @@
     var state = TT.load('trivia', null);
     var root = h('div', { class: 'game trivia' });
     el.append(root);
+    // The teacher's own categories and questions go on the board first.
     function newBoard() {
-      var cats = TT.shuffle(Object.keys(TRIVIA)).slice(0, 5);
-      state = { cats: cats.map(function (c) { return { name: c, qs: TT.shuffle(TRIVIA[c].map(function (_, i) { return i; })).slice(0, 4), done: [0, 0, 0, 0] }; }), scores: [0, 0] };
+      var mine = {}, own = [];
+      ((TT.load('custom', {}) || {}).trivia || []).forEach(function (t) {
+        if (!t || !t.cat || !t.q || !t.a) return;
+        if (!mine[t.cat]) { mine[t.cat] = []; if (!TRIVIA[t.cat]) own.push(t.cat); }
+        mine[t.cat].push([t.q, t.a]);
+      });
+      own = own.filter(function (c) { return mine[c].length >= 4; });
+      var cats = TT.shuffle(own).concat(TT.shuffle(Object.keys(TRIVIA))).slice(0, 5);
+      state = { cats: cats.map(function (c) {
+        return { name: c, items: TT.shuffle(mine[c] || []).concat(TT.shuffle(TRIVIA[c] || [])).slice(0, 4), done: [0, 0, 0, 0] };
+      }), scores: [0, 0] };
       save(); board();
     }
     function save() { TT.save('trivia', state); }
@@ -299,13 +323,14 @@
         h('div', { class: 'scorebar' },
           h('div', { class: 'team active' }, h('span', { class: 'team-dot', style: 'background:var(--cobalt)' }), h('span', { text: 'Team 1' }), h('b', { text: s[0] })),
           h('div', { class: 'team active' }, h('span', { class: 'team-dot', style: 'background:var(--coral)' }), h('span', { text: 'Team 2' }), h('b', { text: s[1] })),
-          TT.button('New Board', { icon: 'reset', kind: 'small', onclick: newBoard })),
+          TT.button('New Board', { icon: 'reset', kind: 'small', onclick: newBoard }),
+          TT.button('Write Your Own', { icon: 'plus', kind: 'small', onclick: function () { TT.custom.open('trivia'); } })),
         h('p', { class: 'game-status', text: left ? 'Pick a category and a point value.' : (s[0] === s[1] ? 'Game over. It’s a tie!' : 'Game over. Team ' + (s[0] > s[1] ? 1 : 2) + ' wins!') }),
         grid);
       if (!left) TT.chime();
     }
     function question(ci, r) {
-      var c = state.cats[ci], q = TRIVIA[c.name][c.qs[r]], p = POINTS[r];
+      var c = state.cats[ci], q = c.items[r], p = POINTS[r];
       var ans = h('div', { class: 'riddle-answer', hidden: true, text: q[1] });
       var award = h('div', { class: 'row center', hidden: true },
         h('span', { class: 'muted', text: 'Who got it?' }),
@@ -320,7 +345,7 @@
         h('h2', { class: 'riddle-q', text: q[0] }), ans,
         h('div', { class: 'row center' }, reveal, TT.button('Back to Board', { kind: 'big', onclick: board })), award));
     }
-    if (state && state.cats && state.cats.every(function (c) { return TRIVIA[c.name]; })) board(); else newBoard();
+    if (state && state.cats && state.cats.every(function (c) { return c.items && c.items.length === 4; })) board(); else newBoard();
   }
 
   TT.games = (TT.games || []).concat([

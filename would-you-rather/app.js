@@ -3,12 +3,18 @@
   var TT = window.TT, h = TT.h;
   var KEY = 'wyr';
 
-  var questions = (window.WYR_QUESTIONS || []).filter(function (q) {
-    return Array.isArray(q) && q.length === 2 && q[0] && q[1];
-  });
+  // Built-in questions plus any the teacher wrote on the My Questions page.
+  var questions, byKey;
   function keyOf(q) { return q[0] + ' | ' + q[1]; }
-  var byKey = {};
-  questions.forEach(function (q) { byKey[keyOf(q)] = q; });
+  function build() {
+    var mine = (TT.load('custom', {}) || {}).wyr || [];
+    byKey = {};
+    questions = (window.WYR_QUESTIONS || []).concat(mine).filter(function (q) {
+      if (!Array.isArray(q) || q.length !== 2 || !q[0] || !q[1] || byKey[keyOf(q)]) return false;
+      byKey[keyOf(q)] = q; return true;
+    });
+  }
+  build();
 
   var state = TT.load(KEY, {});
   var listeners = [];
@@ -39,7 +45,19 @@
     return pickNew();
   }
 
-  TT.wyr = { current: current, onChange: function (fn) { listeners.push(fn); } };
+  TT.wyr = {
+    current: current,
+    onChange: function (fn) { listeners.push(fn); },
+    reload: function () { build(); listeners.forEach(function (fn) { fn(); }); },
+    // Show this question today.
+    use: function (q) {
+      build(); if (!byKey[keyOf(q)]) return;
+      cleanSeen();
+      state.current = keyOf(q); state.date = TT.today(); state.votes = { a: 0, b: 0 };
+      if (state.seen.indexOf(state.current) < 0) state.seen.push(state.current);
+      save();
+    }
+  };
 
   TT.mountWYR = function (el, opts) {
     opts = opts || {};
@@ -77,6 +95,7 @@
       compact ? null : h('div', { class: 'wyr-foot' },
         h('div', { class: 'progress' }, progressLabel, h('span', { class: 'track' }, progressBar)),
         h('div', { class: 'row' },
+          TT.button('Add Your Own', { icon: 'plus', onclick: function () { TT.custom.open('wyr'); } }),
           TT.button('Clear Votes', { icon: 'reset', onclick: function () { state.votes = { a: 0, b: 0 }; save(); } }),
           confirm, newBtn))
     ));
