@@ -1070,3 +1070,10 @@ button.cb-peg.big:hover { transform: scale(1.1); }
 .pts-name:hover, .pts-name:focus-visible { border-color: var(--line); background: var(--surface); }
 .pts-score { font-family: var(--display); font-size: clamp(64px, 8vw, 110px); line-height: 1; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
 @media (max-width: 760px) { .jar-layout { grid-template-columns: 1fr; } .jar { max-width: 240px; margin: 0 auto; } .sched-list li { font-size: 16px; } }
+
+/* Multiplication Race: hopping pawns */
+.tr-fly { position: absolute; left: 0; top: 0; width: auto; z-index: 4; transform-origin: 50% 100%; pointer-events: none; filter: drop-shadow(0 8px 6px rgba(0,0,0,.55)); will-change: transform; }
+.tr-tile.land { animation: tr-land .5s ease-out; }
+@keyframes tr-land { 0% { transform: scale(.9); box-shadow: 0 0 0 0 var(--tc, #fff), inset 0 -5px 0 rgba(0,0,0,.25); } 45% { transform: scale(1.08); } 100% { transform: scale(1); box-shadow: 0 0 0 16px transparent, inset 0 -5px 0 rgba(0,0,0,.25); } }
+.tr-count { position: absolute; z-index: 4; transform: translate(-50%, -50%); min-width: 1.9em; padding: .15em .4em; border-radius: 999px; color: #fff; font: 800 clamp(14px, 2.2vw, 24px)/1.4 var(--display); text-align: center; border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,.4); pointer-events: none; animation: tr-count .8s ease-out forwards; }
+@keyframes tr-count { 0% { opacity: 0; transform: translate(-50%, 0) scale(.4); } 25% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); } 70% { opacity: 1; transform: translate(-50%, -90%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -150%) scale(.9); } }

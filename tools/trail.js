@@ -36,6 +36,8 @@
     var rollBtn = TT.button('Roll the Die', { kind: 'primary big', onclick: roll });
     var board = h('div', { class: 'tr-board', role: 'img', 'aria-label': 'Race track with ' + N + ' spaces' });
     var card = h('div', { class: 'tr-card', hidden: true, role: 'dialog', 'aria-live': 'assertive' });
+    var wrap = h('div', { class: 'tr-wrap' }, board, card), moving = -1;
+    var calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var counts = h('div', { class: 'segmented', role: 'group', 'aria-label': 'Number of teams' }, [2, 3, 4].map(function (n) {
       return h('button', { type: 'button', class: 'seg', 'data-n': n, onclick: function () { newGame(n); } }, n + ' Teams');
     }));
@@ -50,7 +52,7 @@
     function paintTables() { tables.querySelectorAll('.tr-table').forEach(function (b) { var on = set.tables.indexOf(+b.getAttribute('data-n')) >= 0; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); }); }
     el.append(h('div', { class: 'game trail' }, teamsBar, st,
       h('div', { class: 'row center' }, die, rollBtn),
-      h('div', { class: 'tr-wrap' }, board, card),
+      wrap,
       h('div', { class: 'tr-legend' }, Object.keys(KINDS).map(function (k) { return h('span', null, art(KINDS[k][0]), h('b', { text: KINDS[k][1] }), ' ' + KINDS[k][2]); })),
       h('div', { class: 'tr-setup' }, h('b', { text: 'Times Tables in Play' }), tables),
       h('div', { class: 'row center' }, counts, TT.button('New Game', { icon: 'reset', onclick: function () { newGame(state.n); } }))));
@@ -59,7 +61,7 @@
     function newGame(n) {
       state = { n: n, pos: [], turn: 0, over: false, layout: makeLayout() };
       for (var i = 0; i < n; i++) state.pos.push(0);
-      busy = false; card.hidden = true; save(); paint();
+      busy = false; card.hidden = true; moving = -1; wrap.querySelectorAll('.tr-fly, .tr-count').forEach(function (n) { n.remove(); }); save(); paint();
     }
     function name(t) { return TEAMS[t][0]; }
     function fact() {
@@ -88,7 +90,7 @@
         var dir = i === N - 1 ? '' : c === COLS - 1 ? ' d' : row % 2 ? ' l' : ' r';
         var k = state.layout[i];
         var tokens = h('span', { class: 'tr-tokens' });
-        state.pos.forEach(function (p, t) { if (Math.min(p, N - 1) === i) tokens.append(art(TEAMS[t][2], 'tr-token' + (t === state.turn && !state.over ? ' now' : ''))); });
+        state.pos.forEach(function (p, t) { if (Math.min(p, N - 1) === i && t !== moving) tokens.append(art(TEAMS[t][2], 'tr-token' + (t === state.turn && !state.over ? ' now' : ''))); });
         var ico = i === 0 ? 'start' : i === N - 1 ? 'finish' : k ? KINDS[k][0] : '';
         var tile = h('div', { class: 'tr-tile' + dir + (k ? ' k-' + k : '') + (i === 0 ? ' start' : i === N - 1 ? ' finish' : ''), title: i === 0 ? 'Start' : i === N - 1 ? 'Finish' : k ? KINDS[k][1] : null },
           h('span', { class: 'tr-n', text: i === 0 ? 'Start' : i === N - 1 ? 'Finish' : String(i) }),
@@ -118,13 +120,54 @@
       var reveal = TT.button('Show Answer', { kind: 'primary big', onclick: function () { ans.textContent = String(f[0] * f[1]); ans.classList.add('shown'); judge.hidden = false; reveal.hidden = true; TT.tick(); } });
       show(icon, title, null, [reveal], h('div', { class: 'tr-extra' }, h('div', { class: 'tr-fact' }, f[0] + ' × ' + f[1] + ' = ', ans), judge));
     }
-    // Move one space at a time so the class can count along.
+    // Where a pawn stands on a tile, measured inside the board frame.
+    function spot(i) {
+      var r = board.children[i].getBoundingClientRect(), w = wrap.getBoundingClientRect();
+      return { x: r.left - w.left + r.width / 2, y: r.top - w.top + r.height * 0.98, s: r.height };
+    }
+    function at(p, extra) { return 'translate(' + p.x + 'px,' + p.y + 'px) translate(-50%,-100%) ' + (extra || ''); }
+    // Hop one space at a time so the class can count along: crouch, jump in an arc, squash on landing.
     function walk(t, n, done) {
+      var step = n > 0 ? 1 : -1, left = Math.abs(n), count = 0;
+      if (!left || calm || !board.animate) { plainWalk(t, n, done); return; }
+      moving = t; paint();
+      var fly = art(TEAMS[t][2], 'tr-fly'), start = spot(state.pos[t]);
+      fly.style.height = start.s * 0.86 + 'px'; fly.style.transform = at(start);
+      wrap.append(fly);
+      function finish() { fly.remove(); moving = -1; save(); paint(); done(); }
+      (function go() {
+        if (!left || (step > 0 && state.pos[t] >= N - 1) || (step < 0 && state.pos[t] <= 0) || !fly.isConnected) { finish(); return; }
+        var a = spot(state.pos[t]), c = spot(state.pos[t] + step);
+        var mid = { x: (a.x + c.x) / 2, y: Math.min(a.y, c.y) - a.s * 0.62 };
+        var lean = c.x > a.x ? 10 : c.x < a.x ? -10 : 0;
+        var anim = fly.animate([
+          { transform: at(a, 'scale(1,1)'), offset: 0 },
+          { transform: at(a, 'scale(1.16,.8)'), offset: 0.16 },
+          { transform: at(mid, 'scale(.92,1.12) rotate(' + lean + 'deg)'), offset: 0.55 },
+          { transform: at(c, 'scale(1.2,.76)'), offset: 0.86 },
+          { transform: at(c, 'scale(.96,1.05)'), offset: 0.94 },
+          { transform: at(c, 'scale(1,1)'), offset: 1 }
+        ], { duration: 620, easing: 'ease-in-out', fill: 'forwards' });
+        anim.onfinish = function () {
+          state.pos[t] += step; left--; count++; TT.tick();
+          fly.style.transform = at(c);
+          var tile = board.children[state.pos[t]];
+          tile.style.setProperty('--tc', TEAMS[t][1]);
+          tile.classList.remove('land'); void tile.offsetWidth; tile.classList.add('land');
+          var bub = h('span', { class: 'tr-count', text: (step > 0 ? '' : '−') + count });
+          bub.style.left = c.x + 'px'; bub.style.top = (c.y - c.s * 0.9) + 'px'; bub.style.background = TEAMS[t][1];
+          wrap.append(bub); setTimeout(function () { bub.remove(); }, 800);
+          var num = teamsBar.children[t] && teamsBar.children[t].querySelector('b'); if (num) num.textContent = String(state.pos[t]);
+          setTimeout(go, 200);
+        };
+      })();
+    }
+    function plainWalk(t, n, done) {
       var step = n > 0 ? 1 : -1, left = Math.abs(n);
       (function go() {
         if (!left || (step > 0 && state.pos[t] >= N - 1) || (step < 0 && state.pos[t] <= 0)) { save(); done(); return; }
         state.pos[t] += step; left--; TT.tick(); paint();
-        setTimeout(go, 260);
+        setTimeout(go, 520);
       })();
     }
     // At the finish line a team has to solve one last fact to win.
