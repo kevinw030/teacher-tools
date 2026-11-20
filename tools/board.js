@@ -307,8 +307,22 @@
     }
 
     function bounds() { return { w: canvas.clientWidth || window.innerWidth, h: canvas.clientHeight || window.innerHeight - 160 }; }
+    // Widgets are saved in the measurements of the screen they were arranged on (state.ref).
+    // On any other screen size the whole layout is scaled to fit, so nothing overlaps or falls off.
+    function ref() {
+      if (!state.ref || !(state.ref.w > 0) || !(state.ref.h > 0)) {
+        if (!canvas.clientWidth) return bounds();
+        state.ref = bounds();
+      }
+      return state.ref;
+    }
+    function scale() {
+      var b = bounds(), r = ref(), k = Math.min(b.w / r.w, b.h / r.h);
+      if (!(k > 0) || Math.abs(k - 1) < 0.02) return 1;
+      return Math.max(0.3, Math.min(3, k));
+    }
     function clamp(w) {
-      var b = bounds();
+      var b = ref();
       w.w = Math.max(160, Math.min(w.w, b.w));
       w.h = Math.max(120, Math.min(w.h, b.h));
       w.x = Math.max(0, Math.min(w.x, b.w - w.w));
@@ -316,7 +330,8 @@
     }
 
     function addWidget(type) {
-      var t = TYPES[type], b = bounds();
+      if (!state.widgets.length && canvas.clientWidth) state.ref = bounds();
+      var t = TYPES[type], b = ref();
       var n = state.widgets.length;
       var w = { id: 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), type: type, w: t.w, h: t.h,
         x: (b.w - t.w) / 2 + (n % 5) * 24, y: Math.max(0, (b.h - t.h) / 2 - 40) + (n % 5) * 24, data: {} };
@@ -338,7 +353,10 @@
     }
 
     function place(node, w) {
-      node.style.left = w.x + 'px'; node.style.top = w.y + 'px';
+      var k = scale(), b = bounds(), r = ref();
+      var fx = r.w > w.w ? w.x / (r.w - w.w) : 0, fy = r.h > w.h ? w.y / (r.h - w.h) : 0;
+      node.style.zoom = k === 1 ? '' : k;
+      node.style.left = Math.max(0, fx * (b.w - w.w * k)) / k + 'px'; node.style.top = Math.max(0, fy * (b.h - w.h * k)) / k + 'px';
       node.style.width = w.w + 'px'; node.style.height = w.h + 'px';
     }
 
@@ -364,8 +382,13 @@
       canvas.append(node);
       node.addEventListener('pointerdown', function () { node.style.zIndex = ++z; });
 
-      drag(head, function (dx, dy, start) { w.x = start.x + dx; w.y = start.y + dy; clamp(w); place(node, w); }, w, head.querySelector('.w-btns'));
-      drag(grip, function (dx, dy, start) { w.w = start.w + dx; w.h = start.h + dy; clamp(w); place(node, w); }, w);
+      drag(head, function (dx, dy, start) {
+        // the pointer moves in screen pixels, the widget is stored in layout measurements
+        var k = scale(), b = bounds(), r = ref(), fw = b.w - w.w * k, fh = b.h - w.h * k;
+        w.x = fw > 1 ? start.x + dx / fw * (r.w - w.w) : start.x; w.y = fh > 1 ? start.y + dy / fh * (r.h - w.h) : start.y;
+        clamp(w); place(node, w);
+      }, w, head.querySelector('.w-btns'));
+      drag(grip, function (dx, dy, start) { var k = scale(); w.w = start.w + dx / k; w.h = start.h + dy / k; clamp(w); place(node, w); }, w);
 
       if (!w.data) w.data = {};
       mounted[w.id] = (WIDGETS[w.type] || t.mount)(body, w, save) || {};
@@ -503,7 +526,7 @@
         }
         area.addEventListener('input', function () { if (d.middle) style(); });
         // Open the toolbar above the box when there is no room below it.
-        node.addEventListener('pointerenter', function () { node.classList.toggle('tb-up', w.y + w.h + 150 > bounds().h); });
+        node.addEventListener('pointerenter', function () { node.classList.toggle('tb-up', w.y + w.h + 150 > ref().h); });
         style();
         return { restyle: style };
       },
@@ -527,7 +550,8 @@
     // ----- First visit: start with a useful board -----
     function seed() {
       requestAnimationFrame(function () {
-        var b = bounds();
+        if (canvas.clientWidth) state.ref = bounds();
+        var b = ref();
         state.widgets = [
           { id: 'w-clock', type: 'clock', x: 32, y: 24, w: 300, h: 190, data: {} },
           { id: 'w-text', type: 'text', x: Math.max(360, b.w / 2 - 260), y: 24, w: 520, h: 230, data: { text: 'Good morning, class!\nGrab your journal and a pencil.', size: 34, bold: true, color: 'ink' } },
@@ -539,15 +563,21 @@
     }
     loadState();
 
+    // Keep the whole widget bar on screen on narrow displays.
+    function fitDock() {
+      dock.style.zoom = '';
+      var room = dockWrap.clientWidth - 32, need = dock.scrollWidth;
+      if (room > 0 && need > room + 1) dock.style.zoom = Math.max(0.5, room / need);
+    }
     window.addEventListener('resize', function () {
-      drawInk();
+      drawInk(); fitDock();
       state.widgets.forEach(function (w) { clamp(w); var n = canvas.querySelector('[data-id="' + w.id + '"]'); if (n) place(n, w); });
     });
 
     return {
       show: function () {
         requestAnimationFrame(function () {
-          drawInk();
+          drawInk(); fitDock();
           state.widgets.forEach(function (w) { clamp(w); var n = canvas.querySelector('[data-id="' + w.id + '"]'); if (n) place(n, w); });
         });
       }

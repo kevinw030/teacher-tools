@@ -131,8 +131,9 @@
     }
     // Where a pawn stands on a tile, measured inside the board frame.
     function spot(i) {
-      var r = board.children[i].getBoundingClientRect(), w = wrap.getBoundingClientRect();
-      return { x: r.left - w.left + r.width / 2, y: r.top - w.top + r.height * 0.98, s: r.height };
+      // k undoes any full screen scaling, so the pawn lands on the tile at every screen size
+      var r = board.children[i].getBoundingClientRect(), w = wrap.getBoundingClientRect(), k = wrap.offsetWidth / w.width || 1;
+      return { x: (r.left - w.left + r.width / 2) * k, y: (r.top - w.top + r.height * 0.98) * k, s: r.height * k };
     }
     function at(p, extra) { return 'translate(' + p.x + 'px,' + p.y + 'px) translate(-50%,-100%) ' + (extra || ''); }
     // Hop one space at a time so the class can count along: crouch, jump in an arc, squash on landing.

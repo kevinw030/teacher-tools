@@ -94,7 +94,6 @@
 .sc-chips { min-height: 52px; padding: 10px; border-radius: 14px; border: 1.5px dashed var(--line); align-items: center; }
 .sc-chip { touch-action: none; cursor: grab; font-size: 15px; }
 .sc-ghost { position: fixed; z-index: 9999; transform: translate(-50%, -50%) rotate(-4deg); pointer-events: none; padding: 8px 16px; border-radius: 999px; background: var(--ink); color: var(--bg); font-weight: 800; box-shadow: var(--shadow-lg); }
-.page.fs .sc-room-wrap { max-width: calc((100vh - 300px) * 1.6); margin: 0 auto; width: 100%; }
 @media print {
   .nav, .tool-head, .seat-ui, .js-fs-slot { display: none !important; }
   .page { padding: 0 !important; max-width: none !important; } .panel { border: 0 !important; box-shadow: none !important; padding: 0 !important; }
@@ -193,7 +192,6 @@
 .wyr-buddy.party .b-all { transform-origin: 50% 60%; animation: b-spin .9s cubic-bezier(.4, 0, .3, 1.3) 2; }
 @keyframes b-spin { 0% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-20px) rotate(180deg); } 100% { transform: translateY(0) rotate(360deg); } }
 
-.page.fs .wyr.fun .choice { min-height: clamp(300px, 56vh, 760px); }
 @media (max-width: 760px) {
   .wyr.fun .choice { min-height: 170px; transform: none !important; }
   .wyr-mid { width: 100%; flex-direction: row; gap: 14px; } .wyr-buddy { max-width: 96px; }
@@ -203,3 +201,14 @@
   .wyr-sky i, .wyr.fun .or, .wyr-buddy *, .wyr.fun .choice, .wyr-bubble, .plus-one { animation: none !important; }
 }
 @media (max-width: 760px) { .wyr-bubble { margin-bottom: 12px; } }
+
+/* ---------- Full screen: fit any screen (see tools/fit.js) ---------- */
+.page.fs { background: var(--bg); overflow: hidden; display: block; }
+.fs-fit { position: absolute; transform-origin: 0 0; display: flex; flex-direction: column; gap: 24px; }
+.page.fs .tool-head p, .page.fs .tr-legend, .page.fs .roster-note.warn { display: none; }
+.page.fs .tool-head h1 { font-size: 34px; }
+.page.fs .wyr.fun .choice { min-height: 430px; }
+.game.trail { max-width: 1020px; margin-inline: auto; }
+.page.fs .game.trail { max-width: 900px; }
+.page.fs .sc-room-wrap { width: 100%; max-width: 1050px; margin: 0 auto; }
+.page.fs .trail { gap: 12px; }

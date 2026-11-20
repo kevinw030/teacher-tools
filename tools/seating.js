@@ -154,7 +154,7 @@
         node.addEventListener('pointerdown', function (e) {
           if (e.target.classList.contains('sc-grip')) return;
           e.preventDefault(); node.setPointerCapture(e.pointerId);
-          var sx = e.clientX, sy = e.clientY, ox = it.x, oy = it.y, k = RW / room.clientWidth, moved = false;
+          var sx = e.clientX, sy = e.clientY, ox = it.x, oy = it.y, k = RW / room.getBoundingClientRect().width, moved = false;
           function mv(ev) { if (Math.abs(ev.clientX - sx) + Math.abs(ev.clientY - sy) > 3) moved = true; it.x = ox + (ev.clientX - sx) * k; it.y = oy + (ev.clientY - sy) * k; clamp(it); place(node, it); }
           function up() { node.removeEventListener('pointermove', mv); node.removeEventListener('pointerup', up); node.removeEventListener('pointercancel', up); save(); if (!moved || sel !== it.id) { sel = it.id; paint(); } }
           node.addEventListener('pointermove', mv); node.addEventListener('pointerup', up); node.addEventListener('pointercancel', up);
@@ -163,7 +163,7 @@
           var grip = h('span', { class: 'sc-grip', 'aria-hidden': 'true' });
           grip.addEventListener('pointerdown', function (e) {
             e.preventDefault(); e.stopPropagation(); grip.setPointerCapture(e.pointerId);
-            var sx = e.clientX, sy = e.clientY, d0 = dims(it), k = RW / room.clientWidth;
+            var sx = e.clientX, sy = e.clientY, d0 = dims(it), k = RW / room.getBoundingClientRect().width;
             function mv(ev) {
               var w = Math.max(60, Math.min(RW - it.x, Math.round((d0.w + (ev.clientX - sx) * k) / SNAP) * SNAP)), hh = Math.max(30, Math.min(RH - it.y, Math.round((d0.h + (ev.clientY - sy) * k) / SNAP) * SNAP));
               if (it.rot) { it.w = hh; it.h = w; } else { it.w = w; it.h = hh; }
@@ -201,7 +201,7 @@
         function mv(ev) {
           if (!ghost) {
             if (Math.abs(ev.clientX - sx) + Math.abs(ev.clientY - sy) < 6) return;
-            ghost = h('div', { class: 'sc-ghost', text: name }); document.body.append(ghost); node.classList.add('dragging');
+            ghost = h('div', { class: 'sc-ghost', text: name }); (document.fullscreenElement || document.body).append(ghost); node.classList.add('dragging');
           }
           ghost.style.left = ev.clientX + 'px'; ghost.style.top = ev.clientY + 'px';
           var t = target(ev);
