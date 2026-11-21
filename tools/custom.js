@@ -25,6 +25,12 @@
     function save() { TT.save('custom', data); if (TT.wyr && TT.wyr.reload) TT.wyr.reload(); }
     function field(label, input) { return h('label', { class: 'cq-field' }, h('span', { text: label }), input); }
     function input(id, ph, max) { return h('input', { type: 'text', id: id, placeholder: ph, maxlength: max || 120, autocomplete: 'off' }); }
+    function full(m) {
+      var max = TT.limit ? TT.limit('questions') : Infinity;
+      if (data.wyr.length + data.trivia.length + data.rooms.length < max) return false;
+      m.textContent = ''; m.append(TT.upsell('The Free plan holds ' + max + ' of your own questions and rooms. Remove one to add another, or go Premium for unlimited.')); m.hidden = false;
+      return true;
+    }
     function msgEl() { return h('p', { class: 'form-msg', hidden: true, role: 'status' }); }
     function say(m, text) { m.textContent = text; m.hidden = !text; }
     function removeBtn(label, fn) { return h('button', { type: 'button', class: 'cq-x', 'aria-label': label, title: 'Remove', html: TT.icon('trash'), onclick: fn }); }
@@ -38,6 +44,7 @@
         e.preventDefault();
         var x = clean(a.value), y = clean(b.value);
         if (!x || !y) { say(m, 'Type both choices first.'); (x ? b : a).focus(); return; }
+        if (full(m)) return;
         data.wyr.push([x, y]); save(); a.value = ''; b.value = ''; paint();
         document.getElementById('cqA').focus();
       } },
@@ -67,6 +74,7 @@
         e.preventDefault();
         var c = cat.value.trim(), qq = q.value.trim(), aa = a.value.trim();
         if (!c || !qq || !aa) { say(m, 'Fill in the category, question and answer.'); (!c ? cat : !qq ? q : a).focus(); return; }
+        if (full(m)) return;
         var match = names.filter(function (n) { return n.toLowerCase() === c.toLowerCase(); })[0];
         data.trivia.push({ cat: match || c, q: qq, a: aa }); TT.customCat = match || c; save(); paint();
         document.getElementById('cqQ').focus();
@@ -130,6 +138,7 @@
         if (!title.value.trim()) { say(m, 'Give your room a name.'); title.focus(); return; }
         if (bad >= 0) { say(m, 'Lock ' + (bad + 1) + ' needs both a puzzle and an answer.'); (locks[bad].q.value.trim() ? locks[bad].a : locks[bad].q).focus(); return; }
         if (!out.length) { say(m, 'Write at least one lock with a puzzle and an answer.'); locks[0].q.focus(); return; }
+        if (editing.index < 0 && full(m)) return;
         r.title = title.value.trim(); r.intro = intro.value.trim(); r.locks = out;
         if (editing.index >= 0) data.rooms[editing.index] = r; else data.rooms.push(r);
         editing = null; save(); paint();
