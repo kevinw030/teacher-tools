@@ -4,16 +4,58 @@
 
   // ---------- Sound Level ----------
   // Listens through the microphone and shows the volume. Nothing is recorded, saved or sent anywhere.
+  // The listening buddy: an original sleepy creature that naps when the room is quiet,
+  // wakes up when it is busy and covers its ears when it is too loud.
+  var SNOOZY = '<svg viewBox="0 0 220 190" aria-hidden="true" focusable="false">' +
+    '<defs><linearGradient id="szG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5EE0D0"/><stop offset="1" stop-color="#1FA9B8"/></linearGradient></defs>' +
+    '<ellipse cx="110" cy="176" rx="74" ry="9" fill="rgba(14,17,32,.22)"/>' +
+    '<g class="z-waves" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"><path d="M30 70 Q14 95 30 120"/><path d="M12 56 Q-10 95 12 134"/><path d="M190 70 Q206 95 190 120"/><path d="M208 56 Q230 95 208 134"/></g>' +
+    '<g class="z-all">' +
+      '<path d="M40 150 Q40 128 66 130 Q74 114 96 120 Q110 106 128 120 Q152 112 158 132 Q182 130 180 152 Q182 172 158 172 L62 172 Q38 172 40 150Z" fill="#fff" stroke="#D5DCF5" stroke-width="3"/>' +
+      '<g class="z-body">' +
+        '<path d="M66 62 L58 34 L86 50Z" fill="#1FA9B8" stroke="#0E7C8A" stroke-width="3" stroke-linejoin="round"/><path d="M154 62 L162 34 L134 50Z" fill="#1FA9B8" stroke="#0E7C8A" stroke-width="3" stroke-linejoin="round"/>' +
+        '<ellipse cx="110" cy="100" rx="60" ry="56" fill="url(#szG)" stroke="#0E7C8A" stroke-width="3"/>' +
+        '<ellipse cx="110" cy="124" rx="32" ry="22" fill="#fff" opacity=".28"/>' +
+        '<circle cx="74" cy="112" r="8" fill="#FF8FB8" opacity=".85"/><circle cx="146" cy="112" r="8" fill="#FF8FB8" opacity=".85"/>' +
+        '<g class="z-cap"><path d="M64 66 Q82 22 132 34 Q160 40 172 66 Q118 50 64 66Z" fill="#7C5CFF" stroke="#4B32C4" stroke-width="3" stroke-linejoin="round"/><path d="M150 40 Q178 30 184 58" fill="none" stroke="#7C5CFF" stroke-width="9" stroke-linecap="round"/><circle cx="185" cy="62" r="9" fill="#FFD43B" stroke="#F59F00" stroke-width="2.5"/></g>' +
+        '<g class="z-open"><circle cx="90" cy="92" r="13" fill="#fff"/><circle cx="130" cy="92" r="13" fill="#fff"/><g class="z-pupils"><circle cx="90" cy="93" r="6" fill="#0E1B3A"/><circle cx="130" cy="93" r="6" fill="#0E1B3A"/><circle cx="92" cy="91" r="2" fill="#fff"/><circle cx="132" cy="91" r="2" fill="#fff"/></g></g>' +
+        '<g class="z-closed" fill="none" stroke="#0E1B3A" stroke-width="4" stroke-linecap="round"><path d="M79 94 Q90 103 101 94"/><path d="M119 94 Q130 103 141 94"/></g>' +
+        '<path class="z-smile" d="M98 116 Q110 128 122 116" fill="none" stroke="#0E1B3A" stroke-width="4" stroke-linecap="round"/>' +
+        '<ellipse class="z-snore" cx="110" cy="120" rx="5" ry="6" fill="#0E1B3A"/>' +
+        '<ellipse class="z-yell" cx="110" cy="122" rx="11" ry="13" fill="#0E1B3A"/>' +
+        '<path class="z-arm z-arm-l" d="M56 112 Q40 126 50 144" fill="none" stroke="#1FA9B8" stroke-width="13" stroke-linecap="round"/>' +
+        '<path class="z-arm z-arm-r" d="M164 112 Q180 126 170 144" fill="none" stroke="#1FA9B8" stroke-width="13" stroke-linecap="round"/>' +
+      '</g>' +
+    '</g>' +
+    '<g class="z-zzz" fill="#fff" font-family="sans-serif" font-weight="900"><text x="168" y="44" font-size="22">z</text><text x="184" y="26" font-size="17">z</text><text x="197" y="12" font-size="13">z</text></g>' +
+    '</svg>';
+
   TT.mountSound = function (el) {
     var state = TT.load('sound', { limit: 60, sens: 50, chime: true });
+    if ([15, 30, 60].indexOf(state.every) < 0) state.every = 30;
+    if ([5, 10, 15].indexOf(state.goal) < 0) state.goal = 5;
+    if (state.bestDay !== TT.today()) { state.bestDay = TT.today(); state.best = 0; }
     var stream = null, actx = null, analyser = null, buf = null, raf = 0, level = 0, overSince = 0, loud = false, alerts = 0, lastChime = 0;
+    var stars = 0, streak = 0, sinceStar = 0, lastT = 0, done = false, fake = null, cur = '';
+    var calm = 0, quietNow = false, loudOff = 0, want = '', wantSince = 0, sceneAt = 0, lastSub = '';
     var SEGS = 24;
     var bars = h('div', { class: 'sl-bars', 'aria-hidden': 'true' });
     for (var i = 0; i < SEGS; i++) bars.append(h('i'));
     var marker = h('span', { class: 'sl-marker', 'aria-hidden': 'true' }, h('b', { text: 'Limit' }));
     var label = h('div', { class: 'sl-label', 'aria-live': 'polite', text: 'Ready When You Are' });
-    var sub = h('div', { class: 'pick-sub', text: 'Press Start and allow the microphone.' });
-    var stage = h('div', { class: 'sl-stage' }, label, h('div', { class: 'sl-meter' }, bars, marker), sub);
+    var sub = h('div', { class: 'sl2-sub', text: 'Press Start and allow the microphone.' });
+    var buddy = h('div', { class: 'sl2-buddy' }); buddy.innerHTML = SNOOZY;
+    var starRow = h('div', { class: 'sl2-stars', role: 'img' });
+    var next = h('span'), nextBar = h('div', { class: 'sl2-next', 'aria-hidden': 'true' }, next);
+    var streakPill = h('div', { class: 'sl2-pill' });
+    var sky = h('div', { class: 'sl2-sky', 'aria-hidden': 'true' });
+    var bgs = ['quiet', 'ok', 'loud', 'win'].map(function (n) { return h('div', { class: 'sl2-bg bg-' + n, 'aria-hidden': 'true' }); });
+    for (var k = 0; k < 14; k++) { var dot = h('i'); dot.style.left = (4 + (k * 37) % 92) + '%'; dot.style.top = (6 + (k * 23) % 44) + '%'; dot.style.animationDelay = -(k * 0.37) + 's'; sky.append(dot); }
+    var again = TT.button('Start a New Round', { kind: 'primary big', onclick: function () { stars = 0; sinceStar = 0; done = false; again.hidden = true; paintStars(); } });
+    again.hidden = true;
+    var stage = h('div', { class: 'sl-stage sl2', 'data-s': 'idle' }, bgs, sky,
+      h('div', { class: 'sl2-top' }, h('div', { class: 'sl2-goal' }, h('b', { text: 'Quiet Stars' }), starRow, nextBar), streakPill),
+      label, buddy, sub, again, h('div', { class: 'sl-meter' }, bars, marker));
     var startBtn = TT.button('Start Listening', { icon: 'play', kind: 'primary big', onclick: toggle });
     var msg = h('p', { class: 'form-msg', hidden: true, role: 'status' });
     function slider(id, labelText, key, after) {
@@ -22,11 +64,23 @@
       input.addEventListener('input', function () { state[key] = +input.value; TT.save('sound', state); if (after) after(); });
       return h('label', { class: 'sl-slider', for: id }, h('span', { text: labelText }), input);
     }
+    function choice(title, key, opts, after) {
+      var seg = h('div', { class: 'segmented', role: 'group', 'aria-label': title }, opts.map(function (o) {
+        return h('button', { type: 'button', class: 'seg', 'data-v': o[0], onclick: function () { state[key] = o[0]; TT.save('sound', state); paint(); if (after) after(); } }, o[1]);
+      }));
+      function paint() { seg.querySelectorAll('.seg').forEach(function (b) { var on = +b.getAttribute('data-v') === state[key]; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); }); }
+      paint();
+      return h('div', { class: 'sl2-opt' }, h('span', { text: title }), seg);
+    }
     var chimeBtn = h('button', { type: 'button', class: 'seg', onclick: function () { state.chime = !state.chime; TT.save('sound', state); paintChime(); } });
     function paintChime() { chimeBtn.textContent = state.chime ? 'Chime When Too Loud: On' : 'Chime When Too Loud: Off'; chimeBtn.classList.toggle('on', state.chime); chimeBtn.setAttribute('aria-pressed', state.chime); }
     el.append(h('div', { class: 'picker sl' }, stage, h('div', { class: 'row center' }, startBtn), msg,
       h('div', { class: 'sl-controls' }, slider('slLimit', 'Loudness Limit', 'limit', paintMarker), slider('slSens', 'Microphone Sensitivity', 'sens'),
+        choice('Earn a Star Every', 'every', [[15, '15 Sec'], [30, '30 Sec'], [60, '1 Min']], function () { sinceStar = 0; paintStars(); }),
+        choice('Star Goal', 'goal', [[5, '5 Stars'], [10, '10 Stars'], [15, '15 Stars']], function () { if (stars >= state.goal) stars = state.goal - 1; done = false; again.hidden = true; paintStars(); }),
         h('div', { class: 'segmented' }, chimeBtn))));
+
+    function mmss(sec) { sec = Math.floor(sec); return Math.floor(sec / 60) + ':' + (sec % 60 < 10 ? '0' : '') + sec % 60; }
     function paintMarker() { marker.style.left = state.limit + '%'; }
     function paintBars() {
       var on = Math.round(level / 100 * SEGS), lim = state.limit / 100 * SEGS;
@@ -35,55 +89,108 @@
         b.className = i < on ? (i >= lim ? 'on red' : i >= lim * 0.7 ? 'on amber' : 'on green') : '';
       }
     }
+    function paintStars(pop) {
+      if (starRow.children.length !== state.goal) { starRow.textContent = ''; for (var i = 0; i < state.goal; i++) starRow.append(h('i', { text: '★' })); }
+      for (var j = 0; j < state.goal; j++) { var st = starRow.children[j]; st.classList.toggle('on', j < stars); st.classList.toggle('pop', !!pop && j === stars - 1); }
+      starRow.setAttribute('aria-label', stars + ' of ' + state.goal + ' quiet stars');
+      next.style.width = Math.min(100, sinceStar / state.every * 100) + '%';
+      streakPill.textContent = 'Quiet Streak ' + mmss(streak) + (state.best >= 1 ? ' · Best Today ' + mmss(state.best) : '');
+    }
+    function setScene(s) {
+      if (cur === s) return;
+      cur = s; stage.setAttribute('data-s', s);
+      label.textContent = s === 'loud' ? 'Too Loud!' : s === 'quiet' ? 'Shhh… Nice and Quiet' : s === 'ok' ? 'Just Right' : s === 'win' ? 'Star Goal Reached!' : 'Ready When You Are';
+    }
+    // One step of the meter. target is 0-100.
+    // The bars follow the sound quickly. The scene follows a slower, steadier reading and only
+    // changes when the room has clearly settled into a new level, so it never flickers.
+    function step(target, now) {
+      var dt = lastT ? Math.min(0.25, (now - lastT) / 1000) : 0; lastT = now;
+      level += (target - level) * (target > level ? 0.35 : 0.08);
+      calm += (level - calm) * Math.min(1, dt / 1.6);
+      paintBars();
+      stage.style.setProperty('--lv', (calm / 100).toFixed(2));
+      // Too loud: over the limit for a second to switch on, clearly back under it for two seconds to switch off.
+      if (!loud) {
+        if (level >= state.limit) { if (!overSince) overSince = now; } else if (level < state.limit * 0.92) overSince = 0;
+        if (overSince && now - overSince > 1000) {
+          loud = true; loudOff = 0; alerts++; streak = 0; sinceStar = 0;
+          if (state.chime && now - lastChime > 6000) { lastChime = now; TT.chime(); }
+        }
+      } else {
+        if (calm < state.limit * 0.85) { if (!loudOff) loudOff = now; } else loudOff = 0;
+        if (loudOff && now - loudOff > 2000) { loud = false; overSince = 0; }
+      }
+      // Quiet and just right use two different lines, so a level sitting near one line stays put.
+      if (quietNow) { if (calm > state.limit * 0.6) quietNow = false; } else if (calm < state.limit * 0.4) quietNow = true;
+      if (!loud && !done) {
+        streak += dt; sinceStar += dt;
+        if (streak > state.best) state.best = streak;
+        if (sinceStar >= state.every) {
+          sinceStar = 0; stars++; TT.tick(); paintStars(true);
+          TT.save('sound', state);
+          if (stars >= state.goal) { done = true; again.hidden = false; TT.chime(); if (TT.celebrate) TT.celebrate(stage, ['⭐', '🌟', '✨', '🎉']); }
+        }
+      }
+      var s = done ? 'win' : loud ? 'loud' : quietNow ? 'quiet' : 'ok';
+      if (s !== want) { want = s; wantSince = now; }
+      // Too loud and the win show right away. Other changes wait until the level has held steady.
+      var ready = s === 'loud' || s === 'win' || cur === 'idle' || (now - wantSince > 1500 && now - sceneAt > 3500);
+      if (s !== cur && ready) { setScene(s); sceneAt = now; }
+      paintStars();
+      var text = cur === 'win' ? 'Amazing teamwork. You earned all ' + state.goal + ' stars!' :
+        cur === 'loud' ? 'The quiet streak starts over. Bring it back down!' :
+        'Next star in ' + Math.max(1, Math.ceil(state.every - sinceStar)) + ' sec' + (alerts ? ' · Too loud ' + alerts + (alerts === 1 ? ' time' : ' times') : '');
+      if (text !== lastSub) { lastSub = text; sub.textContent = text; }
+    }
     function frame() {
       raf = requestAnimationFrame(frame);
-      analyser.getFloatTimeDomainData(buf);
-      var sum = 0;
-      for (var i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
-      var rms = Math.sqrt(sum / buf.length);
-      // Map quiet-to-loud onto 0-100. Sensitivity shifts how easily the meter fills.
-      var db = 20 * Math.log10(rms || 1e-6), floor = -62 + (50 - state.sens) * 0.3, top = -8 - (state.sens - 50) * 0.3;
-      var target = Math.max(0, Math.min(100, (db - floor) / (top - floor) * 100));
-      level += (target - level) * (target > level ? 0.35 : 0.08);
-      paintBars();
-      var now = Date.now(), over = level >= state.limit;
-      if (over) { if (!overSince) overSince = now; } else overSince = 0;
-      var nowLoud = over && now - overSince > 900;
-      if (nowLoud && !loud) { alerts++; if (state.chime && now - lastChime > 6000) { lastChime = now; TT.chime(); } }
-      if (nowLoud !== loud || !label.dataset.s) { loud = nowLoud; }
-      var s = loud ? 'loud' : level < state.limit * 0.45 ? 'quiet' : 'ok';
-      if (label.dataset.s !== s) {
-        label.dataset.s = s; stage.setAttribute('data-s', s);
-        label.textContent = s === 'loud' ? 'Too Loud!' : s === 'quiet' ? 'Nice and Quiet' : 'Just Right';
+      var target;
+      if (fake !== null) target = fake;
+      else {
+        analyser.getFloatTimeDomainData(buf);
+        var sum = 0;
+        for (var i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
+        var rms = Math.sqrt(sum / buf.length);
+        // Map quiet-to-loud onto 0-100. Sensitivity shifts how easily the meter fills.
+        var db = 20 * Math.log10(rms || 1e-6), floor = -62 + (50 - state.sens) * 0.3, top = -8 - (state.sens - 50) * 0.3;
+        target = Math.max(0, Math.min(100, (db - floor) / (top - floor) * 100));
       }
-      sub.textContent = alerts ? 'Too loud ' + alerts + (alerts === 1 ? ' time' : ' times') + ' so far' : 'Stay under the limit line';
+      step(target, Date.now());
     }
     function stop() {
       cancelAnimationFrame(raf);
-      if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
+      if (stream && stream.getTracks) stream.getTracks().forEach(function (t) { t.stop(); });
       if (actx) actx.close().catch(function () {});
-      stream = actx = analyser = null; level = 0; loud = false; overSince = 0; paintBars();
-      delete label.dataset.s; stage.removeAttribute('data-s');
-      label.textContent = 'Ready When You Are'; sub.textContent = 'Press Start and allow the microphone.';
+      stream = actx = analyser = null; level = 0; calm = 0; quietNow = false; loud = false; overSince = 0; loudOff = 0; want = ''; lastT = 0; streak = 0; fake = null; lastSub = ''; paintBars();
+      TT.save('sound', state);
+      setScene('idle'); stage.style.setProperty('--lv', 0);
+      sub.textContent = stars ? 'Paused with ' + stars + (stars === 1 ? ' star' : ' stars') + '. Press Start to keep going.' : 'Press Start and allow the microphone.';
       startBtn.innerHTML = TT.icon('play') + '<span>Start Listening</span>';
+      paintStars();
     }
+    function begin() { alerts = 0; lastT = 0; startBtn.innerHTML = TT.icon('pause') + '<span>Stop Listening</span>'; frame(); }
     function toggle() {
       if (stream) { stop(); return; }
       msg.hidden = true;
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { msg.textContent = 'This browser can’t use the microphone here. Try Chrome or Edge.'; msg.hidden = false; return; }
       navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }).then(function (st) {
-        stream = st; alerts = 0;
+        stream = st;
         actx = new (window.AudioContext || window.webkitAudioContext)();
         analyser = actx.createAnalyser(); analyser.fftSize = 2048;
         buf = new Float32Array(analyser.fftSize);
         actx.createMediaStreamSource(st).connect(analyser);
-        startBtn.innerHTML = TT.icon('pause') + '<span>Stop Listening</span>';
-        frame();
+        begin();
       }).catch(function () {
         msg.textContent = 'The microphone is blocked or missing. Click the lock or camera icon in the address bar, allow the microphone, then press Start again.'; msg.hidden = false;
       });
     }
-    paintMarker(); paintChime(); paintBars();
+    paintMarker(); paintChime(); paintBars(); paintStars();
+    // For checking the scene without a microphone: TT.soundDemo(40) sets the level, TT.soundDemo(null) stops.
+    TT.soundDemo = function (v) {
+      if (v === null) { if (stream) stop(); return; }
+      fake = v; if (!stream) { stream = {}; begin(); }
+    };
     return { hide: function () { if (stream) stop(); } };
   };
 
@@ -243,7 +350,7 @@
       rewardIn.addEventListener('input', function () { j.reward = rewardIn.value; save(); rewardEl.textContent = rewardText(); });
       function rewardText() { return full ? 'You earned: ' + (j.reward || 'your reward') + '!' : 'Working toward: ' + (j.reward || 'a class reward'); }
       var rewardEl = h('p', { class: 'jar-reward', text: rewardText() });
-      function add(n) { var was = j.count >= goal; j.count = Math.max(0, Math.min(goal, j.count + n)); save(); if (n > 0) TT.tick(); if (!was && j.count >= goal) TT.chime(); paint(); }
+      function add(n) { var was = j.count >= goal; j.count = Math.max(0, Math.min(goal, j.count + n)); save(); if (n > 0) TT.tick(); var won = !was && j.count >= goal; if (won) TT.chime(); paint(); if (won && TT.celebrate) TT.celebrate(box); }
       box.append(h('div', { class: 'jar-layout' },
         h('div', { class: 'jar' + (full ? ' full' : '') }, h('div', { class: 'jar-lid' }), h('div', { class: 'jar-glass' }, marbles)),
         h('div', { class: 'jar-side' },

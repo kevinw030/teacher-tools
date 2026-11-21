@@ -209,6 +209,8 @@
       food: ['🍎', '🍌', '🍇', '🍓', '🍕', '🌮', '🍩', '🍪', '🥕', '🌽', '🧀', '🍉'],
       space: ['🚀', '🌙', '⭐', '☀️', '🪐', '🌍', '☄️', '👽', '🛸', '🌈', '⚡', '❄️']
     };
+    var sea = TT.season && TT.season();
+    if (sea) SETS.seasonal = sea.cards;
     var sb = scoreBar(['Team 1', 'Team 2'], 'g-memory', ['var(--violet)', 'var(--rose)']);
     var st = status();
     var grid = h('div', { class: 'mem' });

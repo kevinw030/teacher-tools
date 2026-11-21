@@ -55,9 +55,10 @@ sender (for example Resend, 3,000 emails a month free) under **Project Settings 
 - **Guests** (not signed in) save on that computer only, like before, with Free plan limits.
 - **Signed in**: everything saves to the account a few seconds after each change, and loads on any computer.
   If something changed on another computer while the site is open, a note offers to load it.
-- **Class lists** (students' names), class jobs and the pet's helper save to the account too, so they follow the teacher.
-  To keep names on each computer instead, set `classSync` in `assets/account-config.js` to `'never'`
-  (or `'choose'` to give each teacher an on/off switch on the My Account page).
+- **No student logins, ever.** Accounts are for teachers only. Students will join with a class code instead (see `docs/STUDENT-ACCESS.md`).
+- **Student names stay on the computer.** Class lists, class jobs, seating charts, exit tickets and the pet's helper are
+  never sent online (`classSync: 'never'` in `assets/account-config.js`). Use the backup file to move them between computers.
+  `'choose'` gives each teacher an on/off switch instead, and `'always'` saves them to the account.
 - **Signing out** clears that account's things from the computer (they stay safe in the account), which suits shared school computers.
 - **Plans**: Free = 1 board screen, 2 class lists, 25 of your own questions and rooms, no photo backgrounds.
   Premium and Owner = 10 screens and the rest unlimited. Nothing is deleted when someone is over a limit; they just can't add more.

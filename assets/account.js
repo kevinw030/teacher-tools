@@ -54,7 +54,8 @@
     if (CFG.classSync === 'never') return false;
     return !!TT.settings.syncClasses;
   }
-  var CLASS_KEYS = { 'tt:classes': 1, 'tt:roster': 1, 'tt:jobs': 1 };
+  // Keys that can hold students' names: class lists, class jobs, seating charts, named exit tickets.
+  var CLASS_KEYS = { 'tt:classes': 1, 'tt:roster': 1, 'tt:jobs': 1, 'tt:seating': 1, 'tt:tickets': 1 };
   var NEVER = { 'tt:space-test': 1 };
   function synced(k) { return k.indexOf('tt:') === 0 && !NEVER[k] && (classSync() || !CLASS_KEYS[k]); }
   function collect() {
@@ -246,8 +247,9 @@
 
     function signInCard() {
       var card = h('section', { class: 'acct-card' },
-        h('h2', { text: 'Sign In or Create a Free Account' }),
-        h('p', { class: 'muted', text: 'Your boards, questions, pet, schedule and settings follow you to any computer. No password to remember.' }));
+        h('h2', { text: 'Teacher Sign In' }),
+        h('p', { class: 'muted', text: 'Sign in or create a free teacher account. Your boards, questions, schedule and settings follow you to any computer. No password to remember.' }),
+        h('p', { class: 'muted small', text: 'Accounts are for teachers only. Students never sign in or make accounts.' }));
       if (!sb) { card.append(h('p', { class: 'form-msg', text: status === 'offline' ? 'Can’t reach the sign-in service. Check the internet connection and reload.' : 'Loading…' })); return card; }
       if (CFG.google) {
         card.append(TT.button('Continue with Google', { kind: 'big google-btn', onclick: function () { TT.account.google(); } }),
@@ -300,7 +302,7 @@
         var on = classSync();
         sync = h('div', { class: 'set-row' },
           h('div', null, h('h3', { text: 'Save Class Lists to My Account' }),
-            h('p', { class: 'muted', text: on ? 'Your class lists and class jobs are saved to your account and show up on any computer you sign in on.' : 'Off: class lists hold students’ names, so they stay only on this computer. Turn this on to have them on every computer.' })),
+            h('p', { class: 'muted', text: on ? 'Your class lists, jobs, seating charts and exit tickets are saved to your account and show up on any computer you sign in on.' : 'Off: these hold students’ names, so they stay only on this computer. Turn this on to have them on every computer.' })),
           h('div', { class: 'set-control' }, h('div', { class: 'segmented', role: 'group' },
             h('button', { type: 'button', class: 'seg' + (on ? ' on' : ''), 'aria-pressed': on, onclick: function () { TT.account.setClassSync(true); } }, 'On'),
             h('button', { type: 'button', class: 'seg' + (!on ? ' on' : ''), 'aria-pressed': !on, onclick: function () { TT.account.setClassSync(false); } }, 'Off'))));

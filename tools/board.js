@@ -209,45 +209,86 @@
       penBtn.classList.toggle('on', on); penBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
       paintPen();
     }
+    // Strokes are drawn as smooth curves through the midpoints between pen points, so there are
+    // no corners. `from` redraws only the newest part while the pen is moving.
     function line(ctx, st, b, from) {
-      var p = st.p;
-      ctx.strokeStyle = st.c; ctx.lineWidth = st.s; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      var p = st.p, n = p.length / 2;
+      function X(i) { return p[i * 2] * b.w; } function Y(i) { return p[i * 2 + 1] * b.h; }
+      ctx.strokeStyle = st.c; ctx.fillStyle = st.c; ctx.lineWidth = st.s; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      if (n === 1) { ctx.beginPath(); ctx.arc(X(0), Y(0), st.s / 2, 0, Math.PI * 2); ctx.fill(); return; }
       ctx.beginPath();
-      var i0 = Math.max(0, (from || 0));
-      ctx.moveTo(p[i0] * b.w, p[i0 + 1] * b.h);
-      if (p.length - i0 === 2) ctx.lineTo(p[i0] * b.w + 0.01, p[i0 + 1] * b.h);
-      for (var i = i0 + 2; i < p.length; i += 2) ctx.lineTo(p[i] * b.w, p[i + 1] * b.h);
+      if (from == null) {
+        ctx.moveTo(X(0), Y(0));
+        for (var i = 1; i < n - 1; i++) ctx.quadraticCurveTo(X(i), Y(i), (X(i) + X(i + 1)) / 2, (Y(i) + Y(i + 1)) / 2);
+        ctx.lineTo(X(n - 1), Y(n - 1));
+      } else {
+        // the piece that ends at the midpoint before the newest point
+        var k = n - 1;
+        if (k === 1) { ctx.moveTo(X(0), Y(0)); ctx.lineTo((X(0) + X(1)) / 2, (Y(0) + Y(1)) / 2); }
+        else { ctx.moveTo((X(k - 2) + X(k - 1)) / 2, (Y(k - 2) + Y(k - 1)) / 2); ctx.quadraticCurveTo(X(k - 1), Y(k - 1), (X(k - 1) + X(k)) / 2, (Y(k - 1) + Y(k)) / 2); }
+      }
       ctx.stroke();
     }
     function drawInk() {
       var b = bounds(), dpr = window.devicePixelRatio || 1;
       if (ink.width !== Math.round(b.w * dpr) || ink.height !== Math.round(b.h * dpr)) { ink.width = Math.round(b.w * dpr); ink.height = Math.round(b.h * dpr); }
-      var ctx = ink.getContext('2d');
+      var ctx = inkCtx();
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, b.w, b.h);
       (state.strokes || []).forEach(function (st) { if (st.p && st.p.length >= 2) line(ctx, st, b); });
     }
-    function inkPoint(e) {
-      var r = ink.getBoundingClientRect();
-      return [Math.round((e.clientX - r.left) / r.width * 1e4) / 1e4, Math.round((e.clientY - r.top) / r.height * 1e4) / 1e4];
+    function inkCtx() { return ink.getContext('2d', { desynchronized: true }); }
+    // Pen input. Every reading the device reports is used (not only one per frame), then eased
+    // a little toward the pen so shaky hands and noisy touch panels still give a clean line.
+    var penId = null, penKind = '', sx = 0, sy = 0, inkRect = null;
+    function raw(e) { return [(e.clientX - inkRect.left) / inkRect.width, (e.clientY - inkRect.top) / inkRect.height]; }
+    function r5(v) { return Math.round(v * 1e5) / 1e5; }
+    function addPoint(x, y, b) {
+      var n = stroke.p.length, dx = (x - stroke.p[n - 2]) * b.w, dy = (y - stroke.p[n - 1]) * b.h;
+      if (dx * dx + dy * dy < 2.25) return;
+      stroke.p.push(r5(x), r5(y));
+      line(inkCtx(), stroke, b, n / 2);
     }
     ink.addEventListener('pointerdown', function (e) {
-      if (!pen.on) return;
-      e.preventDefault(); ink.setPointerCapture(e.pointerId);
+      if (!pen.on || e.button) return;
+      // one pen at a time: a resting palm or second finger never starts or breaks a line
+      if (penId !== null) { if (e.pointerType === 'pen' && penKind !== 'pen') endStroke(); else return; }
+      e.preventDefault();
+      try { ink.setPointerCapture(e.pointerId); } catch (err) {}
+      penId = e.pointerId; penKind = e.pointerType; inkRect = ink.getBoundingClientRect();
       if (!Array.isArray(state.strokes)) state.strokes = [];
-      stroke = { c: pen.color, s: pen.size, p: inkPoint(e) };
+      var pt = raw(e); sx = pt[0]; sy = pt[1];
+      stroke = { c: pen.color, s: pen.size, p: [r5(sx), r5(sy)] };
       state.strokes.push(stroke);
-      line(ink.getContext('2d'), stroke, bounds());
+      line(inkCtx(), stroke, bounds());
     });
     ink.addEventListener('pointermove', function (e) {
-      if (!stroke) return;
-      var pt = inkPoint(e), b = bounds(), n = stroke.p.length;
-      if (Math.abs(pt[0] - stroke.p[n - 2]) * b.w + Math.abs(pt[1] - stroke.p[n - 1]) * b.h < 2) return;
-      stroke.p.push(pt[0], pt[1]);
-      line(ink.getContext('2d'), stroke, b, n - 2);
+      if (!stroke || e.pointerId !== penId) return;
+      e.preventDefault();
+      var b = bounds(), list = e.getCoalescedEvents ? e.getCoalescedEvents() : null;
+      if (!list || !list.length) list = [e];
+      // Small wobbles are eased away; quick, deliberate moves are followed exactly so corners and
+      // fast writing stay crisp. Fingers on a touch panel get a little more easing than a mouse or stylus.
+      var base = penKind === 'touch' ? 0.35 : 0.5;
+      for (var i = 0; i < list.length; i++) {
+        var pt = raw(list[i]);
+        var d = Math.sqrt(Math.pow((pt[0] - sx) * b.w, 2) + Math.pow((pt[1] - sy) * b.h, 2)), ease = Math.min(1, base + d / 60);
+        sx += (pt[0] - sx) * ease; sy += (pt[1] - sy) * ease;
+        addPoint(sx, sy, b);
+      }
     });
-    function endStroke() { if (stroke) { stroke = null; save(); } }
+    function endStroke(e) {
+      if (!stroke || (e && e.pointerId !== penId)) return;
+      // finish exactly where the pen lifted, then redraw the whole stroke as one clean curve
+      if (e && e.type === 'pointerup' && inkRect) {
+        var pt = raw(e), n = stroke.p.length, b = bounds();
+        if (Math.abs(pt[0] - stroke.p[n - 2]) * b.w + Math.abs(pt[1] - stroke.p[n - 1]) * b.h > 0.5) stroke.p.push(r5(pt[0]), r5(pt[1]));
+      }
+      stroke = null; penId = null; save(); drawInk();
+    }
     ink.addEventListener('pointerup', endStroke);
     ink.addEventListener('pointercancel', endStroke);
+    ink.addEventListener('lostpointercapture', endStroke);
+    ink.addEventListener('contextmenu', function (e) { if (pen.on) e.preventDefault(); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && pen.on) setPen(false); });
 
     // ----- Minimize the widget bar; full screen keeps everything small -----
@@ -311,8 +352,22 @@
     }
 
     function bounds() { return { w: canvas.clientWidth || window.innerWidth, h: canvas.clientHeight || window.innerHeight - 160 }; }
+    // Widgets are saved in the measurements of the screen they were arranged on (state.ref).
+    // On any other screen size the whole layout is scaled to fit, so nothing overlaps or falls off.
+    function ref() {
+      if (!state.ref || !(state.ref.w > 0) || !(state.ref.h > 0)) {
+        if (!canvas.clientWidth) return bounds();
+        state.ref = bounds();
+      }
+      return state.ref;
+    }
+    function scale() {
+      var b = bounds(), r = ref(), k = Math.min(b.w / r.w, b.h / r.h);
+      if (!(k > 0) || Math.abs(k - 1) < 0.02) return 1;
+      return Math.max(0.3, Math.min(3, k));
+    }
     function clamp(w) {
-      var b = bounds();
+      var b = ref();
       w.w = Math.max(160, Math.min(w.w, b.w));
       w.h = Math.max(120, Math.min(w.h, b.h));
       w.x = Math.max(0, Math.min(w.x, b.w - w.w));
@@ -320,7 +375,8 @@
     }
 
     function addWidget(type) {
-      var t = TYPES[type], b = bounds();
+      if (!state.widgets.length && canvas.clientWidth) state.ref = bounds();
+      var t = TYPES[type], b = ref();
       var n = state.widgets.length;
       var w = { id: 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), type: type, w: t.w, h: t.h,
         x: (b.w - t.w) / 2 + (n % 5) * 24, y: Math.max(0, (b.h - t.h) / 2 - 40) + (n % 5) * 24, data: {} };
@@ -342,7 +398,10 @@
     }
 
     function place(node, w) {
-      node.style.left = w.x + 'px'; node.style.top = w.y + 'px';
+      var k = scale(), b = bounds(), r = ref();
+      var fx = r.w > w.w ? w.x / (r.w - w.w) : 0, fy = r.h > w.h ? w.y / (r.h - w.h) : 0;
+      node.style.zoom = k === 1 ? '' : k;
+      node.style.left = Math.max(0, fx * (b.w - w.w * k)) / k + 'px'; node.style.top = Math.max(0, fy * (b.h - w.h * k)) / k + 'px';
       node.style.width = w.w + 'px'; node.style.height = w.h + 'px';
     }
 
@@ -368,8 +427,13 @@
       canvas.append(node);
       node.addEventListener('pointerdown', function () { node.style.zIndex = ++z; });
 
-      drag(head, function (dx, dy, start) { w.x = start.x + dx; w.y = start.y + dy; clamp(w); place(node, w); }, w, head.querySelector('.w-btns'));
-      drag(grip, function (dx, dy, start) { w.w = start.w + dx; w.h = start.h + dy; clamp(w); place(node, w); }, w);
+      drag(head, function (dx, dy, start) {
+        // the pointer moves in screen pixels, the widget is stored in layout measurements
+        var k = scale(), b = bounds(), r = ref(), fw = b.w - w.w * k, fh = b.h - w.h * k;
+        w.x = fw > 1 ? start.x + dx / fw * (r.w - w.w) : start.x; w.y = fh > 1 ? start.y + dy / fh * (r.h - w.h) : start.y;
+        clamp(w); place(node, w);
+      }, w, head.querySelector('.w-btns'));
+      drag(grip, function (dx, dy, start) { var k = scale(); w.w = start.w + dx / k; w.h = start.h + dy / k; clamp(w); place(node, w); }, w);
 
       if (!w.data) w.data = {};
       mounted[w.id] = (WIDGETS[w.type] || t.mount)(body, w, save) || {};
@@ -507,7 +571,7 @@
         }
         area.addEventListener('input', function () { if (d.middle) style(); });
         // Open the toolbar above the box when there is no room below it.
-        node.addEventListener('pointerenter', function () { node.classList.toggle('tb-up', w.y + w.h + 150 > bounds().h); });
+        node.addEventListener('pointerenter', function () { node.classList.toggle('tb-up', w.y + w.h + 150 > ref().h); });
         style();
         return { restyle: style };
       },
@@ -531,7 +595,8 @@
     // ----- First visit: start with a useful board -----
     function seed() {
       requestAnimationFrame(function () {
-        var b = bounds();
+        if (canvas.clientWidth) state.ref = bounds();
+        var b = ref();
         state.widgets = [
           { id: 'w-clock', type: 'clock', x: 32, y: 24, w: 300, h: 190, data: {} },
           { id: 'w-text', type: 'text', x: Math.max(360, b.w / 2 - 260), y: 24, w: 520, h: 230, data: { text: 'Good morning, class!\nGrab your journal and a pencil.', size: 34, bold: true, color: 'ink' } },
@@ -543,15 +608,21 @@
     }
     loadState();
 
+    // Keep the whole widget bar on screen on narrow displays.
+    function fitDock() {
+      dock.style.zoom = '';
+      var room = dockWrap.clientWidth - 32, need = dock.scrollWidth;
+      if (room > 0 && need > room + 1) dock.style.zoom = Math.max(0.5, room / need);
+    }
     window.addEventListener('resize', function () {
-      drawInk();
+      drawInk(); fitDock();
       state.widgets.forEach(function (w) { clamp(w); var n = canvas.querySelector('[data-id="' + w.id + '"]'); if (n) place(n, w); });
     });
 
     return {
       show: function () {
         requestAnimationFrame(function () {
-          drawInk();
+          drawInk(); fitDock();
           state.widgets.forEach(function (w) { clamp(w); var n = canvas.querySelector('[data-id="' + w.id + '"]'); if (n) place(n, w); });
         });
       }

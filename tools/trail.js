@@ -2,7 +2,7 @@
 // multiplication facts to get ahead. Artwork lives in assets/race/.
 (function () {
   var TT = window.TT, h = TT.h;
-  var N = 30, COLS = 6, ART = 'assets/race/';
+  var N = 48, COLS = 8, ART = 'assets/race/';
   var TEAMS = [['Blue Team', '#2F6BFF', 'pawn-blue'], ['Orange Team', '#FF7A1A', 'pawn-orange'], ['Green Team', '#22D07A', 'pawn-green'], ['Purple Team', '#9B4DFF', 'pawn-purple']];
   var KINDS = {
     q: ['question', 'Fact Check', 'Solve it to move ahead 2'],
@@ -19,10 +19,18 @@
   function makeLayout() {
     var L = [], bag = [], spots = [], i;
     for (i = 0; i < N; i++) L.push('');
-    [['q', 11], ['move', 3], ['boost', 2], ['slip', 3], ['again', 2], ['swap', 1]].forEach(function (b) { for (var k = 0; k < b[1]; k++) bag.push(b[0]); });
-    for (i = 1; i < N - 1; i++) spots.push(i);
+    // Every space that is not a special space is a multiplication fact, so most turns end on one.
+    for (i = 1; i < N - 1; i++) L[i] = 'q';
+    [['move', 4], ['boost', 3], ['slip', 3], ['again', 3], ['swap', 2]].forEach(function (b) { for (var k = 0; k < b[1]; k++) bag.push(b[0]); });
+    for (i = 3; i < N - 2; i++) spots.push(i);
     spots = TT.shuffle(spots);
-    bag.forEach(function (k, j) { L[spots[j]] = k; });
+    // keep special spaces apart so facts sit between them
+    var used = [];
+    spots.forEach(function (sp) {
+      if (!bag.length) return;
+      if (used.some(function (u) { return Math.abs(u - sp) < 2; })) return;
+      L[sp] = bag.pop(); used.push(sp);
+    });
     return L;
   }
 
@@ -122,8 +130,9 @@
     }
     // Where a pawn stands on a tile, measured inside the board frame.
     function spot(i) {
-      var r = board.children[i].getBoundingClientRect(), w = wrap.getBoundingClientRect();
-      return { x: r.left - w.left + r.width / 2, y: r.top - w.top + r.height * 0.98, s: r.height };
+      // k undoes any full screen scaling, so the pawn lands on the tile at every screen size
+      var r = board.children[i].getBoundingClientRect(), w = wrap.getBoundingClientRect(), k = wrap.offsetWidth / w.width || 1;
+      return { x: (r.left - w.left + r.width / 2) * k, y: (r.top - w.top + r.height * 0.98) * k, s: r.height * k };
     }
     function at(p, extra) { return 'translate(' + p.x + 'px,' + p.y + 'px) translate(-50%,-100%) ' + (extra || ''); }
     // Hop one space at a time so the class can count along: crouch, jump in an arc, squash on landing.
@@ -174,7 +183,7 @@
     function finishOr(t, next) {
       if (state.pos[t] < N - 1) { next(); return; }
       ask(t, 'finish', 'Finish Line Fact for ' + name(t), function () {
-        state.over = true; busy = false; save(); paint(); TT.chime();
+        state.over = true; busy = false; save(); paint(); TT.chime(); if (TT.celebrate) TT.celebrate(wrap);
         show('finish', name(t) + ' Wins!', 'What a race. Great multiplying, everyone!', [TT.button('Play Again', { kind: 'primary big', onclick: function () { newGame(state.n); } })]);
       }, function () { hide(); walk(t, -2, endTurn); }, 'Got It! Win the Race');
     }

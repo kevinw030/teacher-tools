@@ -19,7 +19,8 @@ window.TT_ACCOUNT_CONFIG = {
   priceMonthly: '$3.99',
   priceYearly: '$29',
 
-  // Class lists hold students' names. 'choose' lets each teacher turn syncing on,
-  // 'always' always syncs them, 'never' keeps them on each computer only.
-  classSync: 'always'
+  // Class lists, class jobs, seating charts and exit tickets can hold students' names.
+  // 'never' keeps them on each computer only, 'choose' gives each teacher an on/off switch,
+  // 'always' saves them to the teacher's account.
+  classSync: 'never'
 };
