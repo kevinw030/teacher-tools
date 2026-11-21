@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="assets/home.css">
 <link rel="stylesheet" href="assets/theme.css">
 <link rel="stylesheet" href="assets/board2.css">
+<link rel="stylesheet" href="assets/learn.css">
 </head>
 <body>
 
@@ -48,6 +49,8 @@
           <a href="#brain-breaks" data-view="brain-breaks">Brain Breaks</a>
           <a href="#exit-tickets" data-view="exit-tickets">Exit Tickets</a>
           <a href="#seating" data-view="seating">Seating Chart</a>
+          <a href="#fact-fluency" data-view="fact-fluency">Fact Fluency</a>
+          <a href="#prompts" data-view="prompts">Prompts</a>
           <a href="#my-questions" data-view="my-questions">My Questions</a>
         </div>
       </div>
@@ -110,7 +113,7 @@
       <a class="tool c-rose" href="#points">
         <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h8M7 6h10l1 3v9a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3V9z"/><circle cx="10" cy="16" r="1.4" fill="currentColor"/><circle cx="14" cy="16" r="1.4" fill="currentColor"/><circle cx="12" cy="12.5" r="1.4" fill="currentColor"/></svg></span>
         <h3>Class Points</h3>
-        <p>Fill a marble jar toward a class reward, or keep team points.</p>
+        <p>Fill a marble jar toward a reward the class votes on, or keep team points.</p>
         <span class="go">Add Points <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
       </a>
       <a class="tool c-lime" href="#pet">
@@ -187,6 +190,18 @@
         <h3>Seating Chart</h3>
         <p>Build your room, then drag students to their seats or shuffle them.</p>
         <span class="go">Arrange Seats <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+      </a>
+      <a class="tool c-emerald" href="#fact-fluency">
+        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 5v6M3 8h6M15 8h6M4 15l5 5M9 15l-5 5M15 17.500h6"/><circle cx="18" cy="14.500" r=".6" fill="currentColor"/><circle cx="18" cy="20.500" r=".6" fill="currentColor"/></svg></span>
+        <h3>Fact Fluency</h3>
+        <p>Quick rounds of math facts with a class best to beat.</p>
+        <span class="go">Start a Round <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+      </a>
+      <a class="tool c-amber" href="#prompts">
+        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.500c.7.700 1 1.500 1 2.500h6c0-1 .3-1.800 1-2.500A6 6 0 0 0 12 3z"/></svg></span>
+        <h3>Prompts</h3>
+        <p>Writing prompts, discussion starters and This or That questions by grade.</p>
+        <span class="go">Get a Prompt <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
       </a>
       <a class="tool c-rose" href="#games">
         <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v3M5.5 12.5h3"/><circle cx="16" cy="11.5" r="1" fill="currentColor"/><circle cx="18" cy="13.5" r="1" fill="currentColor"/></svg></span>
@@ -354,6 +369,24 @@
   <section class="panel" id="pointsMount"></section>
 </main>
 
+<!-- FACT FLUENCY -->
+<main class="page c-emerald" id="view-fact-fluency" data-view="fact-fluency" hidden>
+  <header class="tool-head">
+    <div><span class="eyebrow">Classroom tool</span><h1>Fact Fluency</h1><p>Quick rounds of math facts. Type the answer or tap the number pad, and try to beat the class best.</p></div>
+    <div class="row js-fs-slot"></div>
+  </header>
+  <section class="panel" id="fluencyMount"></section>
+</main>
+
+<!-- PROMPTS -->
+<main class="page c-amber" id="view-prompts" data-view="prompts" hidden>
+  <header class="tool-head">
+    <div><span class="eyebrow">Classroom tool</span><h1>Prompts</h1><p>Something to write about, talk about or choose between, picked for your grade.</p></div>
+    <div class="row js-fs-slot"></div>
+  </header>
+  <section class="panel" id="promptsMount"></section>
+</main>
+
 <!-- EXIT TICKETS -->
 <main class="page c-coral" id="view-exit-tickets" data-view="exit-tickets" hidden>
   <header class="tool-head">
@@ -405,6 +438,7 @@
 <script src="tools/pet-art.js"></script>
 <script src="tools/pet.js"></script>
 <script src="tools/wheel.js"></script>
+<script src="tools/grade-data.js"></script>
 <script src="tools/games.js"></script>
 <script src="tools/trivia-grades.js"></script>
 <script src="tools/puzzles.js"></script>
@@ -416,6 +450,7 @@
 <script src="tools/seating-art.js"></script>
 <script src="tools/seating.js"></script>
 <script src="tools/extras.js"></script>
+<script src="tools/learn.js"></script>
 <script src="assets/app.js"></script>
 <script src="tools/fit.js"></script>
 <script src="tools/home.js"></script>
