@@ -1,3 +1,6 @@
+// Classroom Pet is switched off for now (Kevin, 2026-11-20). Set to true to bring it back everywhere.
+window.TT = window.TT || {};
+TT.PETS_ON = false;
 // Illustrated pets: a pet drawn in several poses that walks around its room and acts things out.
 // The kitten uses Kevin's artwork in assets/pet/cat/ (a cozy room plus seven poses).
 (function () {

@@ -399,3 +399,4 @@ img.pet-art-icon { width: 60px; height: 60px; margin: -4px 0; object-fit: contai
 .pet-scene.hop .pa-body { animation: pa-purr .5s ease-in-out 2; }
 @media (prefers-reduced-motion: reduce) { .pa-body { animation: none !important; } }
 .page.fs .pet-scene { max-width: 760px; margin-left: auto; margin-right: auto; width: 100%; }
+.mm-weather:has(+ .mm-card[hidden]) { grid-column: 1 / -1; }

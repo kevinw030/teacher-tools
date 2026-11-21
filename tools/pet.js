@@ -61,6 +61,10 @@
   // ---------- Mini habitat for the home page ----------
   // The pet moves around its home. Tap the pet to say hi, tap anywhere else to call it over.
   TT.mountPetMini = function (el) {
+    if (!TT.PETS_ON) {
+      if (el) { el.hidden = true; var card = el.closest && el.closest('.mm-card'); if (card) card.hidden = true; }
+      return { refresh: function () {} };
+    }
     var raf = 0, pet = null, node = null, home = null, bubble = null, info = null, bubbleTimer = 0;
     var x = 50, y = 60, tx = 50, ty = 60, vx = 0, face = 1, rest = 0, t0 = 0, lastPick = 0;
 
@@ -380,4 +384,17 @@
     if (state && state.pet) renderPet(); else renderChooser();
     return { show: function () { if (state && state.pet) paint(); } };
   };
+})();
+
+// When pets are switched off, take the links off the page and send #pet back home.
+(function () {
+  if (TT.PETS_ON) return;
+  function off() {
+    var links = document.querySelectorAll('a[href="#pet"]');
+    for (var i = 0; i < links.length; i++) links[i].hidden = true, links[i].style.display = 'none';
+    if (location.hash === '#pet') location.replace('#home');
+  }
+  off();
+  document.addEventListener('DOMContentLoaded', off);
+  window.addEventListener('hashchange', off);
 })();
