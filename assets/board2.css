@@ -165,3 +165,22 @@ div.note-area:empty::before { content: attr(data-ph); opacity: .45; }
 .sc-item.thing.wide .sc-art { height: 84%; max-width: 30%; }
 @media print { .sc-mode { display: none; } }
 .tb-strike { text-decoration: line-through; } .text-toolbar { max-width: min(840px, 96vw); }
+
+/* ----- Rotation handle: sits under the box, shows the angle while turning ----- */
+.w-rot { position: absolute; left: 50%; bottom: -42px; width: 34px; height: 28px; margin-left: -17px; z-index: 8; cursor: grab; touch-action: none; display: grid; place-items: center; border-radius: 6px 6px 16px 16px; background: #fff; color: var(--cobalt); border: 2px solid var(--cobalt); box-shadow: 0 2px 6px rgba(14, 17, 32, .25); opacity: 0; transform: scale(.6); transition: opacity .15s ease, transform .4s var(--spring, ease); }
+.w-rot svg { width: 18px; height: 18px; }
+.widget:hover .w-rot, .widget:focus-within .w-rot, .widget.turning .w-rot { opacity: 1; transform: none; }
+.w-rot:hover { background: var(--cobalt); color: #fff; }
+.widget.turning .w-rot { cursor: grabbing; background: var(--cobalt); color: #fff; }
+.w-rot-deg { position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); padding: 3px 8px; border-radius: 8px; background: #0E1120; color: #fff; font: 700 12px/1.2 var(--body); font-variant-numeric: tabular-nums; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .15s ease; }
+.w-rot:hover .w-rot-deg, .widget.turning .w-rot-deg { opacity: 1; }
+.widget.locked .w-rot { display: none; }
+.widget.box-clear .w-rot { opacity: 0; } .widget.box-clear:hover .w-rot, .widget.box-clear:focus-within .w-rot { opacity: 1; }
+/* keep the hover alive across the gap between the box and its rotate handle */
+.w-rot::before { content: ""; position: absolute; left: -10px; right: -10px; top: -16px; height: 18px; }
+.text-toolbar { padding-top: 50px; }
+.widget.tb-up .text-toolbar { padding-top: 0; }
+@media (prefers-reduced-motion: reduce) { .w-rot { transition: none; } }
+.widget.w-text .text-toolbar { padding-top: 56px; }
+.widget.w-text.tb-up .text-toolbar { padding-top: 0; }
+.widget.turning .text-toolbar { opacity: 0 !important; }

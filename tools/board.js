@@ -311,6 +311,7 @@
       node.style.zoom = k === 1 ? '' : k;
       node.style.left = Math.max(0, fx * (b.w - w.w * k)) / k + 'px'; node.style.top = Math.max(0, fy * (b.h - w.h * k)) / k + 'px';
       node.style.width = w.w + 'px'; node.style.height = w.h + 'px';
+      node.style.transform = w.rot ? 'rotate(' + w.rot + 'deg)' : '';
     }
 
     function renderWidget(w, fresh) {
@@ -346,6 +347,8 @@
         node.append(g);
         drag(g, function (dx, dy, start) {
           var k = scale(), r = ref(), X = dx / k, Y = dy / k;
+          // a turned box is resized along its own sides, not the screen's
+          if (w.rot) { var a = -w.rot * Math.PI / 180, x0 = X; X = x0 * Math.cos(a) - Y * Math.sin(a); Y = x0 * Math.sin(a) + Y * Math.cos(a); }
           var nw = start.w, nh = start.h, nx = start.x, ny = start.y;
           if (dir.indexOf('e') >= 0) nw = Math.min(start.w + X, r.w - start.x);
           if (dir.indexOf('s') >= 0) nh = Math.min(start.h + Y, r.h - start.y);
@@ -355,6 +358,29 @@
           if (mounted[w.id] && mounted[w.id].restyle) mounted[w.id].restyle();
         }, w);
       });
+
+      // Rotation handle under the box: drag it around to turn the box. It snaps to straight and to every 15 degrees.
+      var deg = h('span', { class: 'w-rot-deg' });
+      var rot = h('div', { class: 'w-rot', title: 'Turn (Double-Click to Straighten)', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9a9 9 0 0 0 16 0"/><path d="M4 14V9h5M20 14V9h-5"/></svg>' }, deg);
+      function paintRot() { deg.textContent = Math.round(w.rot || 0) + '°'; node.classList.toggle('turned', !!w.rot); }
+      paintRot();
+      rot.addEventListener('pointerdown', function (e) {
+        if (w.locked) return;
+        e.preventDefault(); e.stopPropagation(); rot.setPointerCapture(e.pointerId);
+        var r = node.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        function ang(ev) { return Math.atan2(ev.clientY - cy, ev.clientX - cx) * 180 / Math.PI; }
+        var a0 = ang(e), r0 = w.rot || 0;
+        node.classList.add('turning');
+        function mv(ev) {
+          var v = r0 + ang(ev) - a0; v = ((v + 180) % 360 + 360) % 360 - 180;
+          var near = Math.round(v / 15) * 15; if (Math.abs(v - near) < 4) v = near;
+          w.rot = Math.round(v) || 0; place(node, w); paintRot();
+        }
+        function up() { rot.removeEventListener('pointermove', mv); rot.removeEventListener('pointerup', up); rot.removeEventListener('pointercancel', up); node.classList.remove('turning'); save(); }
+        rot.addEventListener('pointermove', mv); rot.addEventListener('pointerup', up); rot.addEventListener('pointercancel', up);
+      });
+      rot.addEventListener('dblclick', function () { if (w.locked) return; w.rot = 0; place(node, w); paintRot(); save(); });
+      node.append(rot);
 
       if (!w.data) w.data = {};
       mounted[w.id] = (WIDGETS[w.type] || t.mount)(body, w, save) || {};
