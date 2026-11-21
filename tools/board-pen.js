@@ -25,6 +25,15 @@
     var prefs = TT.load('board-pen', null) || {};
     var pen = { on: false, draw: true, tool: prefs.tool || 'pen', color: prefs.color || '#EF4444', size: prefs.size || 7, open: prefs.open !== false, shapes: false };
     var stroke = null;
+    // What Undo steps back through: lines that were drawn ({add}) and lines the eraser took away ({del}).
+    var undos = [], wiping = null;
+    function undo() {
+      var s = strokes(), u = undos.pop();
+      if (!u) { if (!s.length) return; s.pop(); }
+      else if (u.add) { var i = s.indexOf(u.add); if (i >= 0) s.splice(i, 1); }
+      else u.del.slice().sort(function (a, b) { return a[0] - b[0]; }).forEach(function (d) { s.splice(Math.min(d[0], s.length), 0, d[1]); });
+      env.save(); drawInk();
+    }
     function keep() { TT.save('board-pen', { tool: pen.tool, color: pen.color, size: pen.size, open: pen.open }); }
     function strokes() { var s = env.getState(); if (!Array.isArray(s.strokes)) s.strokes = []; return s.strokes; }
 
@@ -62,8 +71,12 @@
       h('div', { class: 'pen2-colors', role: 'group', 'aria-label': 'Color' }, colorBtns, anyBtn),
       h('div', { class: 'pen2-sizes', role: 'group', 'aria-label': 'Thickness' }, sizeBtns),
       h('div', { class: 'pen2-acts' },
-        tbtn('pen2-icon', 'Undo', TT.icon('reset'), function () { var s = strokes(); if (s.length) { s.pop(); env.save(); drawInk(); } }),
-        tbtn('pen2-icon', 'Erase Everything', TT.icon('trash'), function () { env.getState().strokes = []; env.save(); drawInk(); })),
+        tbtn('pen2-icon', 'Undo', TT.icon('reset'), undo),
+        tbtn('pen2-icon', 'Erase Everything', TT.icon('trash'), function () {
+          var s = strokes(); if (!s.length) return;
+          undos.push({ del: s.map(function (x, i) { return [i, x]; }) });
+          env.getState().strokes = []; env.save(); drawInk();
+        })),
       h('div', { class: 'pen2-end' }, foldBtn, TT.button('Done', { kind: 'small primary', onclick: function () { setPen(false); } })));
     var bar = h('div', { class: 'pen2', hidden: true, role: 'toolbar', 'aria-label': 'Drawing tools' }, shapeRow, main);
     var penBtn = h('button', { type: 'button', class: 'dock-btn dock-pen', title: 'Draw on the board', 'aria-pressed': 'false', onclick: function () { setPen(!pen.on); } },
@@ -150,6 +163,44 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, b.w, b.h);
       (env.getState().strokes || []).forEach(function (st) { if (st.p && st.p.length >= 2) one(ctx, st, b); });
     }
+    // ----- Eraser: touching any part of a line or shape removes the whole thing -----
+    function segDist(px, py, ax, ay, bx, by) {
+      var dx = bx - ax, dy = by - ay, l = dx * dx + dy * dy, t = l ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / l)) : 0;
+      return Math.sqrt(Math.pow(px - ax - dx * t, 2) + Math.pow(py - ay - dy * t, 2));
+    }
+    function touches(st, x, y, r, b) {
+      var p = st.p, t = st.t || 'pen', i;
+      if (t === 'er') return false;
+      var reach = r + (t === 'hl' ? st.s * 3 : st.s) / 2;
+      if (!isShape(t)) {
+        if (p.length === 2) return segDist(x, y, p[0] * b.w, p[1] * b.h, p[0] * b.w, p[1] * b.h) <= reach;
+        for (i = 0; i + 3 < p.length; i += 2) if (segDist(x, y, p[i] * b.w, p[i + 1] * b.h, p[i + 2] * b.w, p[i + 3] * b.h) <= reach) return true;
+        return false;
+      }
+      if (p.length < 4) return false;
+      var x0 = p[0] * b.w, y0 = p[1] * b.h, x1 = p[2] * b.w, y1 = p[3] * b.h;
+      if (t === 'line' || t === 'arrow') return segDist(x, y, x0, y0, x1, y1) <= Math.max(reach, t === 'arrow' ? r + 6 : 0);
+      var l = Math.min(x0, x1), rt = Math.max(x0, x1), tp = Math.min(y0, y1), bt = Math.max(y0, y1);
+      if (t === 'rect' || t === 'frect') {
+        if (t === 'frect') return x >= l - r && x <= rt + r && y >= tp - r && y <= bt + r;
+        return segDist(x, y, l, tp, rt, tp) <= reach || segDist(x, y, rt, tp, rt, bt) <= reach || segDist(x, y, rt, bt, l, bt) <= reach || segDist(x, y, l, bt, l, tp) <= reach;
+      }
+      var rx = Math.max(1, (rt - l) / 2), ry = Math.max(1, (bt - tp) / 2), cx = (l + rt) / 2, cy = (tp + bt) / 2;
+      var k = Math.sqrt(Math.pow((x - cx) / rx, 2) + Math.pow((y - cy) / ry, 2)), slack = reach / Math.min(rx, ry);
+      return t === 'foval' ? k <= 1 + r / Math.min(rx, ry) : Math.abs(k - 1) <= slack;
+    }
+    function wipeAt(x, y, b) {
+      var s = strokes(), r = Math.max(8, pen.size * 1.6), hit = false;
+      for (var i = s.length - 1; i >= 0; i--) if (touches(s[i], x * b.w, y * b.h, r, b)) { wiping.del.push([i, s[i]]); s.splice(i, 1); hit = true; }
+      if (hit) drawInk();
+    }
+    // Check every few pixels along the eraser's path, so a quick swipe cannot skip over a thin line.
+    function wipeTo(x, y, b) {
+      var dx = (x - sx) * b.w, dy = (y - sy) * b.h, n = Math.max(1, Math.ceil(Math.sqrt(dx * dx + dy * dy) / 5));
+      for (var i = 1; i <= n; i++) wipeAt(sx + (x - sx) * i / n, sy + (y - sy) * i / n, b);
+      sx = x; sy = y;
+    }
+
     var raf = 0;
     function redrawSoon() { if (!raf) raf = requestAnimationFrame(function () { raf = 0; drawInk(); }); }
 
@@ -173,12 +224,14 @@
       try { ink.setPointerCapture(e.pointerId); } catch (err) {}
       penId = e.pointerId; penKind = e.pointerType; inkRect = ink.getBoundingClientRect();
       var pt = raw(e); sx = pt[0]; sy = pt[1];
+      if (pen.tool === 'er') { wiping = { del: [] }; wipeAt(sx, sy, bounds()); return; }
       stroke = { c: pen.color, s: pen.size, p: [r5(sx), r5(sy)] };
       if (pen.tool !== 'pen') stroke.t = pen.tool;
       strokes().push(stroke);
       if (!isShape(pen.tool)) { if (stroke.t === 'hl') redrawSoon(); else one(inkCtx(), stroke, bounds()); }
     });
     ink.addEventListener('pointermove', function (e) {
+      if (wiping && e.pointerId === penId) { e.preventDefault(); var w = raw(e); wipeTo(w[0], w[1], bounds()); return; }
       if (!stroke || e.pointerId !== penId) return;
       e.preventDefault();
       if (isShape(stroke.t)) { var q = raw(e); stroke.p[2] = r5(q[0]); stroke.p[3] = r5(q[1]); redrawSoon(); return; }
@@ -195,17 +248,21 @@
       }
     });
     function endStroke(e) {
-      if (!stroke || (e && e.pointerId !== penId)) return;
-      var b = bounds();
+      if (e && e.pointerId !== penId) return;
+      if (wiping) { if (wiping.del.length) { undos.push(wiping); env.save(); } wiping = null; penId = null; return; }
+      if (!stroke) return;
+      var b = bounds(), made = true;
       if (isShape(stroke.t)) {
         // a click without a drag is not a shape
         var p = stroke.p;
-        if (p.length < 4 || Math.abs(p[2] - p[0]) * b.w + Math.abs(p[3] - p[1]) * b.h < 6) strokes().pop();
+        if (p.length < 4 || Math.abs(p[2] - p[0]) * b.w + Math.abs(p[3] - p[1]) * b.h < 6) { strokes().pop(); made = false; }
       } else if (e && e.type === 'pointerup' && inkRect) {
         // finish exactly where the pen lifted
         var pt = raw(e), n = stroke.p.length;
         if (Math.abs(pt[0] - stroke.p[n - 2]) * b.w + Math.abs(pt[1] - stroke.p[n - 1]) * b.h > 0.5) stroke.p.push(r5(pt[0]), r5(pt[1]));
       }
+      if (made) undos.push({ add: stroke });
+      if (undos.length > 60) undos.shift();
       stroke = null; penId = null; env.save(); drawInk();
     }
     ink.addEventListener('pointerup', endStroke);

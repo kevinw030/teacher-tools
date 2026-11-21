@@ -390,6 +390,7 @@
         var SOFT = ['#9CA3AF', '#FECACA', '#FED7AA', '#FEF3C7', '#DCFCE7', '#CFFAFE', '#DBEAFE', '#DDD6FE', '#FBCFE8'];
         var TEXT_COLORS = STRONG.concat(SOFT, ['auto']);
         var BOX_COLORS = STRONG.concat(['default'], SOFT.slice(1), ['clear']);
+        var HL_COLORS = ['#FDE047', '#FDBA74', '#FCA5A5', '#F9A8D4', '#D8B4FE', '#93C5FD', '#67E8F9', '#86EFAC', '#D1D5DB', 'clear'];
         if (!d.font) d.font = 'modern';
         if (!d.align) d.align = 'left';
         if (!d.box) d.box = 'default';
@@ -397,7 +398,7 @@
 
         // The message is rich text, so single words or lines can have their own color.
         function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-        // Keep only line breaks and text color; drop every other tag and attribute.
+        // Keep only line breaks, text color and highlight; drop every other tag and attribute.
         function clean(html) {
           var t = document.createElement('template'); t.innerHTML = html;
           (function walk(n) {
@@ -409,9 +410,10 @@
                 if (['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'LINK', 'META'].indexOf(tag) >= 0) { c.remove(); return; }
                 walk(c); c.replaceWith.apply(c, [].slice.call(c.childNodes)); return;
               }
-              var col = (c.style && c.style.color) || c.getAttribute('color') || '';
+              var col = (c.style && c.style.color) || c.getAttribute('color') || '', bg = (c.style && c.style.backgroundColor) || '';
               [].slice.call(c.attributes).forEach(function (a) { c.removeAttribute(a.name); });
               if (col && /^[#a-z0-9(),.\s%]+$/i.test(col)) c.style.color = col;
+              if (bg && bg !== 'transparent' && /^[#a-z0-9(),.\s%]+$/i.test(bg)) c.style.backgroundColor = bg;
               walk(c);
             });
           })(t.content);
@@ -434,10 +436,25 @@
         });
         area.addEventListener('blur', function () { setTimeout(function () { if (!node.contains(document.activeElement)) lastRange = null; }, 0); });
         // Color only the highlighted words, or what is typed next. With no cursor in the box, color the whole box.
-        function colorText(c) {
+        function intoText() {
           var sel = window.getSelection();
           var inside = document.activeElement === area && sel.rangeCount && area.contains(sel.anchorNode);
           if (!inside && lastRange) { area.focus(); sel.removeAllRanges(); sel.addRange(lastRange); inside = true; }
+          return inside;
+        }
+        // Highlight the selected words (or what is typed next) like a marker. With no cursor in the box, highlight all of it.
+        var hlNow = '#FDE047';
+        function hiliteText(c) {
+          if (c !== 'clear') hlNow = c;
+          var sel = window.getSelection();
+          if (!intoText()) { area.focus(); sel.selectAllChildren(area); }
+          document.execCommand('styleWithCSS', false, true);
+          document.execCommand('hiliteColor', false, c === 'clear' ? 'transparent' : c);
+          keepText(); style();
+        }
+        function colorText(c) {
+          var sel = window.getSelection();
+          var inside = intoText();
           if (!inside) { set('color', c); return; }
           document.execCommand('styleWithCSS', false, true);
           if (c === 'auto') {
@@ -471,7 +488,7 @@
 
         // A palette: two rows of ten, then the teacher's own saved colors and a "+" to add one.
         function palette(list, key, label) {
-          function pick(c) { if (key === 'color') colorText(c); else set(key, c); }
+          function pick(c) { if (key === 'color') colorText(c); else if (key === 'hl') hiliteText(c); else set(key, c); }
           var custom = h('input', { type: 'color', class: 'pal-input', 'aria-label': label + ': add a color', title: 'Add a Color' });
           custom.addEventListener('change', function () {
             var mine = TT.load('board-colors', []) || [], v = custom.value.toUpperCase();
@@ -480,7 +497,7 @@
           });
           function dot(c) {
             var special = c === 'auto' || c === 'default' || c === 'clear';
-            var name = c === 'auto' ? 'Automatic' : c === 'default' ? 'Standard' : c === 'clear' ? 'See-Through' : c;
+            var name = c === 'auto' ? 'Automatic' : c === 'default' ? 'Standard' : c === 'clear' ? (key === 'hl' ? 'No Highlight' : 'See-Through') : c;
             return h('button', { type: 'button', class: 'dot' + (special ? ' dot-' + c : ''), 'data-c': c, style: special ? null : 'background:' + c, 'aria-label': label + ': ' + name, title: name, onclick: function () { pick(c); } });
           }
           var btns = list.map(dot), mineRow = h('div', { class: 'pal-mine' });
@@ -494,19 +511,22 @@
         }
         var textSw = palette(TEXT_COLORS, 'color', 'Text');
         var boxSw = palette(BOX_COLORS, 'box', 'Box');
-        var palOpen = 'color';
-        var textTab = h('button', { type: 'button', class: 'tb pal-tab', onclick: function () { palOpen = palOpen === 'color' ? '' : 'color'; style(); } }, h('i', { class: 'pal-now' }), h('span', { text: 'Text Color' }));
-        var boxTab = h('button', { type: 'button', class: 'tb pal-tab', onclick: function () { palOpen = palOpen === 'box' ? '' : 'box'; style(); } }, h('i', { class: 'pal-now' }), h('span', { text: 'Box Color' }));
+        var hlSw = palette(HL_COLORS, 'hl', 'Highlight');
+        var palOpen = '';
+        function tab(key, word, tip) {
+          return h('button', { type: 'button', class: 'tb pal-tab', title: tip, 'aria-label': tip, onclick: function () { palOpen = palOpen === key ? '' : key; style(); } }, h('i', { class: 'pal-now' }), h('span', { text: word }));
+        }
+        var textTab = tab('color', 'Text', 'Text Color'), hlTab = tab('hl', 'Highlight', 'Highlight Color'), boxTab = tab('box', 'Box', 'Box Color');
 
         var bar = h('div', { class: 'text-toolbar' },
           h('div', { class: 'tb-panel' },
-            h('div', { class: 'tb-row' }, fontSel,
+            h('div', { class: 'tb-row tb-one' }, fontSel,
               h('button', { type: 'button', class: 'tb', 'aria-label': 'Smaller text', title: 'Smaller', text: 'A−', onclick: function () { set('size', Math.max(12, d.size - 4)); } }),
               h('button', { type: 'button', class: 'tb', 'aria-label': 'Bigger text', title: 'Bigger', text: 'A+', onclick: function () { set('size', Math.min(200, d.size + 4)); } }),
               h('span', { class: 'tb-sep' }), boldBtn, italBtn, undBtn, shadowBtn,
-              h('span', { class: 'tb-sep' }), aligns, midBtn),
-            h('div', { class: 'tb-row' }, textTab, boxTab, h('span', { class: 'pal-hint', text: 'Highlight words to color just those.' })),
-            textSw.el, boxSw.el));
+              h('span', { class: 'tb-sep' }), aligns, midBtn,
+              h('span', { class: 'tb-sep' }), textTab, hlTab, boxTab),
+            textSw.el, hlSw.el, boxSw.el));
         // Clicking the toolbar must not take the cursor out of the text.
         bar.addEventListener('mousedown', function (e) { if (!e.target.closest('select, input, label')) e.preventDefault(); });
         body.append(area, bar);
@@ -538,8 +558,9 @@
           aligns.forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-al') === d.align); });
           textSw.btns.forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-c') === d.color); });
           boxSw.btns.forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-c') === d.box); });
-          textSw.el.hidden = palOpen !== 'color'; boxSw.el.hidden = palOpen !== 'box';
-          textTab.classList.toggle('on', palOpen === 'color'); boxTab.classList.toggle('on', palOpen === 'box');
+          textSw.el.hidden = palOpen !== 'color'; boxSw.el.hidden = palOpen !== 'box'; hlSw.el.hidden = palOpen !== 'hl';
+          textTab.classList.toggle('on', palOpen === 'color'); boxTab.classList.toggle('on', palOpen === 'box'); hlTab.classList.toggle('on', palOpen === 'hl');
+          hlTab.firstChild.style.background = hlNow;
           textTab.firstChild.style.background = color;
           boxTab.firstChild.style.background = custom ? d.box : clear ? 'transparent' : 'var(--surface)';
         }
