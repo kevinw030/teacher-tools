@@ -231,7 +231,9 @@
     var subjects = h('div', { class: 'pr-subjects', role: 'group', 'aria-label': 'Subject' });
     var rl = reel('pr-reel', ''), sub = h('div', { class: 'pick-sub' });
     var duel = h('div', { class: 'pr-duel', hidden: true });
-    var stage = h('div', { class: 'pick-stage pr-stage' }, rl.el, duel, sub);
+    // Every prompt comes with a helper: the facts, examples or a sentence starter a student needs to get going.
+    var helpText = h('span'), help = h('div', { class: 'pr-help', hidden: true }, h('b', { text: 'Helper' }), helpText);
+    var stage = h('div', { class: 'pick-stage pr-stage' }, rl.el, duel, help, sub);
     var nextBtn = TT.button('New Prompt', { icon: 'sparkle', kind: 'primary big', onclick: next });
     var gradeRow = h('div', { class: 'pr-grade' }, h('span', { class: 'ff-label', text: 'Grade' }), TT.gradePicker(function () { cur = null; paint(); }));
     el.append(h('div', { class: 'pr' }, h('div', { class: 'pr-top' }, kinds, gradeRow), subjects, stage, h('div', { class: 'row center' }, nextBtn)));
@@ -257,7 +259,7 @@
       stage.classList.toggle('duel', state.kind === 'pick');
       stage.classList.remove('reveal');
       if (!cur) {
-        duel.hidden = true; rl.el.hidden = false;
+        duel.hidden = true; rl.el.hidden = false; help.hidden = true;
         rl.set(state.kind === 'write' ? 'Ready to write?' : state.kind === 'talk' ? 'Ready to talk it over?' : 'Ready to choose?');
         sub.textContent = pool().length + (state.kind === 'pick' ? ' questions' : ' prompts') + (state.kind === 'pick' ? '' : ' for ' + TT.GRADE_NAMES[TT.grade()] + ' grade') + (state.subject === 'Any' ? '' : ' in ' + state.subject);
       }
@@ -281,10 +283,11 @@
       var pickd = left[Math.floor(Math.random() * left.length)];
       seen.push(pickd); state.seen[k] = seen; save();
       cur = pickd; votes = [0, 0]; busy = true;
+      var bits = cur.split(' || '); help.hidden = state.kind === 'pick' || !bits[1]; helpText.textContent = bits[1] || '';
       stage.classList.remove('reveal'); stage.classList.add('spinning');
       function done() { busy = false; stage.classList.remove('spinning'); stage.classList.add('reveal'); sub.textContent = state.kind === 'write' ? 'Take a minute to think, then start writing.' : state.kind === 'talk' ? 'Turn and talk with a partner, then share with the class.' : 'Tap a side for each vote, or have students move to a side of the room.'; }
       if (state.kind === 'pick') { duel.hidden = false; rl.el.hidden = true; showDuel(); if (!still && duel.animate) duel.animate([{ transform: 'translateY(24px) scale(.96)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 520, easing: 'cubic-bezier(.2, 1.4, .4, 1)' }); TT.tick(); done(); }
-      else { rl.slide(cur, 420, true); TT.tick(); setTimeout(done, still ? 0 : 420); }
+      else { rl.slide(bits[0], 420, true); if (!still && help.animate) help.animate([{ transform: 'translateY(12px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 520, delay: 260, easing: 'cubic-bezier(.2, 1.3, .4, 1)', fill: 'backwards' }); TT.tick(); setTimeout(done, still ? 0 : 420); }
     }
     document.addEventListener('keydown', function (e) {
       if (el.offsetParent === null || /INPUT|TEXTAREA|BUTTON|SELECT/.test(e.target.tagName)) return;

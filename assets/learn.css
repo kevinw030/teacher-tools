@@ -99,3 +99,12 @@
 @media (max-width: 640px) { .pr-duel { grid-template-columns: 1fr; } .pr-or { justify-self: center; } .pr-stage { height: auto; min-height: 380px; } .ff-hud { gap: 8px; } .ff-stat { min-width: 72px; } }
 @media (prefers-reduced-motion: reduce) { .ff-card.good, .ff-card.bad { animation: none; } .rw-card, .ff-op, .pr-side, .ff-key { transition: none; } }
 .game .segmented { flex-wrap: wrap; justify-content: center; max-width: 100%; }
+
+/* Prompt helper: background facts, examples or a sentence starter under every prompt */
+.pr-stage { height: auto; min-height: clamp(360px, 40vw, 480px); gap: var(--s4, 16px); }
+.pr-reel { height: calc(1.14em * 3 + .3em); }
+.pr-help { display: flex; align-items: flex-start; gap: 12px; width: 100%; max-width: 62ch; padding: 14px 18px; border-radius: 18px; text-align: left; background: var(--surface); border: 1px solid color-mix(in srgb, var(--amber) 30%, var(--line)); font-size: clamp(16px, 1.5vw, 21px); line-height: 1.45; font-weight: 500; }
+.pr-help[hidden] { display: none; }
+.pr-help b { flex: none; font: 700 12px/1 var(--body); letter-spacing: .08em; text-transform: uppercase; padding: 6px 10px; border-radius: 999px; background: var(--amber); color: #0E1120; margin-top: 2px; }
+@media (max-width: 640px) { .pr-help { flex-direction: column; gap: 8px; } .pr-reel { height: calc(1.14em * 5 + .3em); } }
+.pr-reel { height: calc(1.14em * 3 + .8em); -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 8%, #000 92%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 8%, #000 92%, transparent 100%); }
