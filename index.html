@@ -8,9 +8,10 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230E1120'/%3E%3Crect x='6' y='6' width='9' height='9' rx='2' fill='%234F86FF'/%3E%3Crect x='17' y='6' width='9' height='9' rx='2' fill='%23FF7A52'/%3E%3Crect x='6' y='17' width='9' height='9' rx='2' fill='%2322C993'/%3E%3Crect x='17' y='17' width='9' height='9' rx='2' fill='%23FFC043'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,700&family=Fredoka:wght@400;700&family=Lexend:wght@400;700&family=Patrick+Hand&family=Permanent+Marker&family=Bangers&family=Pacifico&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400..900&family=Atkinson+Hyperlegible+Next:ital,wght@0,400..800;1,400..800&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,700&family=Fredoka:wght@400;700&family=Lexend:wght@400;700&family=Patrick+Hand&family=Permanent+Marker&family=Bangers&family=Pacifico&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap">
 <link rel="stylesheet" href="assets/styles.css">
 <link rel="stylesheet" href="assets/classroom.css">
+<link rel="stylesheet" href="assets/home.css">
 </head>
 <body>
 
@@ -56,12 +57,13 @@
 
 <!-- HOME -->
 <main class="page" id="view-home" data-view="home">
-  <section class="hero">
-    <div>
+  <section class="hero hero-scene">
+    <div class="hero-art" aria-hidden="true"></div>
+    <div class="hero-hello glass" data-rise>
       <h1 id="greeting">Good morning!</h1>
       <p>Everything you need for the board, one click away.</p>
     </div>
-    <div class="hero-side">
+    <div class="hero-side" data-rise>
       <div class="date-card">
         <span class="date-day" id="dateDay">20</span>
         <span class="date-text"><b id="dateWeekday">Friday</b><span id="dateMonth">November 2026</span></span>
@@ -70,7 +72,7 @@
     </div>
   </section>
 
-  <section class="feature" aria-label="Today's Would You Rather">
+  <section class="feature glass" aria-label="Today's Would You Rather" data-rise>
     <div style="min-width:0">
       <span class="eyebrow">Today's Would You Rather</span>
       <p class="feature-q" id="todayQ">Would you rather …</p>
@@ -79,7 +81,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
   </section>
 
-  <section aria-labelledby="dailyHead">
+  <section class="home-daily" aria-labelledby="dailyHead">
     <div class="section-head">
       <h2 id="dailyHead">Daily Routines</h2>
       <p>The things you open every morning.</p>
@@ -124,7 +126,7 @@
     </div>
   </section>
 
-  <section aria-labelledby="toolsHead">
+  <section class="home-tools" aria-labelledby="toolsHead">
     <div class="section-head">
       <h2 id="toolsHead">Classroom Tools</h2>
       <p>Open one on the board, or set up the Classroom Board with several at once.</p>
@@ -199,7 +201,7 @@
     </div>
   </section>
 
-  <section aria-labelledby="linksHead">
+  <section class="home-links" aria-labelledby="linksHead">
     <div class="section-head">
       <h2 id="linksHead">My Links</h2>
       <p>Sites you open every day. Saved on this computer.</p>
@@ -410,5 +412,6 @@
 <script src="tools/extras.js"></script>
 <script src="assets/app.js"></script>
 <script src="tools/fit.js"></script>
+<script src="tools/home.js"></script>
 </body>
 </html>

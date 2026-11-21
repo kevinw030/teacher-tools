@@ -1,0 +1,124 @@
+/* Home page look: an illustrated window scene with frosted glass panels on top, a spacing scale, and spring motion.
+   Spacing scale (use these, not one-off numbers): 4, 8, 12, 16, 24, 32, 48, 72. Related things sit close, sections sit far apart. */
+:root {
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px; --s8: 72px;
+  --spring: cubic-bezier(.34, 1.56, .64, 1);
+  --spring-soft: cubic-bezier(.3, 1.3, .6, 1);
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --spring: linear(0, .009, .035 2.1%, .141 4.4%, .723 12.9%, .938 16.7%, 1.017, 1.077, 1.121, 1.149 24.3%, 1.159, 1.163, 1.161, 1.154 29.9%, 1.129 32.8%, 1.051 39.6%, 1.017 43.1%, .991, .977 51%, .974 53.8%, .975 57.1%, .997 69.8%, 1.003 76.9%, 1.004 83.8%, 1);
+    --spring-soft: linear(0, .006, .025 2.8%, .101 6.1%, .539 18.9%, .721 25.3%, .849 31.5%, .937 38.1%, .968 41.8%, .991 45.7%, 1.006 50.1%, 1.015 55%, 1.017 63.9%, 1.001 85.9%, 1);
+  }
+}
+
+/* Warm paper canvas on the home page so it matches the artwork (light theme only). */
+body.home-mode { --bg: #F6F1E8; --line: #E6DFD2; --surface-2: #EFE8DB; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) body.home-mode { --bg: #12100E; --line: #2C2823; --surface-2: #231F1B; --surface: #1B1815; } }
+:root[data-theme="dark"] body.home-mode { --bg: #12100E; --line: #2C2823; --surface-2: #231F1B; --surface: #1B1815; }
+
+#view-home { gap: 0; padding-top: var(--s5); }
+#view-home > section + section { margin-top: var(--s8); }
+
+/* Frosted glass: see-through fill, blur of whatever is behind, light edge. */
+.glass {
+  background: color-mix(in srgb, var(--surface) 64%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6); backdrop-filter: blur(20px) saturate(1.6);
+  border: 1px solid color-mix(in srgb, #fff 55%, transparent);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .5) inset, 0 20px 44px -18px rgba(40, 24, 8, .45);
+}
+:root[data-theme="dark"] .glass { border-color: rgba(255, 255, 255, .14); box-shadow: 0 1px 0 rgba(255, 255, 255, .08) inset, 0 20px 44px -18px rgba(0, 0, 0, .8); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .glass { border-color: rgba(255, 255, 255, .14); box-shadow: 0 1px 0 rgba(255, 255, 255, .08) inset, 0 20px 44px -18px rgba(0, 0, 0, .8); } }
+
+/* Hero: the window scene. Greeting sits low on the left, the date floats top right. */
+#view-home .hero-scene, #view-home .hero-scene.seasonal {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--s5);
+  min-height: clamp(340px, 37vw, 480px);
+  padding: var(--s5) var(--s5) calc(var(--s8) + var(--s5));
+  border-radius: 36px; border: 0; background: #C98F54;
+  box-shadow: 0 30px 60px -30px rgba(60, 34, 10, .55);
+}
+.hero-art { position: absolute; inset: 0; z-index: -1; background: url("home/window-room.jpg") center 38% / cover no-repeat; transform-origin: 50% 40%; }
+:root[data-theme="dark"] .hero-art { filter: brightness(.62) saturate(.9); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero-art { filter: brightness(.62) saturate(.9); } }
+.hero-hello { max-width: 580px; padding: var(--s5) var(--s6); border-radius: 28px; }
+#view-home .hero-hello h1 { margin: 0; font-size: clamp(38px, 5.2vw, 68px); font-weight: 800; line-height: .98; letter-spacing: -.025em; }
+#view-home .hero-hello p { margin: var(--s2) 0 0; font-size: 18px; color: color-mix(in srgb, var(--ink) 78%, transparent); }
+#view-home .hero-hello .season-chip { margin-top: var(--s3); background: color-mix(in srgb, var(--surface) 70%, transparent); border-color: color-mix(in srgb, var(--ink) 12%, transparent); }
+#view-home .hero-side { align-self: start; width: auto; min-width: 230px; gap: var(--s2); }
+#view-home .hero-side .date-card {
+  background: color-mix(in srgb, var(--surface) 64%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6); backdrop-filter: blur(20px) saturate(1.6);
+  border: 1px solid color-mix(in srgb, #fff 55%, transparent); border-radius: 20px;
+  padding: var(--s2) var(--s5) var(--s2) var(--s2); gap: var(--s3);
+  box-shadow: 0 16px 32px -16px rgba(40, 24, 8, .5);
+}
+#view-home .date-day { border-radius: 14px; font-weight: 800; }
+
+/* Today's question: a glass card that overlaps the bottom edge of the scene. */
+#view-home > section.feature {
+  margin: calc(var(--s8) * -1) var(--s5) 0 auto; width: min(820px, calc(100% - var(--s7)));
+  padding: var(--s5) var(--s6); border-radius: 28px; gap: var(--s5);
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+}
+#view-home .feature .eyebrow { letter-spacing: .1em; }
+#view-home .feature-q { margin-top: var(--s2); font-weight: 700; }
+
+/* Section headings: title and note sit together, tight to their cards. */
+#view-home .section-head { justify-content: flex-start; align-items: baseline; gap: var(--s2) var(--s4); margin-bottom: var(--s4); }
+#view-home .section-head h2 { font-size: 30px; font-weight: 800; letter-spacing: -.02em; }
+
+/* Flat color tiles instead of gradient icon chips. */
+#view-home .tool-icon { background: color-mix(in srgb, var(--c) 16%, var(--surface)); color: var(--c); box-shadow: none; border-radius: 16px; transition: transform .5s var(--spring); }
+#view-home .tool { border-radius: 24px; gap: var(--s2); transition: transform .55s var(--spring), box-shadow .25s ease, border-color .2s ease; }
+#view-home a.tool:hover { transform: translateY(-6px) scale(1.015); }
+#view-home a.tool:hover .tool-icon { transform: rotate(-8deg) scale(1.12); }
+#view-home a.tool:active { transform: scale(.97); transition-duration: .12s; }
+#view-home .tool .go svg { transition: transform .5s var(--spring); }
+#view-home a.tool:hover .go svg { transform: translateX(6px); }
+
+/* Daily routines are the big cards. */
+.home-daily .tools { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: var(--s4); }
+.home-daily .tool { padding: var(--s5); }
+.home-daily .tool-icon { margin-bottom: var(--s3); }
+.home-daily .tool h3 { margin: 0; font-size: 22px; }
+.home-daily .tool .go { padding-top: var(--s3); }
+
+/* Classroom tools are a tighter list: icon on the left, text beside it. */
+.home-tools .tools { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--s3); }
+.home-tools .tool { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--s4); row-gap: var(--s1); align-items: center; padding: var(--s4); border-radius: 20px; box-shadow: none; }
+.home-tools .tool-icon { grid-row: 1 / span 2; width: 48px; height: 48px; }
+.home-tools .tool h3 { margin: 0; font-size: 18px; align-self: end; }
+.home-tools .tool p { font-size: 14.5px; line-height: 1.35; align-self: start; }
+.home-tools .tool .go { display: none; }
+
+#view-home .links { gap: var(--s2); }
+#view-home .link { transition: transform .5s var(--spring); }
+#view-home .link:hover { transform: translateY(-3px); }
+#view-home .btn { transition: transform .45s var(--spring), background .15s ease, border-color .15s ease; }
+#view-home .btn:hover { transform: translateY(-2px) scale(1.03); }
+#view-home .btn:active { transform: scale(.95); transition-duration: .1s; }
+#view-home .btn svg { transition: transform .5s var(--spring); }
+#view-home .feature .btn:hover svg { transform: translateX(5px); }
+
+/* Spring entrances. Only hidden when the script is running, so the page still shows without it. */
+.js-rise [data-rise] { opacity: 0; transform: translateY(28px) scale(.94); }
+.js-rise [data-rise].in { opacity: 1; transform: none; transition: transform .9s var(--spring) calc(var(--i, 0) * 70ms), opacity .3s ease calc(var(--i, 0) * 70ms); }
+.js-rise .hero-art { transform: scale(1.08); }
+.js-rise .hero-scene.in .hero-art { transform: none; transition: transform 1.4s var(--spring-soft); }
+/* Once it has landed, hand the transition back so hover springs are not delayed. */
+.js-rise [data-rise].in.done { transition: transform .55s var(--spring), box-shadow .25s ease, border-color .2s ease; }
+
+@media (max-width: 760px) {
+  #view-home > section + section { margin-top: var(--s7); }
+  #view-home .hero-scene, #view-home .hero-scene.seasonal { grid-template-columns: minmax(0, 1fr); padding: var(--s4) var(--s4) calc(var(--s7) + var(--s4)); border-radius: 28px; min-height: 380px; align-content: space-between; }
+  #view-home .hero-side { order: -1; justify-self: start; min-width: 0; }
+  .hero-hello { padding: var(--s4) var(--s5); border-radius: 22px; }
+  #view-home > section.feature { margin: calc(var(--s7) * -1) var(--s3) 0; width: auto; padding: var(--s4) var(--s5); border-radius: 22px; }
+  .home-tools .tools { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .js-rise [data-rise], .js-rise .hero-art { opacity: 1; transform: none; transition: none !important; }
+  #view-home .tool, #view-home .tool-icon, #view-home .btn, #view-home .link { transition: none; }
+}
