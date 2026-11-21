@@ -108,7 +108,7 @@
   };
   Object.keys(gameMounters).forEach(function (k) { mounters[k] = gameMounters[k]; });
   var views = document.querySelectorAll('[data-view]:not(a)');
-  var titles = { home: 'Teacher Tools', board: 'Classroom Board', timer: 'Timer', 'name-picker': 'Name Picker', groups: 'Group Maker', 'would-you-rather': 'Would You Rather', pet: 'Classroom Pet', games: 'Games', 'name-wheel': 'Name Wheel', 'morning-meeting': 'Morning Meeting', 'brain-breaks': 'Brain Breaks', settings: 'Settings', 'my-questions': 'My Questions', 'sound-level': 'Sound Level', schedule: 'Daily Schedule', jobs: 'Class Jobs', points: 'Class Points', 'exit-tickets': 'Exit Tickets', seating: 'Seating Chart' };
+  var titles = { home: 'ED Sidekick', board: 'Classroom Board', timer: 'Timer', 'name-picker': 'Name Picker', groups: 'Group Maker', 'would-you-rather': 'Would You Rather', pet: 'Classroom Pet', games: 'Games', 'name-wheel': 'Name Wheel', 'morning-meeting': 'Morning Meeting', 'brain-breaks': 'Brain Breaks', settings: 'Settings', 'my-questions': 'My Questions', 'sound-level': 'Sound Level', schedule: 'Daily Schedule', jobs: 'Class Jobs', points: 'Class Points', 'exit-tickets': 'Exit Tickets', seating: 'Seating Chart' };
   Object.keys(gameTitles).forEach(function (k) { titles[k] = gameTitles[k]; });
 
   // ---------- Menus in the top bar ----------
@@ -146,7 +146,7 @@
     if (!mounted[name] && mounters[name]) mounted[name] = mounters[name]() || {};
     if (mounted[name] && mounted[name].show) mounted[name].show();
     if (name === 'home') { paintDate(); paintToday(); if (petMini) petMini.refresh(); }
-    document.title = name === 'home' ? 'Teacher Tools' : titles[name] + ' · Teacher Tools';
+    document.title = name === 'home' ? 'ED Sidekick' : titles[name] + ' · ED Sidekick';
     window.scrollTo(0, 0);
   }
   window.addEventListener('hashchange', route);

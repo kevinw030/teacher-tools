@@ -218,7 +218,7 @@
       var blob = new Blob([JSON.stringify(out, null, 1)], { type: 'application/json' });
       var a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'teacher-tools-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+      a.download = 'ed-sidekick-backup-' + new Date().toISOString().slice(0, 10) + '.json';
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
     },
@@ -232,7 +232,7 @@
           Object.keys(obj.data).forEach(function (k) { if (k.indexOf('tt:') === 0) localStorage.setItem(k, obj.data[k]); });
           done('Backup loaded. Reloading…', true);
           setTimeout(function () { location.reload(); }, 900);
-        } catch (e) { done('That file isn’t a Teacher Tools backup. Choose the .json file you saved before.', false); }
+        } catch (e) { done('That file isn’t an ED Sidekick backup. Choose the .json file you saved before.', false); }
       };
       r.readAsText(file);
     }

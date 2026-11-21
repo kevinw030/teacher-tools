@@ -97,7 +97,7 @@ body.home-mode { --bg: #F6F1E8; --line: #E6DFD2; --surface-2: #EFE8DB; }
 #view-home .link { transition: transform .5s var(--spring); }
 #view-home .link:hover { transform: translateY(-3px); }
 #view-home .btn { transition: transform .45s var(--spring), background .15s ease, border-color .15s ease; }
-#view-home .btn:hover { transform: translateY(-2px) scale(1.03); }
+#view-home .btn:hover { transform: scale(1.04); }
 #view-home .btn:active { transform: scale(.95); transition-duration: .1s; }
 #view-home .btn svg { transition: transform .5s var(--spring); }
 #view-home .feature .btn:hover svg { transform: translateX(5px); }

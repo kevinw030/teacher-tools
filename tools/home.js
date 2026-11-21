@@ -36,3 +36,18 @@
   window.addEventListener('hashchange', function () { setTimeout(play, 0); });
   play();
 })();
+
+// Every other page springs in when it opens.
+(function () {
+  var t;
+  function enter() {
+    var name = location.hash.replace('#', '') || 'home';
+    if (name === 'home' || name === 'board') return;
+    var pg = document.querySelector('.page:not([hidden])');
+    if (!pg || pg.id === 'view-home' || pg.classList.contains('fs')) return;
+    pg.classList.remove('page-enter'); void pg.offsetWidth; pg.classList.add('page-enter');
+    clearTimeout(t); t = setTimeout(function () { pg.classList.remove('page-enter'); }, 1200);
+  }
+  window.addEventListener('hashchange', function () { setTimeout(enter, 0); });
+  setTimeout(enter, 0);
+})();
