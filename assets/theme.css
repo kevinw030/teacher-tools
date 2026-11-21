@@ -113,3 +113,8 @@ a.tool:hover .go svg { transform: translateX(6px); }
 .tool-head a.btn.small { margin-bottom: var(--s2); }
 .tool-head a.btn.small svg { transition: transform .5s var(--spring); }
 .tool-head a.btn.small:hover svg { transform: translateX(-4px); }
+
+.tv-teams { display: flex; align-items: center; justify-content: center; gap: var(--s3); flex-wrap: wrap; margin-bottom: var(--s4); }
+.tv-teams-label { font-family: var(--display); font-weight: 800; font-size: 18px; }
+.tv-grades { margin-bottom: var(--s4); }
+.trivia .scorebar { flex-wrap: wrap; justify-content: center; }

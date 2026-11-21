@@ -228,7 +228,9 @@
 
   function trivia(el) {
     var POINTS = [100, 200, 300, 400];
+    var TEAM_COLORS = ['cobalt', 'coral', 'emerald', 'amber'];
     var state = TT.load('trivia', null);
+    var teams = Math.max(1, Math.min(4, (state && state.scores && state.scores.length) || 2));
     var root = h('div', { class: 'game trivia' });
     el.append(root);
     // Four questions from a category, kept easiest to hardest so 100 is the easiest tile.
@@ -248,7 +250,7 @@
       var cats = TT.shuffle(own).concat(TT.shuffle(Object.keys(pool))).slice(0, 5);
       state = { grade: grade, cats: cats.map(function (c) {
         return { name: c, items: TT.shuffle(mine[c] || []).concat(pool[c] ? pick4(pool[c]) : []).slice(0, 4), done: [0, 0, 0, 0] };
-      }), scores: [0, 0] };
+      }), scores: Array.apply(null, Array(teams)).map(function () { return 0; }) };
       save(); board();
     }
     // Every game starts here: choose the grade level the questions come from.
@@ -265,11 +267,21 @@
         h('h2', { class: 'tv-start-h', text: 'Choose a Grade Level' }),
         h('p', { class: 'muted', text: 'Every question on the board comes from the grade you pick. Your own categories are always added first.' }),
         row,
+        h('div', { class: 'tv-teams' }, h('span', { class: 'tv-teams-label', text: 'How Many Teams?' }),
+          h('div', { class: 'segmented', role: 'group', 'aria-label': 'Number of teams' }, [1, 2, 3, 4].map(function (n) {
+            return h('button', { type: 'button', class: 'seg' + (n === teams ? ' on' : ''), 'aria-pressed': n === teams ? 'true' : 'false', text: n === 1 ? '1 Team' : n + ' Teams', onclick: function () { teams = n; chooseGrade(); } });
+          }))),
         h('div', { class: 'row center' },
           playing ? TT.button('Back to Game', { kind: 'big', onclick: board }) : null,
           TT.button('Write Your Own', { icon: 'plus', kind: 'big', onclick: function () { TT.custom.open('trivia'); } }))));
     }
     function save() { TT.save('trivia', state); }
+    function overText(s) {
+      if (s.length === 1) return 'Game over. You scored ' + s[0] + ' points!';
+      var top = Math.max.apply(null, s), who = [];
+      s.forEach(function (v, t) { if (v === top) who.push(t + 1); });
+      return who.length > 1 ? 'Game over. It’s a tie between Teams ' + who.slice(0, -1).join(', ') + ' and ' + who[who.length - 1] + '!' : 'Game over. Team ' + who[0] + ' wins!';
+    }
     function board() {
       root.textContent = '';
       var left = 0;
@@ -284,12 +296,11 @@
       var s = state.scores;
       root.append(
         h('div', { class: 'scorebar' },
-          h('div', { class: 'team active' }, h('span', { class: 'team-dot', style: 'background:var(--cobalt)' }), h('span', { text: 'Team 1' }), h('b', { text: s[0] })),
-          h('div', { class: 'team active' }, h('span', { class: 'team-dot', style: 'background:var(--coral)' }), h('span', { text: 'Team 2' }), h('b', { text: s[1] })),
+          s.map(function (pts, t) { return h('div', { class: 'team active' }, h('span', { class: 'team-dot', style: 'background:var(--' + TEAM_COLORS[t] + ')' }), h('span', { text: 'Team ' + (t + 1) }), h('b', { text: pts })); }),
           h('span', { class: 'tv-grade-chip', text: GRADE_NAMES[state.grade] || 'Mixed' }),
           TT.button('New Game', { icon: 'reset', kind: 'small', onclick: chooseGrade }),
           TT.button('Write Your Own', { icon: 'plus', kind: 'small', onclick: function () { TT.custom.open('trivia'); } })),
-        h('p', { class: 'game-status', text: left ? 'Pick a category and a point value.' : (s[0] === s[1] ? 'Game over. It’s a tie!' : 'Game over. Team ' + (s[0] > s[1] ? 1 : 2) + ' wins!') }),
+        h('p', { class: 'game-status', text: left ? 'Pick a category and a point value.' : overText(s) }),
         grid);
       if (!left) TT.chime();
     }
@@ -297,10 +308,9 @@
       var c = state.cats[ci], q = c.items[r], p = POINTS[r];
       var ans = h('div', { class: 'riddle-answer', hidden: true, text: q[1] });
       var award = h('div', { class: 'row center', hidden: true },
-        h('span', { class: 'muted', text: 'Who got it?' }),
-        TT.button('Team 1 +' + p, { kind: 'primary big', onclick: function () { give(0); } }),
-        TT.button('Team 2 +' + p, { kind: 'primary big', onclick: function () { give(1); } }),
-        TT.button('Nobody', { kind: 'big', onclick: function () { give(-1); } }));
+        h('span', { class: 'muted', text: state.scores.length === 1 ? 'Did the team get it?' : 'Who got it?' }),
+        state.scores.map(function (_, t) { return TT.button('Team ' + (t + 1) + ' +' + p, { kind: 'primary big', onclick: function () { give(t); } }); }),
+        TT.button(state.scores.length === 1 ? 'Not This Time' : 'Nobody', { kind: 'big', onclick: function () { give(-1); } }));
       var reveal = TT.button('Show Answer', { kind: 'primary big', onclick: function () { ans.hidden = false; award.hidden = false; reveal.hidden = true; TT.tick(); } });
       function give(t) { if (t >= 0) state.scores[t] += p; c.done[r] = 1; save(); board(); }
       root.textContent = '';
@@ -320,7 +330,7 @@
       icon: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/><circle cx="12" cy="16" r="1.3" fill="currentColor"/>' },
     { id: 'code-breaker', title: 'Code Breaker', desc: 'Crack the secret color code using clues from each guess.', color: 'sky', mount: code,
       icon: '<circle cx="6" cy="12" r="2.5"/><circle cx="12" cy="12" r="2.5"/><circle cx="18" cy="12" r="2.5"/><path d="M3 19h18M3 5h18"/>' },
-    { id: 'trivia', title: 'Trivia Showdown', desc: 'A quiz-show board with categories and points for two teams.', color: 'cobalt', mount: trivia,
+    { id: 'trivia', title: 'Trivia Showdown', desc: 'A quiz-show board with categories and points for one to four teams.', color: 'cobalt', mount: trivia,
       icon: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16M15 4v16"/>' }
   ]);
 })();

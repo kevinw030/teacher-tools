@@ -36,10 +36,10 @@ body.home-mode { --bg: #F6F1E8; --line: #E6DFD2; --surface-2: #EFE8DB; }
   display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--s5);
   min-height: clamp(340px, 37vw, 480px);
   padding: var(--s5) var(--s5) calc(var(--s8) + var(--s5));
-  border-radius: 36px; border: 0; background: #C98F54;
+  border-radius: 36px; border: 0; background: #7CC8FF;
   box-shadow: 0 30px 60px -30px rgba(60, 34, 10, .55);
 }
-.hero-art { position: absolute; inset: 0; z-index: -1; background: url("home/window-room.jpg") center 38% / cover no-repeat; transform-origin: 50% 40%; }
+.hero-art { position: absolute; inset: 0; z-index: -1; background: url("home/board-demo.jpg") center / cover no-repeat; transform-origin: 50% 40%; }
 :root[data-theme="dark"] .hero-art { filter: brightness(.62) saturate(.9); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hero-art { filter: brightness(.62) saturate(.9); } }
 .hero-hello { max-width: 580px; padding: var(--s5) var(--s6); border-radius: 28px; }
