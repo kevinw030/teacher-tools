@@ -81,3 +81,14 @@ a.tool:hover .go svg { transform: translateX(6px); }
   font-family: var(--display); font-weight: 900; font-size: 21px; line-height: 1; letter-spacing: -.01em; transform: rotate(-4deg); box-shadow: 0 6px 14px -6px color-mix(in srgb, var(--coral) 70%, transparent); }
 .brand:hover .logo.logo-ed { transform: rotate(4deg) scale(1.1); }
 .brand-name { font-weight: 800; font-size: 23px; letter-spacing: -.02em; }
+
+/* Brain Breaks: a fixed-size reel. Text slides through it, so nothing on the page grows or shrinks while it spins. */
+.bb-stage { min-height: 0; height: clamp(300px, 34vw, 400px); overflow: hidden; }
+.bb-reel { position: relative; width: 100%; max-width: 30ch; height: calc(1.12em * 3 + .3em); flex: none; overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 22%, #000 78%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 22%, #000 78%, transparent 100%); }
+.bb-item { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; text-wrap: balance; will-change: transform, opacity; }
+.bb-stage.spinning .pick-name { opacity: 1; }
+.bb-stage.spinning .bb-item { color: color-mix(in srgb, var(--ink) 55%, transparent); }
+.bb-stage.reveal .bb-activity { animation: none; }
+.bb-stage .pick-sub { min-height: 1.5em; }
+@media (max-width: 640px) { .bb-stage { height: 340px; } .bb-reel { height: calc(1.12em * 5 + .3em); } }

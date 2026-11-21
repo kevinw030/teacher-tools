@@ -103,7 +103,19 @@
   TT.mountBreaks = function (el) {
     var state = TT.load('breaks', { seen: [] });
     var cur = null, left = 0, total = 0, iv = 0, running = false, spinning = false;
-    var actEl = h('div', { class: 'pick-name bb-activity', 'aria-live': 'polite' }, 'Ready for a brain break?');
+    // The reel is a fixed-size window. Activities slide through it, so the page never changes size while it spins.
+    var item = h('div', { class: 'bb-item' }, 'Ready for a brain break?');
+    var actEl = h('div', { class: 'pick-name bb-activity bb-reel', 'aria-live': 'polite' }, item);
+    var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function slide(text, ms, last) {
+      var old = item, next = h('div', { class: 'bb-item' }, text);
+      if (!last) next.setAttribute('aria-hidden', 'true');
+      actEl.append(next); item = next;
+      if (still || !next.animate) { old.remove(); return; }
+      var ease = last ? 'cubic-bezier(.2, 1.5, .4, 1)' : 'linear';
+      old.animate([{ transform: 'translateY(0)', opacity: 1 }, { transform: 'translateY(-85%)', opacity: 0 }], { duration: ms, easing: last ? 'ease-out' : 'linear', fill: 'forwards' }).onfinish = function () { old.remove(); };
+      next.animate([{ transform: 'translateY(85%)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: last ? ms * 1.5 : ms, easing: ease });
+    }
     var subEl = h('div', { class: 'pick-sub' });
     var bar = h('span');
     var stage = h('div', { class: 'pick-stage bb-stage' }, actEl, subEl, h('span', { class: 'track bb-track' }, bar));
@@ -115,7 +127,8 @@
     function paint() {
       goBtn.disabled = !cur || spinning;
       goBtn.innerHTML = TT.icon(running ? 'pause' : 'play') + '<span>' + (running ? 'Pause' : left < total && left > 0 ? 'Resume' : 'Start Timer') + '</span>';
-      if (cur) subEl.textContent = left <= 0 ? 'Time’s up! Great job. Back to your seats.' : fmt(left) + (running ? ' left' : ' · press Start Timer when everyone is ready');
+      if (spinning) subEl.textContent = 'Picking a break…';
+      else if (cur) subEl.textContent = left <= 0 ? 'Time’s up! Great job. Back to your seats.' : fmt(left) + (running ? ' left' : ' · press Start Timer when everyone is ready');
       else subEl.textContent = BREAKS.length + ' quick movement breaks, 1 to 2 minutes each';
       bar.style.width = cur && total ? (100 - left / total * 100) + '%' : '0%';
     }
@@ -127,14 +140,20 @@
       var win = pool[Math.floor(Math.random() * pool.length)];
       state.seen.push(win); TT.save('breaks', state);
       stage.classList.remove('reveal'); stage.classList.add('spinning');
-      var i = 0;
+      // Starts quick and eases down to a stop over about three seconds.
+      var steps = still ? 0 : 11, i = 0, lastPick = -1;
       (function step() {
-        actEl.textContent = BREAKS[Math.floor(Math.random() * BREAKS.length)][0];
-        TT.tick(); i++;
-        if (i < 14) { setTimeout(step, 50 + i * i * 0.9); return; }
-        cur = BREAKS[win]; actEl.textContent = cur[0]; total = left = cur[1];
-        stage.classList.remove('spinning'); void stage.offsetWidth; stage.classList.add('reveal');
-        spinning = false; paint();
+        if (i >= steps) {
+          cur = BREAKS[win]; total = left = cur[1];
+          slide(cur[0], 520, true); TT.tick();
+          setTimeout(function () { stage.classList.remove('spinning'); void stage.offsetWidth; stage.classList.add('reveal'); spinning = false; paint(); }, still ? 0 : 420);
+          return;
+        }
+        var r; do { r = Math.floor(Math.random() * BREAKS.length); } while (r === lastPick || r === win);
+        lastPick = r;
+        var ms = 130 + i * i * 3.4;
+        slide(BREAKS[r][0], ms, false); TT.tick(); i++;
+        setTimeout(step, ms);
       })();
       paint();
     }
