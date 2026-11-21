@@ -118,3 +118,10 @@ a.tool:hover .go svg { transform: translateX(6px); }
 .tv-teams-label { font-family: var(--display); font-weight: 800; font-size: 18px; }
 .tv-grades { margin-bottom: var(--s4); }
 .trivia .scorebar { flex-wrap: wrap; justify-content: center; }
+
+/* Name Picker: names roll through a fixed window, like Brain Breaks */
+.pk-reel { position: relative; width: 100%; height: 1.3em; flex: none; overflow: hidden; -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 16%, #000 84%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 16%, #000 84%, transparent 100%); }
+.pk-reel .bb-item { white-space: nowrap; }
+.pick-stage.spinning .pk-reel { opacity: 1; }
+.pick-stage.spinning .pk-reel .bb-item { color: color-mix(in srgb, var(--ink) 55%, transparent); }
+.pick-stage.reveal .pk-reel { animation: none; }

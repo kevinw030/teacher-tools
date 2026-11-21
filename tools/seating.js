@@ -78,8 +78,9 @@
       el.firstChild.className = 'sc mode-' + mode;
       // top bar
       top.textContent = '';
-      top.append(h('div', { class: 'segmented', role: 'group', 'aria-label': 'What to do' }, [['seat', 'Seat Students'], ['room', 'Arrange the Room']].map(function (m) {
-        return h('button', { type: 'button', class: 'seg' + (mode === m[0] ? ' on' : ''), 'aria-pressed': mode === m[0], onclick: function () { mode = m[0]; sel = null; pick = null; paint(); } }, m[1]);
+      top.append(h('div', { class: 'sc-modes', role: 'group', 'aria-label': 'What to do' }, [['seat', 'Seat Students'], ['room', 'Arrange the Room']].map(function (m) {
+        return h('button', { type: 'button', class: 'sc-mode' + (mode === m[0] ? ' on' : ''), 'aria-pressed': mode === m[0], onclick: function () { mode = m[0]; sel = null; pick = null; paint(); } },
+          h('span', { class: 'sc-mode-icon', html: (TT.SEAT_ICONS || {})[m[0]] || '' }), h('span', { text: m[1] }));
       })), h('span', { class: 'sc-info' + (keys.length < names.length ? ' warn' : ''), text: keys.length + ' seats · ' + names.length + ' students' + (keys.length < names.length ? ' · add ' + (names.length - keys.length) + ' more seats' : '') }),
         TT.button('Print', { kind: 'small', onclick: function () { window.print(); } }));
       // tools
@@ -93,8 +94,9 @@
           open.forEach(function (k, i) { if (rest[i]) c.seats[k] = rest[i]; }); save(); paint();
         } }), TT.button('Clear All Seats', { icon: 'reset', onclick: function () { c.seats = {}; save(); paint(); } }));
       } else {
-        var add = h('div', { class: 'sc-add' }, h('b', { text: 'Add' }), Object.keys(TYPES).map(function (k) {
-          return h('button', { type: 'button', class: 'wb', onclick: function () { var it = { id: uid(), type: k, x: 700 + (c.items.length % 5) * 20, y: 420 + (c.items.length % 5) * 20 }; c.items.push(it); sel = it.id; save(); paint(); } }, TYPES[k].name);
+        var add = h('div', { class: 'sc-add sc-pieces' }, h('b', { text: 'Add to the Room' }), Object.keys(TYPES).map(function (k) {
+          return h('button', { type: 'button', class: 'sc-piece t-' + k, title: 'Add a ' + TYPES[k].name, onclick: function () { var it = { id: uid(), type: k, x: 700 + (c.items.length % 5) * 20, y: 420 + (c.items.length % 5) * 20 }; c.items.push(it); sel = it.id; save(); paint(); } },
+            h('span', { class: 'sc-piece-art', html: (TT.SEAT_ART || {})[k] || '' }), h('span', { text: TYPES[k].name }));
         }));
         var quick = h('div', { class: 'sc-add' }, h('b', { text: 'Quick Layouts' }), [['rows', 'Rows'], ['pairs', 'Pairs'], ['groups', 'Groups of 4'], ['ushape', 'U-Shape']].map(function (q) {
           return h('button', { type: 'button', class: 'wb', title: 'Replace the room with this layout', onclick: function () {
@@ -144,7 +146,11 @@
       var node = h('div', { class: 'sc-item t-' + it.type + (T.thing ? ' thing' : '') + (T.round ? ' round' : '') + (sel === it.id ? ' sel' : ''), 'data-id': it.id });
       if (it.color) node.style.setProperty('--ic', it.color);
       place(node, it);
-      if (T.thing) node.append(h('span', { class: 'sc-thing-label', text: it.label || T.name }));
+      if (T.thing) {
+        var dd = dims(it);
+        node.classList.toggle('wide', dd.w > dd.h * 1.6);
+        node.append(h('span', { class: 'sc-thing-in' }, it.type === 'label' ? null : h('span', { class: 'sc-art', html: (TT.SEAT_ART || {})[it.type] || '' }), h('span', { class: 'sc-thing-label', text: it.label || T.name })));
+      }
       else {
         var cols = it.rot ? T.seats / T.cols : T.cols;
         node.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';

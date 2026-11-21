@@ -28,6 +28,8 @@
       screens = { active: first.id, list: [first] };
     }
     screens.list.forEach(function (x) { if (x.name === 'My board') x.name = 'My Board'; });
+    // The starting background changed from the blue Sky to Warm Morning. Boards still on the old default move over once.
+    if (!TT.load('board-bg2', null)) { screens.list.forEach(function (x) { if (x.state && x.state.bg === 'sky') x.state.bg = 'morning'; }); TT.save('board-bg2', 1); }
     function activeScreen() { return screens.list.filter(function (x) { return x.id === screens.active; })[0] || screens.list[0]; }
     var state = activeScreen().state;
     var canvas = h('div', { class: 'board-canvas' });
@@ -75,6 +77,11 @@
           TT.button('Copy This Screen', { kind: 'small', onclick: function () { addScreen(true); } }),
           TT.button('Start Blank', { kind: 'small primary', onclick: function () { addScreen(false); } })),
         screenMsg),
+      h('div', { class: 'bg-group' }, h('h4', { text: 'Start From a Template' }),
+        h('div', { class: 'tpl-list' }, (TT.BOARD_TEMPLATES || []).map(function (t) {
+          return h('button', { type: 'button', class: 'tpl', onclick: function () { addTemplate(t); } },
+            h('span', { class: 'tpl-dot', style: 'background:' + t.color }), h('span', { class: 'screen-text' }, h('b', { text: t.name }), h('small', { text: t.desc })));
+        }))),
       h('div', { class: 'bg-group' }, h('h4', { text: 'This Screen' }),
         h('div', { class: 'screen-form' }, renameInput,
           TT.button('Rename', { kind: 'small', onclick: function () { if (renameInput.value.trim()) { activeScreen().name = renameInput.value.trim(); save(); paintScreens(); } } }),
@@ -130,9 +137,9 @@
       mounted = {}; canvas.querySelectorAll('.widget').forEach(function (n) { n.remove(); });
     }
     function loadState() {
-      if (!state || !Array.isArray(state.widgets)) { state = { bg: 'sky', widgets: [] }; seed(); }
+      if (!state || !Array.isArray(state.widgets)) { state = { bg: 'morning', widgets: [] }; seed(); }
       else requestAnimationFrame(function () { state.widgets.forEach(function (w) { clamp(w); renderWidget(w); }); });
-      setBg(state.bg || 'sky');
+      setBg(state.bg || 'morning');
       paintScreens();
       requestAnimationFrame(drawInk);
     }
@@ -145,9 +152,22 @@
     function addScreen(copy) {
       if (screens.list.length >= TT.config.maxScreens) { paintScreens(); return; }
       save();
-      var st = copy ? JSON.parse(JSON.stringify(state)) : { bg: state.bg || 'sky', widgets: [] };
+      var st = copy ? JSON.parse(JSON.stringify(state)) : { bg: state.bg || 'morning', widgets: [] };
       if (copy) st.widgets.forEach(function (w, i) { w.id = 'w' + Date.now().toString(36) + i; });
       var sc = { id: 's' + Date.now().toString(36), name: screenName.value.trim() || 'Screen ' + (screens.list.length + 1), state: st };
+      screens.list.push(sc); screenName.value = '';
+      unrenderAll(); screens.active = sc.id; state = st;
+      loadState(); save(); screenPanel.hidden = true;
+    }
+    // A template becomes a new saved screen, so the screen you were on is never changed.
+    function addTemplate(t) {
+      if (screens.list.length >= TT.config.maxScreens) { paintScreens(); return; }
+      save();
+      var b = bounds(), st = t.build(b);
+      st.ref = b;
+      st.widgets.forEach(function (w, i) { w.id = 'w' + Date.now().toString(36) + i; w.x = Math.round(w.x); w.y = Math.round(w.y); w.w = Math.round(w.w); w.h = Math.round(w.h); if (!w.data) w.data = TYPES[w.type] && TYPES[w.type].init ? TYPES[w.type].init() : {}; });
+      st.widgets = st.widgets.filter(function (w) { return TYPES[w.type]; });
+      var sc = { id: 's' + Date.now().toString(36), name: screenName.value.trim() || t.name, state: st };
       screens.list.push(sc); screenName.value = '';
       unrenderAll(); screens.active = sc.id; state = st;
       loadState(); save(); screenPanel.hidden = true;
@@ -398,7 +418,7 @@
 
         // The message is rich text, so single words or lines can have their own color.
         function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-        // Keep only line breaks, text color and highlight; drop every other tag and attribute.
+        // Keep only line breaks and the styles the toolbar can give (color, highlight, bold, italic, underline, strikethrough, font, size); drop every other tag and attribute.
         function clean(html) {
           var t = document.createElement('template'); t.innerHTML = html;
           (function walk(n) {
@@ -406,12 +426,18 @@
               if (c.nodeType === 3) return;
               if (c.nodeType !== 1) { c.remove(); return; }
               var tag = c.tagName;
-              if (['BR', 'DIV', 'SPAN', 'FONT', 'P'].indexOf(tag) < 0) {
+              if (['BR', 'DIV', 'SPAN', 'FONT', 'P', 'B', 'I', 'U', 'S', 'STRIKE', 'STRONG', 'EM'].indexOf(tag) < 0) {
                 if (['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'LINK', 'META'].indexOf(tag) >= 0) { c.remove(); return; }
                 walk(c); c.replaceWith.apply(c, [].slice.call(c.childNodes)); return;
               }
               var col = (c.style && c.style.color) || c.getAttribute('color') || '', bg = (c.style && c.style.backgroundColor) || '';
+              var cs = c.style || {}, fw = cs.fontWeight, fi = cs.fontStyle, td = cs.textDecorationLine || cs.textDecoration, ff = cs.fontFamily, fz = cs.fontSize;
               [].slice.call(c.attributes).forEach(function (a) { c.removeAttribute(a.name); });
+              if (fw && /^(bold|normal|[1-9]00)$/.test(fw)) c.style.fontWeight = fw;
+              if (fi && /^(italic|normal)$/.test(fi)) c.style.fontStyle = fi;
+              if (td && /^(underline|line-through|none)( (underline|line-through))?$/.test(td)) c.style.textDecorationLine = td;
+              if (ff && /^[\w\s,"'-]+$/.test(ff)) c.style.fontFamily = ff;
+              if (fz && /^[\d.]+(em|px|%)$/.test(fz)) c.style.fontSize = fz;
               if (col && /^[#a-z0-9(),.\s%]+$/i.test(col)) c.style.color = col;
               if (bg && bg !== 'transparent' && /^[#a-z0-9(),.\s%]+$/i.test(bg)) c.style.backgroundColor = bg;
               walk(c);
@@ -420,6 +446,8 @@
           return t.innerHTML;
         }
         var area = h('div', { class: 'note-area', contenteditable: 'true', role: 'textbox', 'aria-multiline': 'true', 'aria-label': 'Message', id: 'txt-' + w.id, 'data-ph': 'Type here', spellcheck: 'false' });
+        // Underline used to be a whole-box switch. It now lives in the text itself, so single words can have it.
+        if (d.underline) { d.html = '<span style="text-decoration-line: underline;">' + (d.html != null ? d.html : esc(d.text || '').replace(/\n/g, '<br>')) + '</span>'; d.underline = false; }
         area.innerHTML = clean(d.html != null ? d.html : esc(d.text || '').replace(/\n/g, '<br>'));
         function keepText() { if (area.innerHTML === '<br>') area.innerHTML = ''; d.html = area.innerHTML; d.text = area.innerText; save(); }
         area.addEventListener('input', keepText);
@@ -433,6 +461,7 @@
         document.addEventListener('selectionchange', function () {
           var sel = window.getSelection();
           if (sel.rangeCount && area.contains(sel.anchorNode) && area.contains(sel.focusNode)) lastRange = sel.getRangeAt(0).cloneRange();
+          if (node.isConnected) marks();
         });
         area.addEventListener('blur', function () { setTimeout(function () { if (!node.contains(document.activeElement)) lastRange = null; }, 0); });
         // Color only the highlighted words, or what is typed next. With no cursor in the box, color the whole box.
@@ -464,17 +493,70 @@
           keepText();
         }
 
+        // Bold, italic, underline and strikethrough change the highlighted words, or what is typed next.
+        // With no cursor in the box, bold and italic switch the whole box; underline and strikethrough cover all of the text.
+        function fmt(cmd, key) {
+          var sel = window.getSelection();
+          if (!intoText()) {
+            if (key) { set(key, !d[key]); return; }
+            area.focus(); sel.selectAllChildren(area);
+          }
+          document.execCommand('styleWithCSS', false, true);
+          document.execCommand(cmd, false, null);
+          keepText(); marks();
+        }
+        function inText() { var sel = window.getSelection(); return document.activeElement === area && sel.rangeCount && area.contains(sel.anchorNode); }
+        function hasRange() { return lastRange && !lastRange.collapsed && node.contains(document.activeElement); }
+        function state(cmd) { try { return document.queryCommandState(cmd); } catch (e) { return false; } }
+        // Show which styles the cursor is sitting in.
+        function marks() {
+          var inside = inText();
+          boldBtn.classList.toggle('on', inside ? state('bold') : !!d.bold);
+          italBtn.classList.toggle('on', inside ? state('italic') : !!d.italic);
+          undBtn.classList.toggle('on', inside && state('underline'));
+          strikeBtn.classList.toggle('on', inside && state('strikeThrough'));
+        }
+        // A different font or size for just the highlighted words.
+        function fontFor(family) {
+          intoText();
+          document.execCommand('styleWithCSS', false, true);
+          document.execCommand('fontName', false, family);
+          keepText();
+        }
+        function sizeFor(step) {
+          intoText();
+          var sel = window.getSelection(), at = sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentNode);
+          var base = parseFloat(getComputedStyle(area).fontSize) || 1, cur = at ? parseFloat(getComputedStyle(at).fontSize) : base;
+          var target = Math.max(0.3, Math.min(5, cur / base + step * 0.15));
+          document.execCommand('styleWithCSS', false, true);
+          document.execCommand('fontSize', false, 7);
+          [].forEach.call(area.querySelectorAll('span, font'), function (n) {
+            if (n.style.fontSize !== 'xxx-large' && n.getAttribute('size') !== '7') return;
+            n.removeAttribute('size');
+            var parent = parseFloat(getComputedStyle(n.parentNode).fontSize) || base;
+            n.style.fontSize = (target * base / parent).toFixed(3) + 'em';
+            // words inside that already had their own size follow the new one
+            [].forEach.call(n.querySelectorAll('[style]'), function (k) { k.style.fontSize = ''; });
+          });
+          keepText();
+        }
+
         function lum(hex) { var n = parseInt(hex.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000; }
         function set(k, v) { d[k] = v; style(); save(); }
         function tb(label, aria, key, html) {
-          return h('button', { type: 'button', class: 'tb tb-' + key, 'aria-label': aria, title: aria, html: html || label, onclick: function () { set(key, !d[key]); } });
+          return h('button', { type: 'button', class: 'tb tb-' + key, 'aria-label': aria, title: aria, html: html || label, onclick: function () {
+            if (key === 'bold') fmt('bold', 'bold'); else if (key === 'italic') fmt('italic', 'italic'); else if (key === 'underline') fmt('underline'); else if (key === 'strike') fmt('strikeThrough'); else set(key, !d[key]);
+          } });
         }
         var fontSel = h('select', { class: 'tb-select', 'aria-label': 'Font', id: 'font-' + w.id }, FONTS.map(function (f) {
           var o = h('option', { value: f[0], text: f[1] }); o.style.fontFamily = f[2]; return o;
         }));
-        fontSel.addEventListener('change', function () { set('font', fontSel.value); });
+        fontSel.addEventListener('change', function () {
+          var f = FONTS.filter(function (x) { return x[0] === fontSel.value; })[0] || FONTS[0];
+          if (hasRange()) { fontFor(f[2]); fontSel.value = d.font; } else set('font', fontSel.value);
+        });
         var boldBtn = tb('B', 'Bold', 'bold'), italBtn = tb('I', 'Italic', 'italic'), undBtn = tb('U', 'Underline', 'underline');
-        var shadowBtn = tb('S', 'Text shadow', 'shadow');
+        var strikeBtn = tb('S', 'Strikethrough', 'strike'), shadowBtn = tb('A', 'Text Shadow', 'shadow');
         var alignIcons = {
           left: '<path d="M4 6h16M4 11h10M4 16h14"/>', center: '<path d="M4 6h16M7 11h10M5 16h14"/>', right: '<path d="M4 6h16M10 11h10M6 16h14"/>'
         };
@@ -521,9 +603,9 @@
         var bar = h('div', { class: 'text-toolbar' },
           h('div', { class: 'tb-panel' },
             h('div', { class: 'tb-row tb-one' }, fontSel,
-              h('button', { type: 'button', class: 'tb', 'aria-label': 'Smaller text', title: 'Smaller', text: 'A−', onclick: function () { set('size', Math.max(12, d.size - 4)); } }),
-              h('button', { type: 'button', class: 'tb', 'aria-label': 'Bigger text', title: 'Bigger', text: 'A+', onclick: function () { set('size', Math.min(200, d.size + 4)); } }),
-              h('span', { class: 'tb-sep' }), boldBtn, italBtn, undBtn, shadowBtn,
+              h('button', { type: 'button', class: 'tb', 'aria-label': 'Smaller text', title: 'Smaller', text: 'A−', onclick: function () { if (hasRange()) sizeFor(-1); else set('size', Math.max(12, d.size - 4)); } }),
+              h('button', { type: 'button', class: 'tb', 'aria-label': 'Bigger text', title: 'Bigger', text: 'A+', onclick: function () { if (hasRange()) sizeFor(1); else set('size', Math.min(200, d.size + 4)); } }),
+              h('span', { class: 'tb-sep' }), boldBtn, italBtn, undBtn, strikeBtn, shadowBtn,
               h('span', { class: 'tb-sep' }), aligns, midBtn,
               h('span', { class: 'tb-sep' }), textTab, hlTab, boxTab),
             textSw.el, hlSw.el, boxSw.el));
@@ -538,7 +620,7 @@
           area.style.fontSize = d.size + 'px';
           area.style.fontWeight = d.bold ? '700' : '400';
           area.style.fontStyle = d.italic ? 'italic' : 'normal';
-          area.style.textDecoration = d.underline ? 'underline' : 'none';
+          area.style.textDecoration = 'none';
           area.style.textAlign = d.align;
           // Box color
           var clear = d.box === 'clear', custom = d.box.charAt(0) === '#';
@@ -553,8 +635,7 @@
           area.style.textShadow = d.shadow ? '0 2px 0 rgba(0,0,0,.18), 0 4px 14px rgba(0,0,0,.28)' : 'none';
           body.classList.toggle('middle', !!d.middle);
           if (d.middle) { area.style.height = 'auto'; area.style.height = Math.min(area.scrollHeight, body.clientHeight - 8) + 'px'; } else area.style.height = '';
-          boldBtn.classList.toggle('on', !!d.bold); italBtn.classList.toggle('on', !!d.italic);
-          undBtn.classList.toggle('on', !!d.underline); shadowBtn.classList.toggle('on', !!d.shadow); midBtn.classList.toggle('on', !!d.middle);
+          marks(); shadowBtn.classList.toggle('on', !!d.shadow); midBtn.classList.toggle('on', !!d.middle);
           aligns.forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-al') === d.align); });
           textSw.btns.forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-c') === d.color); });
           boxSw.btns.forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-c') === d.box); });

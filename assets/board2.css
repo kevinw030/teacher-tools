@@ -132,3 +132,36 @@ div.note-area:empty::before { content: attr(data-ph); opacity: .45; }
 .widget:not(.w-text) > .w-body { overflow: hidden; border-radius: 0 0 18px 18px; }
 /* The text box being used comes to the front, so its toolbar is never hidden behind another widget */
 .widget.w-text:hover, .widget.w-text:focus-within { z-index: 60 !important; }
+
+/* ----- Board templates in the Saved Screens menu ----- */
+.tpl-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.tpl { appearance: none; font: inherit; color: var(--ink); text-align: left; cursor: pointer; display: flex; align-items: flex-start; gap: 10px; padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); transition: transform .4s var(--spring, ease), border-color .15s ease; }
+.tpl:hover { border-color: var(--ink); transform: scale(1.02); }
+.tpl-dot { width: 12px; height: 12px; border-radius: 4px; flex: none; margin-top: 4px; }
+.tpl .screen-text small { display: block; line-height: 1.3; }
+.screen-panel { width: min(460px, 92vw); max-height: min(80vh, 720px); overflow: auto; }
+@media (max-width: 520px) { .tpl-list { grid-template-columns: 1fr; } }
+
+/* ----- Seating Chart: mode buttons and furniture pictures ----- */
+.sc-modes { display: flex; gap: 8px; flex-wrap: wrap; }
+.sc-mode { appearance: none; font: 700 16px var(--body); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 10px; padding: 10px 18px 10px 10px; border-radius: 16px; border: 2px solid var(--line); background: var(--surface); transition: transform .4s var(--spring, ease), background .15s ease, border-color .15s ease; }
+.sc-mode:hover { border-color: var(--violet); transform: scale(1.03); }
+.sc-mode-icon { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: color-mix(in srgb, var(--violet) 16%, var(--surface)); color: var(--violet); }
+.sc-mode-icon svg { width: 21px; height: 21px; }
+.sc-mode.on { background: var(--violet); border-color: var(--violet); color: #fff; }
+.sc-mode.on .sc-mode-icon { background: rgba(255,255,255,.22); color: #fff; }
+.sc-pieces { gap: 8px; }
+.sc-pieces > b { width: 100%; }
+.sc-piece { --ic: #8A93B2; appearance: none; font: 600 12.500px/1.2 var(--body); color: var(--ink); cursor: pointer; width: 92px; padding: 8px 4px 8px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; transition: transform .4s var(--spring, ease), border-color .15s ease; }
+.sc-piece:hover { border-color: var(--ink); transform: scale(1.05); }
+.sc-piece-art { width: 44px; height: 44px; display: block; }
+.sc-piece-art svg, .sc-art svg { width: 100%; height: 100%; display: block; }
+.sc-piece svg, .sc-art svg { stroke: color-mix(in srgb, var(--ink) 80%, transparent); }
+.sc-piece.t-desk, .sc-piece.t-pair, .sc-piece.t-group4, .sc-piece.t-round4, .sc-piece.t-long6 { --ic: #3B7BFF; }
+.sc-piece.t-teacher { --ic: #8B5CF6; } .sc-piece.t-board { --ic: #14B884; } .sc-piece.t-door, .sc-piece.t-shelf { --ic: #B07A3C; } .sc-piece.t-rug { --ic: #EC4899; } .sc-piece.t-label { --ic: #3B7BFF; }
+.sc-thing-in { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4%; width: 100%; height: 100%; min-width: 0; padding: 3%; overflow: hidden; }
+.sc-item.thing.wide .sc-thing-in { flex-direction: row; gap: .6cqw; }
+.sc-art { flex: none; height: 52%; aspect-ratio: 1; max-width: 70%; }
+.sc-item.thing.wide .sc-art { height: 84%; max-width: 30%; }
+@media print { .sc-mode { display: none; } }
+.tb-strike { text-decoration: line-through; } .text-toolbar { max-width: min(840px, 96vw); }
