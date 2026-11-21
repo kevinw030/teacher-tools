@@ -220,25 +220,54 @@
     return out;
   };
 
+  // Question pools for each grade. 4th grade is the set above; the others live in tools/trivia-grades.js.
+  var GRADES = TT.TRIVIA_GRADES || {}; GRADES[4] = TRIVIA;
+  var GRADE_NAMES = { 1: '1st Grade', 2: '2nd Grade', 3: '3rd Grade', 4: '4th Grade', 5: '5th Grade' };
+  var GRADE_COLORS = { 1: 'emerald', 2: 'sky', 3: 'amber', 4: 'coral', 5: 'violet' };
+  var GRADE_HINTS = { 1: 'Counting, letters and helpers', 2: 'Adding, nouns and seasons', 3: 'Multiplying, continents and life cycles', 4: 'Bigger facts, history and homophones', 5: 'Fractions, government and photosynthesis' };
+
   function trivia(el) {
     var POINTS = [100, 200, 300, 400];
     var state = TT.load('trivia', null);
     var root = h('div', { class: 'game trivia' });
     el.append(root);
-    // The teacher's own categories and questions go on the board first.
-    function newBoard() {
-      var mine = {}, own = [];
+    // Four questions from a category, kept easiest to hardest so 100 is the easiest tile.
+    function pick4(list) {
+      var idx = TT.shuffle(list.map(function (_, i) { return i; })).slice(0, 4).sort(function (a, b) { return a - b; });
+      return idx.map(function (i) { return list[i]; });
+    }
+    // The teacher's own categories and questions go on the board first, then the chosen grade's questions.
+    function newBoard(grade) {
+      var pool = GRADES[grade] || TRIVIA, mine = {}, own = [];
       ((TT.load('custom', {}) || {}).trivia || []).forEach(function (t) {
         if (!t || !t.cat || !t.q || !t.a) return;
-        if (!mine[t.cat]) { mine[t.cat] = []; if (!TRIVIA[t.cat]) own.push(t.cat); }
+        if (!mine[t.cat]) { mine[t.cat] = []; if (!pool[t.cat]) own.push(t.cat); }
         mine[t.cat].push([t.q, t.a]);
       });
       own = own.filter(function (c) { return mine[c].length >= 4; });
-      var cats = TT.shuffle(own).concat(TT.shuffle(Object.keys(TRIVIA))).slice(0, 5);
-      state = { cats: cats.map(function (c) {
-        return { name: c, items: TT.shuffle(mine[c] || []).concat(TT.shuffle(TRIVIA[c] || [])).slice(0, 4), done: [0, 0, 0, 0] };
+      var cats = TT.shuffle(own).concat(TT.shuffle(Object.keys(pool))).slice(0, 5);
+      state = { grade: grade, cats: cats.map(function (c) {
+        return { name: c, items: TT.shuffle(mine[c] || []).concat(pool[c] ? pick4(pool[c]) : []).slice(0, 4), done: [0, 0, 0, 0] };
       }), scores: [0, 0] };
       save(); board();
+    }
+    // Every game starts here: choose the grade level the questions come from.
+    function chooseGrade() {
+      var playing = state && state.cats && state.cats.some(function (c) { return c.done.indexOf(0) >= 0; });
+      root.textContent = '';
+      var row = h('div', { class: 'tv-grades' });
+      [1, 2, 3, 4, 5].forEach(function (g) {
+        row.append(h('button', { type: 'button', class: 'tv-grade c-' + GRADE_COLORS[g] + (state && state.grade === g ? ' last' : ''), onclick: function () { newBoard(g); } },
+          h('b', { text: String(g) }), h('span', { text: GRADE_NAMES[g] }), h('small', { text: GRADE_HINTS[g] })));
+      });
+      root.append(h('div', { class: 'tv-start' },
+        h('span', { class: 'eyebrow', text: 'New Game' }),
+        h('h2', { class: 'tv-start-h', text: 'Choose a Grade Level' }),
+        h('p', { class: 'muted', text: 'Every question on the board comes from the grade you pick. Your own categories are always added first.' }),
+        row,
+        h('div', { class: 'row center' },
+          playing ? TT.button('Back to Game', { kind: 'big', onclick: board }) : null,
+          TT.button('Write Your Own', { icon: 'plus', kind: 'big', onclick: function () { TT.custom.open('trivia'); } }))));
     }
     function save() { TT.save('trivia', state); }
     function board() {
@@ -257,7 +286,8 @@
         h('div', { class: 'scorebar' },
           h('div', { class: 'team active' }, h('span', { class: 'team-dot', style: 'background:var(--cobalt)' }), h('span', { text: 'Team 1' }), h('b', { text: s[0] })),
           h('div', { class: 'team active' }, h('span', { class: 'team-dot', style: 'background:var(--coral)' }), h('span', { text: 'Team 2' }), h('b', { text: s[1] })),
-          TT.button('New Board', { icon: 'reset', kind: 'small', onclick: newBoard }),
+          h('span', { class: 'tv-grade-chip', text: GRADE_NAMES[state.grade] || 'Mixed' }),
+          TT.button('New Game', { icon: 'reset', kind: 'small', onclick: chooseGrade }),
           TT.button('Write Your Own', { icon: 'plus', kind: 'small', onclick: function () { TT.custom.open('trivia'); } })),
         h('p', { class: 'game-status', text: left ? 'Pick a category and a point value.' : (s[0] === s[1] ? 'Game over. It’s a tie!' : 'Game over. Team ' + (s[0] > s[1] ? 1 : 2) + ' wins!') }),
         grid);
@@ -279,7 +309,8 @@
         h('h2', { class: 'riddle-q', text: q[0] }), ans,
         h('div', { class: 'row center' }, reveal, TT.button('Back to Board', { kind: 'big', onclick: board })), award));
     }
-    if (state && state.cats && state.cats.every(function (c) { return c.items && c.items.length === 4; })) board(); else newBoard();
+    // Pick up a game already in progress; otherwise start by choosing a grade.
+    if (state && state.grade && state.cats && state.cats.every(function (c) { return c.items && c.items.length === 4; }) && state.cats.some(function (c) { return c.done.indexOf(0) >= 0; })) board(); else chooseGrade();
   }
 
   TT.games = (TT.games || []).concat([

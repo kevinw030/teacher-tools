@@ -92,3 +92,24 @@ a.tool:hover .go svg { transform: translateX(6px); }
 .bb-stage.reveal .bb-activity { animation: none; }
 .bb-stage .pick-sub { min-height: 1.5em; }
 @media (max-width: 640px) { .bb-stage { height: 340px; } .bb-reel { height: calc(1.12em * 5 + .3em); } }
+
+/* Trivia Showdown: grade picker shown before each game. */
+.tv-start { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--s2); padding: var(--s4) 0; }
+.tv-start-h { margin: 0; font-size: clamp(30px, 4vw, 48px); font-weight: 800; letter-spacing: -.02em; }
+.tv-start p { margin: 0; max-width: 56ch; }
+.tv-grades { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--s3); width: 100%; margin: var(--s5) 0; }
+.tv-grade { appearance: none; cursor: pointer; font: inherit; color: var(--ink); display: flex; flex-direction: column; align-items: center; gap: var(--s1); padding: var(--s5) var(--s3);
+  border-radius: 24px; background: var(--c-soft); border: 2px solid var(--c-line); transition: transform .5s var(--spring), border-color .2s ease, background .2s ease; }
+.tv-grade b { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 22px; background: var(--c); color: #fff; font-family: var(--display); font-weight: 900; font-size: 44px; line-height: 1; margin-bottom: var(--s2); transition: transform .5s var(--spring); }
+.tv-grade span { font-family: var(--display); font-weight: 800; font-size: clamp(18px, 1.9vw, 24px); }
+.tv-grade small { color: var(--muted); font-size: 14px; line-height: 1.3; text-wrap: balance; }
+.tv-grade:hover { transform: scale(1.04); border-color: var(--c); }
+.tv-grade:hover b { transform: rotate(-8deg) scale(1.1); }
+.tv-grade:active { transform: scale(.96); transition-duration: .1s; }
+.tv-grade.last { border-color: var(--c); }
+.tv-grade-chip { display: inline-flex; align-items: center; padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 14px; background: var(--surface-2); border: 1px solid var(--line); }
+@media (max-width: 760px) { .tv-grades { grid-template-columns: repeat(2, minmax(0, 1fr)); } .tv-grade { padding: var(--s4) var(--s2); } }
+/* Back buttons ("All Tools", "All Games") sit a step above the page title. */
+.tool-head a.btn.small { margin-bottom: var(--s2); }
+.tool-head a.btn.small svg { transition: transform .5s var(--spring); }
+.tool-head a.btn.small:hover svg { transform: translateX(-4px); }
