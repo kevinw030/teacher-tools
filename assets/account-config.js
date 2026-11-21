@@ -22,5 +22,5 @@ window.TT_ACCOUNT_CONFIG = {
   // Class lists, class jobs, seating charts and exit tickets can hold students' names.
   // 'never' keeps them on each computer only, 'choose' gives each teacher an on/off switch,
   // 'always' saves them to the teacher's account.
-  classSync: 'never'
+  classSync: 'always'
 };
