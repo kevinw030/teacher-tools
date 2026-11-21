@@ -1,0 +1,92 @@
+/* Classroom Board upgrades: resize handles on every side, rich text colors, and the expandable drawing bar. */
+
+/* ----- Resize handles ----- */
+.w-resize { position: absolute; right: auto; bottom: auto; width: auto; height: auto; z-index: 7; touch-action: none; }
+.w-resize::after { content: ""; position: absolute; right: auto; bottom: auto; border: 2px solid var(--cobalt); background: #fff; border-radius: 999px; opacity: 0; transform: scale(.6);
+  transition: opacity .15s ease, transform .4s var(--spring, ease); box-shadow: 0 2px 6px rgba(14, 17, 32, .25); }
+.widget:hover .w-resize::after, .widget:focus-within .w-resize::after { opacity: 1; transform: none; }
+.w-resize:hover::after { background: var(--cobalt); transform: scale(1.25) !important; }
+.w-rs-n, .w-rs-s { left: 26px; right: 26px; height: 12px; cursor: ns-resize; } .w-rs-n { top: 0; } .w-rs-s { bottom: 0; }
+.w-rs-e, .w-rs-w { top: 26px; bottom: 26px; width: 12px; cursor: ew-resize; } .w-rs-e { right: 0; } .w-rs-w { left: 0; }
+.w-rs-n::after, .w-rs-s::after { left: 50%; margin-left: -18px; width: 36px; height: 8px; } .w-rs-n::after { top: 2px; } .w-rs-s::after { bottom: 2px; }
+.w-rs-e::after, .w-rs-w::after { top: 50%; margin-top: -18px; width: 8px; height: 36px; } .w-rs-e::after { right: 2px; } .w-rs-w::after { left: 2px; }
+.w-rs-ne, .w-rs-nw { width: 16px; height: 16px; top: 0; } .w-rs-se, .w-rs-sw { width: 28px; height: 28px; bottom: 0; }
+.w-rs-ne, .w-rs-se { right: 0; } .w-rs-nw, .w-rs-sw { left: 0; }
+.w-rs-ne, .w-rs-sw { cursor: nesw-resize; } .w-rs-nw, .w-rs-se { cursor: nwse-resize; }
+.w-rs-ne::after, .w-rs-nw::after { width: 12px; height: 12px; top: 2px; } .w-rs-ne::after { right: 2px; } .w-rs-nw::after { left: 2px; }
+.w-rs-sw::after { width: 14px; height: 14px; left: 3px; bottom: 3px; }
+/* The bottom right corner is the main one: always visible, with a clear diagonal arrow. */
+.w-rs-se::after { width: 24px; height: 24px; right: 3px; bottom: 3px; border-radius: 9px; opacity: .92; transform: none; border-color: var(--cobalt);
+  background: var(--cobalt) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 16l8-8M8 11v5h5M16 13V8h-5'/%3E%3C/svg%3E") center / 16px no-repeat; }
+.w-rs-se:hover::after { background-color: color-mix(in srgb, var(--cobalt) 80%, #000); }
+.widget.box-clear .w-resize { opacity: 0; } .widget.box-clear:hover .w-resize, .widget.box-clear:focus-within .w-resize { opacity: 1; }
+
+/* ----- Rich text message ----- */
+div.note-area { overflow: auto; outline: 0; white-space: pre-wrap; overflow-wrap: anywhere; cursor: text; min-height: 1.25em; padding: 4px 4px 28px; }
+div.note-area:empty::before { content: attr(data-ph); opacity: .45; }
+.text-toolbar { max-width: min(560px, 94vw); }
+.tb-panel { border-radius: 18px; padding: 10px 12px; gap: 10px; }
+.pal-tab { display: inline-flex; align-items: center; gap: 8px; padding: 0 12px 0 8px; height: 32px; border-radius: 10px; }
+.pal-tab.on { background: var(--surface-2); color: var(--ink); border-color: var(--muted); }
+.pal-now { width: 18px; height: 18px; border-radius: 50%; box-shadow: 0 0 0 1px var(--line), 0 0 0 3px var(--surface) inset; flex: none; }
+.pal-hint { font-size: 12.5px; color: var(--muted); margin-left: 4px; }
+.pal { display: flex; flex-direction: column; gap: 8px; padding-top: 2px; }
+.pal-grid { display: grid; grid-template-columns: repeat(10, 28px); gap: 8px; }
+.pal .dot { width: 28px; height: 28px; border: 0; box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 16%, transparent); transition: transform .4s var(--spring, ease); }
+.pal .dot:hover { transform: scale(1.18); }
+.pal .dot.on { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink); }
+.pal-label { width: auto; }
+.pal-mine { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pal-add { position: relative; width: 28px; height: 28px; border-radius: 50%; background: var(--surface-2); color: var(--ink); display: grid; place-items: center; font-weight: 700; font-size: 18px; line-height: 1; cursor: pointer; overflow: hidden; }
+.pal-add:hover { background: color-mix(in srgb, var(--ink) 14%, var(--surface-2)); }
+.pal-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+
+/* ----- Drawing bar ----- */
+.board-ink.erasing { cursor: cell; }
+.pen2 { --pc: #EF4444; position: absolute; z-index: 900001; bottom: 6px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 16px); display: flex; flex-direction: column; align-items: center; gap: 6px; color: #0E1120; }
+.pen2-main, .pen2-shapes { background: rgba(255, 252, 246, .95); border: 1px solid rgba(255, 255, 255, .8); box-shadow: var(--shadow-lg); -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5); }
+.pen2-main { display: flex; align-items: stretch; gap: 14px; padding: 0 12px; height: 76px; border-radius: 24px; max-width: 100%; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.pen2-main > * { display: flex; align-items: center; flex: none; }
+.pen2-shapes { display: flex; gap: 4px; padding: 6px; border-radius: 16px; animation: pop-in .4s var(--spring, ease) both; transform-origin: 50% 100%; }
+.pen2-shapes[hidden] { display: none; }
+.pen2 button { appearance: none; border: 0; background: none; color: inherit; cursor: pointer; padding: 0; font: inherit; }
+.pen2-modes { flex-direction: column; justify-content: center; gap: 4px; }
+.pen2-mode { width: 34px; height: 30px; border-radius: 10px; display: grid; place-items: center; color: #6B7280; }
+.pen2-mode svg { width: 20px; height: 20px; }
+.pen2-mode.on { background: color-mix(in srgb, var(--violet) 16%, #fff); color: var(--violet); }
+/* Markers stand in a tray and peek up; the one in use rises. */
+.pen2-tools { gap: 6px; align-items: flex-end !important; overflow: hidden; }
+.pen2-tool { width: 46px; height: 64px; display: block; transform: translateY(18px); transition: transform .5s var(--spring, ease); }
+.pen2-tool svg { width: 42px; height: 63px; display: block; margin: 0 auto; filter: drop-shadow(0 2px 3px rgba(14, 17, 32, .2)); }
+.pen2-tool:hover { transform: translateY(10px); }
+.pen2-tool.on { transform: translateY(2px); }
+.pen2-shape-btn { align-self: center; width: 52px; height: 52px; border-radius: 14px; background: #EEE9DF; display: grid; place-items: center; margin-left: 6px; transition: transform .4s var(--spring, ease); }
+.pen2-shape-btn svg { width: 34px; height: 34px; stroke-width: 2; }
+.pen2-shape-btn.on { background: color-mix(in srgb, var(--violet) 18%, #fff); box-shadow: 0 0 0 2px var(--violet) inset; }
+.pen2-shape-btn:hover { transform: scale(1.06); }
+.pen2-shape { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; }
+.pen2-shape svg { width: 22px; height: 22px; }
+.pen2-shape:hover { background: rgba(14, 17, 32, .07); } .pen2-shape.on { background: color-mix(in srgb, var(--violet) 18%, #fff); color: var(--violet); }
+.pen2-colors { display: grid !important; grid-template-columns: repeat(6, 26px); gap: 8px 10px; align-content: center; }
+.pen2-color { width: 26px; height: 26px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(14, 17, 32, .16); transition: transform .4s var(--spring, ease); position: relative; overflow: hidden; cursor: pointer; }
+.pen2-color:hover { transform: scale(1.18); }
+.pen2-color.on { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0E1120; }
+.pen2-any { background: conic-gradient(#EF4444, #FBBF24, #22C55E, #22D3EE, #3B82F6, #8B5CF6, #FF4FA3, #EF4444); display: block; }
+.pen2-any-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.pen2-sizes { gap: 4px; }
+.pen2-size { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; }
+.pen2-size i { display: block; border-radius: 50%; background: #0E1120; }
+.pen2-size.on { background: #E7E1D5; }
+.pen2-acts, .pen2-end { gap: 4px; }
+.pen2-icon { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; color: #4B5563; }
+.pen2-icon:hover { background: rgba(14, 17, 32, .07); color: #0E1120; } .pen2-icon svg { width: 20px; height: 20px; }
+.pen2-end { padding-left: 12px; border-left: 1px solid rgba(14, 17, 32, .1); gap: 8px; }
+.pen2 .btn.primary { background: #0E1120; color: #fff; border-color: #0E1120; }
+.pen2-now { display: none !important; width: 26px; height: 26px; border-radius: 50%; align-self: center; box-shadow: 0 0 0 1px rgba(14, 17, 32, .16); }
+/* Smaller bar: just the tool in use, its color, and the buttons to open it again or finish. */
+.pen2.closed .pen2-main { height: 60px; gap: 10px; }
+.pen2.closed .pen2-tool:not(.on), .pen2.closed .pen2-shape-btn:not(.on), .pen2.closed .pen2-colors, .pen2.closed .pen2-sizes, .pen2.closed .pen2-acts { display: none !important; }
+.pen2.closed .pen2-modes { flex-direction: row; }
+.pen2.closed .pen2-tool { height: 52px; } .pen2.closed .pen2-shape-btn { width: 44px; height: 44px; margin: 0; }
+.pen2.closed .pen2-now { display: block !important; }
+@media (prefers-reduced-motion: reduce) { .pen2-tool, .pen2-color, .pen2-shapes, .w-resize::after, .pal .dot { transition: none; animation: none; } }

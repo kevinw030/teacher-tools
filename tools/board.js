@@ -175,117 +175,9 @@
         h('span', { class: 'dock-label', text: TYPES[t].title })));
     });
 
-    // ----- Drawing pen: draw right on the board, on top of everything -----
-    var PEN_COLORS = [['#0E1120', 'Black'], ['#FFFFFF', 'White'], ['#E5484D', 'Red'], ['#2563EB', 'Blue'], ['#0FA974', 'Green'], ['#F5AE14', 'Yellow'], ['#8B5CF6', 'Purple']];
-    var PEN_SIZES = [[3, 'Thin'], [7, 'Medium'], [14, 'Thick']];
-    var pen = { on: false, color: '#E5484D', size: 7 }, stroke = null;
-    var ink = h('canvas', { class: 'board-ink', 'aria-hidden': 'true' });
-    var penColors = h('div', { class: 'pen-group', role: 'group', 'aria-label': 'Pen color' }, PEN_COLORS.map(function (c) {
-      return h('button', { type: 'button', class: 'pen-color', 'data-c': c[0], title: c[1], 'aria-label': c[1], style: 'background:' + c[0], onclick: function () { pen.color = c[0]; paintPen(); } });
-    }));
-    var penSizes = h('div', { class: 'pen-group', role: 'group', 'aria-label': 'Pen size' }, PEN_SIZES.map(function (z) {
-      return h('button', { type: 'button', class: 'pen-size', 'data-s': z[0], title: z[1], 'aria-label': z[1], onclick: function () { pen.size = z[0]; paintPen(); } },
-        h('i', { style: 'width:' + (z[0] + 3) + 'px;height:' + (z[0] + 3) + 'px' }));
-    }));
-    var penBar = h('div', { class: 'pen-bar', hidden: true, role: 'toolbar', 'aria-label': 'Drawing tools' }, penColors, penSizes,
-      TT.button('Undo', { icon: 'reset', kind: 'small', onclick: function () { if (state.strokes && state.strokes.length) { state.strokes.pop(); save(); drawInk(); } } }),
-      TT.button('Erase All', { icon: 'trash', kind: 'small', onclick: function () { state.strokes = []; save(); drawInk(); } }),
-      TT.button('Done', { kind: 'small primary', onclick: function () { setPen(false); } }));
-    var penBtn = h('button', { type: 'button', class: 'dock-btn dock-pen', title: 'Draw on the board', 'aria-pressed': 'false', onclick: function () { setPen(!pen.on); } },
-      h('span', { class: 'dock-icon', style: 'background:#0E1120', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3l4 4L8 20l-5 1 1-5z"/><path d="M14 6l4 4"/></svg>' }),
-      h('span', { class: 'dock-label', text: 'Draw' }));
-    dock.append(penBtn);
-    canvas.append(ink, penBar);
-    function paintPen() {
-      penColors.querySelectorAll('.pen-color').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-c') === pen.color); });
-      penSizes.querySelectorAll('.pen-size').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-s') === pen.size); });
-    }
-    function setPen(on) {
-      pen.on = on; ink.classList.toggle('on', on); penBar.hidden = !on;
-      penBtn.classList.toggle('on', on); penBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      paintPen();
-    }
-    // Strokes are drawn as smooth curves through the midpoints between pen points, so there are
-    // no corners. `from` redraws only the newest part while the pen is moving.
-    function line(ctx, st, b, from) {
-      var p = st.p, n = p.length / 2;
-      function X(i) { return p[i * 2] * b.w; } function Y(i) { return p[i * 2 + 1] * b.h; }
-      ctx.strokeStyle = st.c; ctx.fillStyle = st.c; ctx.lineWidth = st.s; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-      if (n === 1) { ctx.beginPath(); ctx.arc(X(0), Y(0), st.s / 2, 0, Math.PI * 2); ctx.fill(); return; }
-      ctx.beginPath();
-      if (from == null) {
-        ctx.moveTo(X(0), Y(0));
-        for (var i = 1; i < n - 1; i++) ctx.quadraticCurveTo(X(i), Y(i), (X(i) + X(i + 1)) / 2, (Y(i) + Y(i + 1)) / 2);
-        ctx.lineTo(X(n - 1), Y(n - 1));
-      } else {
-        // the piece that ends at the midpoint before the newest point
-        var k = n - 1;
-        if (k === 1) { ctx.moveTo(X(0), Y(0)); ctx.lineTo((X(0) + X(1)) / 2, (Y(0) + Y(1)) / 2); }
-        else { ctx.moveTo((X(k - 2) + X(k - 1)) / 2, (Y(k - 2) + Y(k - 1)) / 2); ctx.quadraticCurveTo(X(k - 1), Y(k - 1), (X(k - 1) + X(k)) / 2, (Y(k - 1) + Y(k)) / 2); }
-      }
-      ctx.stroke();
-    }
-    function drawInk() {
-      var b = bounds(), dpr = window.devicePixelRatio || 1;
-      if (ink.width !== Math.round(b.w * dpr) || ink.height !== Math.round(b.h * dpr)) { ink.width = Math.round(b.w * dpr); ink.height = Math.round(b.h * dpr); }
-      var ctx = inkCtx();
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, b.w, b.h);
-      (state.strokes || []).forEach(function (st) { if (st.p && st.p.length >= 2) line(ctx, st, b); });
-    }
-    function inkCtx() { return ink.getContext('2d', { desynchronized: true }); }
-    // Pen input. Every reading the device reports is used (not only one per frame), then eased
-    // a little toward the pen so shaky hands and noisy touch panels still give a clean line.
-    var penId = null, penKind = '', sx = 0, sy = 0, inkRect = null;
-    function raw(e) { return [(e.clientX - inkRect.left) / inkRect.width, (e.clientY - inkRect.top) / inkRect.height]; }
-    function r5(v) { return Math.round(v * 1e5) / 1e5; }
-    function addPoint(x, y, b) {
-      var n = stroke.p.length, dx = (x - stroke.p[n - 2]) * b.w, dy = (y - stroke.p[n - 1]) * b.h;
-      if (dx * dx + dy * dy < 2.25) return;
-      stroke.p.push(r5(x), r5(y));
-      line(inkCtx(), stroke, b, n / 2);
-    }
-    ink.addEventListener('pointerdown', function (e) {
-      if (!pen.on || e.button) return;
-      // one pen at a time: a resting palm or second finger never starts or breaks a line
-      if (penId !== null) { if (e.pointerType === 'pen' && penKind !== 'pen') endStroke(); else return; }
-      e.preventDefault();
-      try { ink.setPointerCapture(e.pointerId); } catch (err) {}
-      penId = e.pointerId; penKind = e.pointerType; inkRect = ink.getBoundingClientRect();
-      if (!Array.isArray(state.strokes)) state.strokes = [];
-      var pt = raw(e); sx = pt[0]; sy = pt[1];
-      stroke = { c: pen.color, s: pen.size, p: [r5(sx), r5(sy)] };
-      state.strokes.push(stroke);
-      line(inkCtx(), stroke, bounds());
-    });
-    ink.addEventListener('pointermove', function (e) {
-      if (!stroke || e.pointerId !== penId) return;
-      e.preventDefault();
-      var b = bounds(), list = e.getCoalescedEvents ? e.getCoalescedEvents() : null;
-      if (!list || !list.length) list = [e];
-      // Small wobbles are eased away; quick, deliberate moves are followed exactly so corners and
-      // fast writing stay crisp. Fingers on a touch panel get a little more easing than a mouse or stylus.
-      var base = penKind === 'touch' ? 0.35 : 0.5;
-      for (var i = 0; i < list.length; i++) {
-        var pt = raw(list[i]);
-        var d = Math.sqrt(Math.pow((pt[0] - sx) * b.w, 2) + Math.pow((pt[1] - sy) * b.h, 2)), ease = Math.min(1, base + d / 60);
-        sx += (pt[0] - sx) * ease; sy += (pt[1] - sy) * ease;
-        addPoint(sx, sy, b);
-      }
-    });
-    function endStroke(e) {
-      if (!stroke || (e && e.pointerId !== penId)) return;
-      // finish exactly where the pen lifted, then redraw the whole stroke as one clean curve
-      if (e && e.type === 'pointerup' && inkRect) {
-        var pt = raw(e), n = stroke.p.length, b = bounds();
-        if (Math.abs(pt[0] - stroke.p[n - 2]) * b.w + Math.abs(pt[1] - stroke.p[n - 1]) * b.h > 0.5) stroke.p.push(r5(pt[0]), r5(pt[1]));
-      }
-      stroke = null; penId = null; save(); drawInk();
-    }
-    ink.addEventListener('pointerup', endStroke);
-    ink.addEventListener('pointercancel', endStroke);
-    ink.addEventListener('lostpointercapture', endStroke);
-    ink.addEventListener('contextmenu', function (e) { if (pen.on) e.preventDefault(); });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && pen.on) setPen(false); });
+    // ----- Drawing tools (tools/board-pen.js): pen, highlighter, eraser and shapes drawn on top of everything -----
+    var penApi = TT.boardPen({ canvas: canvas, dock: dock, bounds: bounds, getState: function () { return state; }, save: function () { save(); } });
+    function drawInk() { penApi.draw(); }
 
     // ----- Minimize the widget bar; full screen keeps everything small -----
     var ui = TT.load('board-ui', { dockMin: false }), fsHide = false;
@@ -408,8 +300,7 @@
       var closeBtn = h('button', { type: 'button', class: 'w-close', 'aria-label': 'Close ' + t.title, title: 'Close', html: TT.icon('close'), onclick: function () { removeWidget(w.id); } });
       var lockBtn = h('button', { type: 'button', class: 'w-close w-lock', onclick: function () { w.locked = !w.locked; paintLock(); save(); } });
       var head = h('div', { class: 'w-head' }, h('span', { class: 'w-title', text: t.title }), h('span', { class: 'w-btns' }, lockBtn, closeBtn));
-      var grip = h('div', { class: 'w-resize', 'aria-hidden': 'true' });
-      var node = h('div', { class: 'widget w-' + w.type + (fresh ? ' fresh' : ''), 'data-id': w.id }, head, body, grip);
+      var node = h('div', { class: 'widget w-' + w.type + (fresh ? ' fresh' : ''), 'data-id': w.id }, head, body);
       function paintLock() {
         node.classList.toggle('locked', !!w.locked);
         lockBtn.innerHTML = TT.icon(w.locked ? 'lock' : 'unlock');
@@ -429,7 +320,21 @@
         w.x = fw > 1 ? start.x + dx / fw * (r.w - w.w) : start.x; w.y = fh > 1 ? start.y + dy / fh * (r.h - w.h) : start.y;
         clamp(w); place(node, w);
       }, w, head.querySelector('.w-btns'));
-      drag(grip, function (dx, dy, start) { var k = scale(); w.w = start.w + dx / k; w.h = start.h + dy / k; clamp(w); place(node, w); }, w);
+      // Resize handles on every side and corner. Dragging a left or top handle moves that edge and keeps the opposite one still.
+      ['n', 'e', 's', 'w', 'ne', 'nw', 'sw', 'se'].forEach(function (dir) {
+        var g = h('div', { class: 'w-resize w-rs-' + dir, 'aria-hidden': 'true' });
+        node.append(g);
+        drag(g, function (dx, dy, start) {
+          var k = scale(), r = ref(), X = dx / k, Y = dy / k;
+          var nw = start.w, nh = start.h, nx = start.x, ny = start.y;
+          if (dir.indexOf('e') >= 0) nw = Math.min(start.w + X, r.w - start.x);
+          if (dir.indexOf('s') >= 0) nh = Math.min(start.h + Y, r.h - start.y);
+          if (dir.indexOf('w') >= 0) { nw = Math.max(160, Math.min(start.w - X, start.x + start.w)); nx = start.x + start.w - nw; }
+          if (dir.indexOf('n') >= 0) { nh = Math.max(120, Math.min(start.h - Y, start.y + start.h)); ny = start.y + start.h - nh; }
+          w.w = nw; w.h = nh; w.x = nx; w.y = ny; clamp(w); place(node, w);
+          if (mounted[w.id] && mounted[w.id].restyle) mounted[w.id].restyle();
+        }, w);
+      });
 
       if (!w.data) w.data = {};
       mounted[w.id] = (WIDGETS[w.type] || t.mount)(body, w, save) || {};
@@ -480,16 +385,67 @@
           ['book', 'Storybook', '"Merriweather", serif'],
           ['type', 'Typewriter', '"Courier Prime", monospace']
         ];
-        var TEXT_COLORS = ['auto', '#0E1120', '#FFFFFF', '#2563EB', '#F2643D', '#0FA974', '#E5397A', '#7B4DEB', '#E89A00'];
-        var BOX_COLORS = ['default', 'clear', '#FFFFFF', '#161A2B', '#FFF3B0', '#FFD6E0', '#CDE7FF', '#D5F5E3', '#E6DBFF', '#FFD9B8', '#2563EB', '#0FA974', '#E5397A'];
+        // Two rows of colors: strong on top, soft below. The last soft slot is a special choice.
+        var STRONG = ['#0E1120', '#EF4444', '#FB923C', '#FBBF24', '#22C55E', '#22D3EE', '#3B82F6', '#8B5CF6', '#FF4FA3', '#FFFFFF'];
+        var SOFT = ['#9CA3AF', '#FECACA', '#FED7AA', '#FEF3C7', '#DCFCE7', '#CFFAFE', '#DBEAFE', '#DDD6FE', '#FBCFE8'];
+        var TEXT_COLORS = STRONG.concat(SOFT, ['auto']);
+        var BOX_COLORS = STRONG.concat(['default'], SOFT.slice(1), ['clear']);
         if (!d.font) d.font = 'modern';
         if (!d.align) d.align = 'left';
         if (!d.box) d.box = 'default';
         if (!d.color || d.color === 'ink') d.color = 'auto';
 
-        var area = h('textarea', { class: 'note-area', 'aria-label': 'Message', id: 'txt-' + w.id, placeholder: 'Type here' });
-        area.value = d.text || '';
-        area.addEventListener('input', function () { d.text = area.value; save(); });
+        // The message is rich text, so single words or lines can have their own color.
+        function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+        // Keep only line breaks and text color; drop every other tag and attribute.
+        function clean(html) {
+          var t = document.createElement('template'); t.innerHTML = html;
+          (function walk(n) {
+            [].slice.call(n.childNodes).forEach(function (c) {
+              if (c.nodeType === 3) return;
+              if (c.nodeType !== 1) { c.remove(); return; }
+              var tag = c.tagName;
+              if (['BR', 'DIV', 'SPAN', 'FONT', 'P'].indexOf(tag) < 0) {
+                if (['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'LINK', 'META'].indexOf(tag) >= 0) { c.remove(); return; }
+                walk(c); c.replaceWith.apply(c, [].slice.call(c.childNodes)); return;
+              }
+              var col = (c.style && c.style.color) || c.getAttribute('color') || '';
+              [].slice.call(c.attributes).forEach(function (a) { c.removeAttribute(a.name); });
+              if (col && /^[#a-z0-9(),.\s%]+$/i.test(col)) c.style.color = col;
+              walk(c);
+            });
+          })(t.content);
+          return t.innerHTML;
+        }
+        var area = h('div', { class: 'note-area', contenteditable: 'true', role: 'textbox', 'aria-multiline': 'true', 'aria-label': 'Message', id: 'txt-' + w.id, 'data-ph': 'Type here', spellcheck: 'false' });
+        area.innerHTML = clean(d.html != null ? d.html : esc(d.text || '').replace(/\n/g, '<br>'));
+        function keepText() { if (area.innerHTML === '<br>') area.innerHTML = ''; d.html = area.innerHTML; d.text = area.innerText; save(); }
+        area.addEventListener('input', keepText);
+        area.addEventListener('paste', function (e) {
+          e.preventDefault();
+          var t = (e.clipboardData || window.clipboardData).getData('text');
+          document.execCommand('insertText', false, t);
+        });
+        // Remember where the cursor or highlight was, so a color can still be applied after the color picker takes focus.
+        var lastRange = null;
+        document.addEventListener('selectionchange', function () {
+          var sel = window.getSelection();
+          if (sel.rangeCount && area.contains(sel.anchorNode) && area.contains(sel.focusNode)) lastRange = sel.getRangeAt(0).cloneRange();
+        });
+        area.addEventListener('blur', function () { setTimeout(function () { if (!node.contains(document.activeElement)) lastRange = null; }, 0); });
+        // Color only the highlighted words, or what is typed next. With no cursor in the box, color the whole box.
+        function colorText(c) {
+          var sel = window.getSelection();
+          var inside = document.activeElement === area && sel.rangeCount && area.contains(sel.anchorNode);
+          if (!inside && lastRange) { area.focus(); sel.removeAllRanges(); sel.addRange(lastRange); inside = true; }
+          if (!inside) { set('color', c); return; }
+          document.execCommand('styleWithCSS', false, true);
+          if (c === 'auto') {
+            if (sel.isCollapsed) document.execCommand('foreColor', false, getComputedStyle(area).color);
+            else document.execCommand('removeFormat', false, null);
+          } else document.execCommand('foreColor', false, c);
+          keepText();
+        }
 
         function lum(hex) { var n = parseInt(hex.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000; }
         function set(k, v) { d[k] = v; style(); save(); }
@@ -513,19 +469,34 @@
           html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 12h16M12 3v5M9.5 5.5 12 8l2.5-2.5M12 21v-5M9.5 18.5 12 16l2.5 2.5"/></svg>',
           onclick: function () { set('middle', !d.middle); } });
 
-        function swatches(list, key, label) {
-          var custom = h('input', { type: 'color', class: 'dot-custom', 'aria-label': label + ': any color', title: 'Any color' });
-          custom.addEventListener('input', function () { set(key, custom.value); });
-          var btns = list.map(function (c) {
-            var special = c === 'auto' || c === 'default' || c === 'clear';
-            return h('button', { type: 'button', class: 'dot' + (special ? ' dot-' + c : ''), 'data-c': c, style: special ? null : 'background:' + c,
-              'aria-label': label + ': ' + (c === 'auto' ? 'automatic' : c === 'default' ? 'standard' : c === 'clear' ? 'see-through' : c),
-              title: c === 'auto' ? 'Automatic' : c === 'default' ? 'Standard' : c === 'clear' ? 'See-through' : c, onclick: function () { set(key, c); } });
+        // A palette: two rows of ten, then the teacher's own saved colors and a "+" to add one.
+        function palette(list, key, label) {
+          function pick(c) { if (key === 'color') colorText(c); else set(key, c); }
+          var custom = h('input', { type: 'color', class: 'pal-input', 'aria-label': label + ': add a color', title: 'Add a Color' });
+          custom.addEventListener('change', function () {
+            var mine = TT.load('board-colors', []) || [], v = custom.value.toUpperCase();
+            if (mine.indexOf(v) < 0) { mine.unshift(v); TT.save('board-colors', mine.slice(0, 9)); }
+            pick(v); paintMine();
           });
-          return { el: h('div', { class: 'tb-row' }, h('span', { class: 'tb-label', text: label }), btns, custom), btns: btns, custom: custom };
+          function dot(c) {
+            var special = c === 'auto' || c === 'default' || c === 'clear';
+            var name = c === 'auto' ? 'Automatic' : c === 'default' ? 'Standard' : c === 'clear' ? 'See-Through' : c;
+            return h('button', { type: 'button', class: 'dot' + (special ? ' dot-' + c : ''), 'data-c': c, style: special ? null : 'background:' + c, 'aria-label': label + ': ' + name, title: name, onclick: function () { pick(c); } });
+          }
+          var btns = list.map(dot), mineRow = h('div', { class: 'pal-mine' });
+          function paintMine() {
+            mineRow.textContent = '';
+            (TT.load('board-colors', []) || []).forEach(function (c) { if (/^#[0-9A-F]{6}$/i.test(c)) mineRow.append(dot(c)); });
+            mineRow.append(h('label', { class: 'pal-add', title: 'Add a Color' }, h('span', { 'aria-hidden': 'true', text: '+' }), custom));
+          }
+          paintMine();
+          return { el: h('div', { class: 'pal', hidden: true }, h('div', { class: 'pal-grid' }, btns), h('span', { class: 'tb-label pal-label', text: 'My Colors' }), mineRow), btns: btns, paintMine: paintMine };
         }
-        var textSw = swatches(TEXT_COLORS, 'color', 'Text');
-        var boxSw = swatches(BOX_COLORS, 'box', 'Box');
+        var textSw = palette(TEXT_COLORS, 'color', 'Text');
+        var boxSw = palette(BOX_COLORS, 'box', 'Box');
+        var palOpen = 'color';
+        var textTab = h('button', { type: 'button', class: 'tb pal-tab', onclick: function () { palOpen = palOpen === 'color' ? '' : 'color'; style(); } }, h('i', { class: 'pal-now' }), h('span', { text: 'Text Color' }));
+        var boxTab = h('button', { type: 'button', class: 'tb pal-tab', onclick: function () { palOpen = palOpen === 'box' ? '' : 'box'; style(); } }, h('i', { class: 'pal-now' }), h('span', { text: 'Box Color' }));
 
         var bar = h('div', { class: 'text-toolbar' },
           h('div', { class: 'tb-panel' },
@@ -534,7 +505,10 @@
               h('button', { type: 'button', class: 'tb', 'aria-label': 'Bigger text', title: 'Bigger', text: 'A+', onclick: function () { set('size', Math.min(200, d.size + 4)); } }),
               h('span', { class: 'tb-sep' }), boldBtn, italBtn, undBtn, shadowBtn,
               h('span', { class: 'tb-sep' }), aligns, midBtn),
+            h('div', { class: 'tb-row' }, textTab, boxTab, h('span', { class: 'pal-hint', text: 'Highlight words to color just those.' })),
             textSw.el, boxSw.el));
+        // Clicking the toolbar must not take the cursor out of the text.
+        bar.addEventListener('mousedown', function (e) { if (!e.target.closest('select, input, label')) e.preventDefault(); });
         body.append(area, bar);
 
         function style() {
@@ -564,10 +538,14 @@
           aligns.forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-al') === d.align); });
           textSw.btns.forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-c') === d.color); });
           boxSw.btns.forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-c') === d.box); });
+          textSw.el.hidden = palOpen !== 'color'; boxSw.el.hidden = palOpen !== 'box';
+          textTab.classList.toggle('on', palOpen === 'color'); boxTab.classList.toggle('on', palOpen === 'box');
+          textTab.firstChild.style.background = color;
+          boxTab.firstChild.style.background = custom ? d.box : clear ? 'transparent' : 'var(--surface)';
         }
         area.addEventListener('input', function () { if (d.middle) style(); });
         // Open the toolbar above the box when there is no room below it.
-        node.addEventListener('pointerenter', function () { node.classList.toggle('tb-up', w.y + w.h + 150 > ref().h); });
+        node.addEventListener('pointerenter', function () { node.classList.toggle('tb-up', w.y + w.h + 230 > ref().h); });
         style();
         return { restyle: style };
       },
