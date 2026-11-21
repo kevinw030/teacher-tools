@@ -1096,7 +1096,9 @@ button.cb-peg.big:hover { transform: scale(1.1); }
 #acctCode { letter-spacing: .3em; font-weight: 700; }
 .acct-or { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 14px; margin: 16px 0 0; }
 .acct-or::before, .acct-or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
-.google-btn { width: 100%; justify-content: center; margin-top: 16px; }
+.google-btn { width: 100%; justify-content: center; margin-top: 18px; gap: 12px; background: #fff; color: #1F1F1F; border: 1px solid #DADCE0; font-weight: 700; }
+.google-btn:hover { background: #F8F9FA; border-color: #C6C9CE; }
+.google-btn svg { width: 22px; height: 22px; }
 .acct .small { font-size: 14px; }
 .acct-who { display: flex; align-items: center; gap: 16px; }
 .plan-badge { display: inline-block; font-size: 13px; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }

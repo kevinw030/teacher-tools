@@ -24,10 +24,31 @@ Part 1 turns on accounts (about 15 minutes, free). Part 2 turns on payments (abo
 7. Back in **SQL Editor**, run this with your email, so your account has everything free:
    `update public.profiles set plan = 'owner' where email = 'your-email-here';`
 
-### Optional: Continue with Google
-Authentication > Sign In / Providers > Google. It needs a Google Cloud "OAuth client" (Supabase links the steps).
-Then set `google: true` in `assets/account-config.js`.
+### Continue with Google (about 10 minutes)
+This adds a "Continue with Google" button above the email sign-in, so teachers can use their school or personal Google account.
 
+1. In Supabase, open **Authentication > Sign In / Providers > Google** and copy the **Callback URL** shown there
+   (it looks like `https://YOUR-PROJECT.supabase.co/auth/v1/callback`). Leave this tab open.
+2. Go to https://console.cloud.google.com and sign in with your Google account. At the top, choose
+   **Select a project > New Project**, name it `Teacher Tools`, and press **Create**.
+3. Open **APIs & Services > OAuth consent screen** (Google may call it **Google Auth Platform > Branding**) and press **Get Started**:
+   - App name: `Teacher Tools`; support email: your email
+   - Audience: **External**
+   - Contact email: your email, then agree and press **Create**
+4. Under **Branding**, add the app domain `kevinw030.github.io`, and under **Authorized domains** add `supabase.co`.
+   Under **Data Access**, the only scopes needed are `email`, `profile` and `openid` (the defaults).
+5. Open **Clients > Create Client** (or **APIs & Services > Credentials > Create Credentials > OAuth client ID**):
+   - Application type: **Web application**, name: `Teacher Tools`
+   - Authorized JavaScript origins: `https://kevinw030.github.io`
+   - Authorized redirect URIs: the **Callback URL** you copied from Supabase in step 1
+   - Press **Create**, then copy the **Client ID** and **Client Secret**.
+6. Back in Supabase on the Google provider page, turn **Enable Sign in with Google** on, paste the Client ID and
+   Client Secret, and press **Save**.
+7. In Google Cloud, open **Audience** and press **Publish App** so any teacher can sign in, not only test users.
+   (Google may show an "unverified app" note until it reviews the app; with only email and profile, review is usually quick or not needed.)
+8. Set `google: true` in `assets/account-config.js`, or tell Claude and it will do it.
+
+If a school's Google Workspace blocks outside apps, those teachers can still use the email code.
 ### Before sharing with other teachers
 Supabase's built-in email only sends a few sign-in emails an hour. Before inviting others, connect a free email
 sender (for example Resend, 3,000 emails a month free) under **Project Settings > Authentication > SMTP Settings**.
