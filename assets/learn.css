@@ -167,3 +167,32 @@
 .er-card-panel.open .er-key.big { animation: er-turn .6s cubic-bezier(.3, 1.5, .5, 1); }
 @keyframes er-right { 0% { transform: scale(1); } 40% { transform: scale(1.04); } 100% { transform: scale(1); } }
 @keyframes er-turn { 0% { transform: rotate(0); } 50% { transform: rotate(90deg) scale(1.2); } 100% { transform: rotate(0); } }
+
+/* Would You Rather: spin for today's question (would-you-rather/app.js) */
+.wyr [hidden] { display: none !important; }
+.wyr-buddy-home { display: contents; }
+.wyr-spin { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: clamp(12px, 1.8vw, 22px); padding: clamp(8px, 1.6vw, 20px) 0; }
+.wyr-spin-buddy { width: clamp(96px, 12vw, 170px); display: flex; justify-content: center; }
+.wyr-reel-wrap { position: relative; width: min(100%, 980px); display: flex; align-items: center; justify-content: center; padding: clamp(14px, 2vw, 26px) clamp(30px, 4vw, 56px); border-radius: 30px; background: #fff; color: #1B1740; border: 4px solid #1B1740; box-shadow: 0 8px 0 #1B1740; }
+.wyr-reel { font-family: var(--display); font-weight: 800; font-size: clamp(22px, 3.3vw, 46px); line-height: 1.12; max-width: 26ch; height: calc(1.12em * 4 + .3em); }
+.wyr-reel .x { color: #2F6BFF; } .wyr-reel .y { color: #F2553D; }
+.wyr.unspun .wyr-reel .bb-item[aria-hidden] { color: rgba(27,23,64,.5); } .wyr.unspun .wyr-reel .bb-item[aria-hidden] .x, .wyr.unspun .wyr-reel .bb-item[aria-hidden] .y { color: inherit; }
+.wyr-ptr { position: absolute; top: 50%; width: 0; height: 0; border: clamp(10px, 1.4vw, 18px) solid transparent; margin-top: calc(clamp(10px, 1.4vw, 18px) * -1); }
+.wyr-ptr.l { left: 6px; border-left-color: #FFB020; } .wyr-ptr.r { right: 6px; border-right-color: #FFB020; }
+.wyr.landed .wyr-reel-wrap { animation: wyr-land .6s cubic-bezier(.3, 1.6, .5, 1); background: #FFF6D6; }
+@keyframes wyr-land { 0% { transform: scale(1); } 40% { transform: scale(1.05) rotate(-1deg); } 100% { transform: scale(1); } }
+.wyr.fun .wyr-spin .btn.big { font-size: clamp(18px, 2vw, 26px); padding: .7em 1.6em; border: 3px solid #1B1740; box-shadow: 0 6px 0 #1B1740; }
+.wyr.fun .wyr-spin .btn.big:active { transform: translateY(4px); box-shadow: 0 2px 0 #1B1740; }
+/* small version (board widget, Morning Meeting) */
+.wyr.compact .wyr-spin { gap: 10px; padding: 4px 0; }
+.wyr.compact .wyr-reel-wrap { padding: 10px 26px; border-width: 2px; border-radius: 18px; box-shadow: none; border-color: var(--line, rgba(0,0,0,.15)); background: var(--surface); color: var(--ink); }
+.wyr.compact .wyr-reel { font-size: clamp(15px, 1.5vw, 20px); height: calc(1.12em * 4 + .3em); }
+.wyr.compact .wyr-reel .x { color: var(--cobalt); } .wyr.compact .wyr-reel .y { color: var(--coral); }
+.wyr.compact .wyr-ptr { border-width: 8px; margin-top: -8px; left: 2px; } .wyr.compact .wyr-ptr.r { left: auto; right: 2px; }
+@media (max-width: 640px) { .wyr-reel { height: calc(1.12em * 6 + .3em); } }
+@media (prefers-reduced-motion: reduce) { .wyr.landed .wyr-reel-wrap { animation: none; } }
+/* home page: the question stays a secret until it is spun */
+.feature-q.secret { display: flex; align-items: center; gap: 14px; font-size: clamp(18px, 2.1vw, 26px); }
+.feature-q .q-mark { flex: none; display: grid; place-items: center; width: 1.9em; height: 1.9em; border-radius: 32%; background: var(--coral); color: #fff; font-weight: 900; rotate: -8deg; animation: q-bob 2.4s ease-in-out infinite; }
+@keyframes q-bob { 50% { translate: 0 -4px; rotate: 6deg; } }
+@media (prefers-reduced-motion: reduce) { .feature-q .q-mark { animation: none; } }

@@ -1,4 +1,5 @@
 // Would You Rather: one question per day, no repeats until every question has been used.
+// Each day starts hidden. The class spins a reel (like Brain Breaks) to find out today's question.
 (function () {
   var TT = window.TT, h = TT.h;
   var KEY = 'wyr';
@@ -21,7 +22,8 @@
   function save() { TT.save(KEY, state); listeners.forEach(function (fn) { fn(); }); }
   function cleanSeen() { state.seen = (state.seen || []).filter(function (k) { return byKey[k]; }); }
 
-  function pickNew() {
+  // quiet = save without telling the other views yet (used while the reel is still spinning).
+  function pickNew(quiet) {
     cleanSeen();
     var seen = {};
     state.seen.forEach(function (k) { seen[k] = 1; });
@@ -36,17 +38,24 @@
     state.seen.push(state.current);
     state.date = TT.today();
     state.votes = { a: 0, b: 0 };
-    save();
+    if (quiet) TT.save(KEY, state); else save();
     return q;
   }
+  // Today's question, or null until the class has spun for it.
   function current() {
     if (!questions.length) return null;
     if (state.date === TT.today() && byKey[state.current]) return byKey[state.current];
-    return pickNew();
+    return null;
+  }
+  function randomQ(not) {
+    var q, n = 0;
+    do { q = questions[Math.floor(Math.random() * questions.length)]; n++; } while (q === not && n < 8);
+    return q;
   }
 
   TT.wyr = {
     current: current,
+    count: function () { return questions.length; },
     onChange: function (fn) { listeners.push(fn); },
     reload: function () { build(); listeners.forEach(function (fn) { fn(); }); },
     // Show this question today.
@@ -104,8 +113,8 @@
     var progressBar = h('span');
     var newBtn = TT.button('New Question', { icon: 'arrow', kind: 'primary', onclick: function () { newBtn.hidden = true; confirm.hidden = false; } });
     var confirm = h('span', { class: 'confirm', hidden: true },
-      h('span', { text: 'Skip today’s question?' }),
-      TT.button('Yes, Skip', { kind: 'primary', onclick: function () { pickNew(); confirm.hidden = true; newBtn.hidden = false; } }),
+      h('span', { text: 'Spin for a different question?' }),
+      TT.button('Yes, Spin Again', { kind: 'primary', onclick: function () { confirm.hidden = true; newBtn.hidden = false; spin(); } }),
       TT.button('Keep It', { onclick: function () { confirm.hidden = true; newBtn.hidden = false; } })
     );
 
@@ -141,9 +150,55 @@
       S.btn.classList.remove('voted'); void S.btn.offsetWidth; S.btn.classList.add('voted');
     }
 
+    // The spin reel: a fixed-size window that questions slide through, so nothing jumps while it spins.
+    var spinning = false, still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var item = h('div', { class: 'bb-item' }, h('span', { text: 'What will today’s question be?' }));
+    var reel = h('div', { class: 'wyr-reel bb-reel', 'aria-live': 'polite' }, item);
+    var spinBtn = TT.button(compact ? 'Spin for Today’s Question' : 'Spin the Wheel', { icon: 'sparkle', kind: compact ? 'primary' : 'primary big', onclick: function () { spin(); } });
+    var buddySpot = fun ? h('div', { class: 'wyr-spin-buddy' }) : null;
+    var spinBox = h('div', { class: 'wyr-spin', hidden: true }, buddySpot,
+      h('div', { class: 'wyr-reel-wrap' }, h('span', { class: 'wyr-ptr l', 'aria-hidden': 'true' }), reel, h('span', { class: 'wyr-ptr r', 'aria-hidden': 'true' })), spinBtn);
+    function line(q) {
+      return ['Would you rather ', h('span', { class: 'x', text: q[0] }), ' or ', h('span', { class: 'y', text: q[1] }), '?'];
+    }
+    function slide(content, ms, last) {
+      var old = item, next = h('div', { class: 'bb-item' }, h('span', null, content));
+      if (!last) next.setAttribute('aria-hidden', 'true');
+      reel.append(next); item = next;
+      if (still || !next.animate) { old.remove(); return; }
+      old.animate([{ transform: 'translateY(0)', opacity: 1 }, { transform: 'translateY(-85%)', opacity: 0 }], { duration: ms, easing: last ? 'ease-out' : 'linear', fill: 'forwards' }).onfinish = function () { old.remove(); };
+      next.animate([{ transform: 'translateY(85%)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: last ? ms * 1.5 : ms, easing: last ? 'cubic-bezier(.2, 1.5, .4, 1)' : 'linear' });
+    }
+    function spin() {
+      if (spinning || !questions.length) return;
+      spinning = true; spinBtn.disabled = true;
+      paint();
+      var winner = pickNew(true);
+      if (fun) mood('think', pickLine(['Round and round it goes…', 'Which one will it be?', 'Ooh, I can’t look!', 'Here it comes…']));
+      // Starts quick and eases down to a stop over about three seconds, the same as Brain Breaks.
+      var steps = still ? 0 : 12, i = 0;
+      (function step() {
+        if (i >= steps) {
+          slide(line(winner), 520, true); TT.tick(); wrap.classList.add('landed');
+          setTimeout(function () {
+            spinning = false; spinBtn.disabled = false; wrap.classList.remove('landed');
+            if (TT.chime) TT.chime();
+            save();   // now every view (this one, the home page, the board) shows today's question
+            wrap.classList.remove('swap'); void wrap.offsetWidth; wrap.classList.add('swap');
+            if (fun) mood('party', pickLine(['Today’s question is here!', 'Ooh, this is a good one!', 'Pick a side, class!']), 2400);
+          }, still ? 300 : 1500);
+          return;
+        }
+        var ms = 130 + i * i * 3.2;
+        slide(line(randomQ(winner)), ms, false); TT.tick(); i++;
+        setTimeout(step, ms);
+      })();
+    }
+
+    var choicesEl, midEl = fun ? h('span', { class: 'wyr-buddy-home' }) : null;
     el.append(wrap = h('div', { class: 'wyr' + (compact ? ' compact' : ' fun') },
-      fun ? bubble : null,
-      h('div', { class: 'choices' }, A.btn, fun ? h('div', { class: 'wyr-mid' }, buddy, h('div', { class: 'or', 'aria-hidden': 'true', text: 'OR' })) : h('div', { class: 'or', 'aria-hidden': 'true', text: 'OR' }), B.btn),
+      fun ? bubble : null, spinBox,
+      choicesEl = h('div', { class: 'choices' }, A.btn, fun ? h('div', { class: 'wyr-mid' }, midEl, h('div', { class: 'or', 'aria-hidden': 'true', text: 'OR' })) : h('div', { class: 'or', 'aria-hidden': 'true', text: 'OR' }), B.btn),
       compact ? null : h('div', { class: 'wyr-foot' },
         h('div', { class: 'progress' }, progressLabel, h('span', { class: 'track' }, progressBar)),
         h('div', { class: 'row' },
@@ -152,8 +207,23 @@
           confirm, newBtn))
     ));
 
+    var footRow = null;
     function paint() {
       var q = current();
+      var waiting = spinning || (!q && questions.length > 0);
+      wrap.classList.toggle('unspun', waiting);
+      spinBox.hidden = !waiting; choicesEl.hidden = waiting;
+      if (fun) { (waiting ? buddySpot : midEl).append(buddy); newBtn.disabled = waiting; }
+      if (waiting) {
+        if (!spinning) {
+          if (!item.isConnected || item.getAttribute('aria-hidden')) { reel.textContent = ''; item = h('div', { class: 'bb-item' }, h('span', { text: 'What will today’s question be?' })); reel.append(item); }
+          if (fun) { clearTimeout(moodTimer); buddy.className = 'wyr-buddy idle'; bubble.textContent = 'Spin the wheel to find today’s question!'; }
+          prevKey = null;
+        }
+        progressLabel.innerHTML = '<b>' + questions.length + '</b> questions in the wheel · a new one every day';
+        progressBar.style.width = Math.round((state.seen || []).length / questions.length * 100) + '%';
+        return;
+      }
       if (!q) { A.text.textContent = 'No questions found'; B.text.textContent = 'Check questions.js'; return; }
       cleanSeen();
       A.text.textContent = q[0]; B.text.textContent = q[1];
@@ -181,6 +251,9 @@
     }
     TT.wyr.onChange(paint);
     paint();
-    return { paint: paint };
+    // The home page's "Spin the Wheel" button opens this page and starts the spin.
+    function auto() { if (fun && TT.wyr.autoSpin && !current() && !spinning && location.hash === '#would-you-rather') { TT.wyr.autoSpin = false; setTimeout(spin, 650); } }
+    if (fun) { window.addEventListener('hashchange', auto); auto(); }
+    return { paint: paint, spin: spin };
   };
 })();

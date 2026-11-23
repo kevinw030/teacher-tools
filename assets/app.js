@@ -14,11 +14,20 @@
     $('greeting').textContent = (hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening') + who + '!';
     $('wyrDate').textContent = d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) + ' · Pick a side, then tell a partner why.';
   }
+  // The home page keeps today's question a secret until the class has spun for it.
   function paintToday() {
     var q = TT.wyr && TT.wyr.current();
-    var box = $('todayQ');
+    var box = $('todayQ'), go = $('todayGo'), label = $('todayGoText');
     box.textContent = '';
-    if (!q) { box.textContent = 'Add questions to get started.'; return; }
+    box.classList.toggle('secret', !q);
+    if (!TT.wyr || !TT.wyr.count()) { box.textContent = 'Add questions to get started.'; label.textContent = 'Open'; return; }
+    if (!q) {
+      box.append(h('span', { class: 'q-mark', 'aria-hidden': 'true', text: '?' }), 'Today’s question is still a secret. Spin the wheel to find out!');
+      label.textContent = 'Spin the Wheel';
+      go.onclick = function () { TT.wyr.autoSpin = true; };
+      return;
+    }
+    go.onclick = null; label.textContent = 'Show the Class';
     box.append('Would you rather ', h('span', { class: 'x', text: q[0] }), ' or ', h('span', { class: 'y', text: q[1] }), '?');
   }
 
