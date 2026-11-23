@@ -374,9 +374,21 @@
       if (signup) card.append(h('p', { class: 'acct-fine', text: 'By creating an account, you confirm you’re 13 or older.' }));
       else card.append(h('p', { class: 'acct-forgot' }, link('Forgot password?', 'forgot')));
       card.append(h('p', { class: 'acct-switch' }, signup ? 'Already have an account? ' : 'New here? ', link(signup ? 'Log In' : 'Create an Account', signup ? 'login' : 'signup')));
-      card.append(h('p', { class: 'acct-disclaimer', text: DISCLAIMER }),
-        h('p', { class: 'muted small', text: 'Not signing in is fine too. Everything still works and saves on this computer.' }));
+
       return card;
+    }
+
+    // Beside the sign-in card on wide screens, below it on phones.
+    function sideCard() {
+      function item(icon, title, text) { return h('li', null, h('span', { class: 'acct-side-ico', 'aria-hidden': 'true', text: icon }), h('div', null, h('b', { text: title }), h('span', { text: text }))); }
+      return h('aside', { class: 'acct-side' },
+        h('h3', { text: 'Why Make an Account?' }),
+        h('ul', null,
+          item('☁️', 'Saved Everywhere', 'Your boards, lists and questions on any computer.'),
+          item('🆓', 'Free to Start', 'Every tool and game, no card needed.'),
+          item('🔒', 'Just for You', 'Only you can see what you save.')),
+        h('p', { class: 'acct-disclaimer', text: DISCLAIMER }),
+        h('p', { class: 'muted small', text: 'Not signing in is fine too. Everything still works and saves on this computer.' }));
     }
 
     function resetCard() {
@@ -529,7 +541,8 @@
       if (tab === 'plans') root.append(plansCard());
       else {
         if (user && resetting()) root.append(resetCard());
-        root.append(user ? accountCard() : signInCard());
+        if (user) root.append(accountCard());
+        else root.append(h('div', { class: 'acct-row' }, signInCard(), sideCard()));
       }
       root.style.minHeight = '';
       if (window.scrollY !== y) window.scrollTo(0, y);
