@@ -1,4 +1,4 @@
-# Teacher Tools
+# ED Sidekick
 
 Classroom tools for the board: Classroom Board, Timer, Name Picker, Group Maker, Name Wheel, Classroom Pet, team games and a daily Would You Rather.
 

@@ -3,23 +3,26 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Teacher Tools</title>
+<title>ED Sidekick</title>
 <meta name="description" content="Classroom tools for the board: timer, name picker, group maker, Would You Rather and a classroom board.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230E1120'/%3E%3Crect x='6' y='6' width='9' height='9' rx='2' fill='%234F86FF'/%3E%3Crect x='17' y='6' width='9' height='9' rx='2' fill='%23FF7A52'/%3E%3Crect x='6' y='17' width='9' height='9' rx='2' fill='%2322C993'/%3E%3Crect x='17' y='17' width='9' height='9' rx='2' fill='%23FFC043'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23F2643D'/%3E%3Ctext x='16' y='22.5' text-anchor='middle' font-family='Arial Black,Arial,sans-serif' font-weight='900' font-size='16' fill='%23fff'%3EED%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400..900&family=Atkinson+Hyperlegible+Next:ital,wght@0,400..800;1,400..800&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,700&family=Fredoka:wght@400;700&family=Lexend:wght@400;700&family=Patrick+Hand&family=Permanent+Marker&family=Bangers&family=Pacifico&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap">
 <link rel="stylesheet" href="assets/styles.css">
 <link rel="stylesheet" href="assets/classroom.css">
 <link rel="stylesheet" href="assets/home.css">
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/board2.css">
+<link rel="stylesheet" href="assets/learn.css">
 </head>
 <body>
 
 <nav class="nav" aria-label="Main">
   <div class="nav-inner">
-    <a class="brand" href="#home">
-      <span class="logo" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-      <span class="brand-name">Teacher Tools</span>
+    <a class="brand" href="#home" aria-label="ED Sidekick, Home">
+      <span class="logo logo-ed" aria-hidden="true">ED</span>
+      <span class="brand-name" aria-hidden="true">Sidekick</span>
     </a>
     <div class="nav-links">
       <a href="#home" data-view="home">Home</a>
@@ -46,6 +49,8 @@
           <a href="#brain-breaks" data-view="brain-breaks">Brain Breaks</a>
           <a href="#exit-tickets" data-view="exit-tickets">Exit Tickets</a>
           <a href="#seating" data-view="seating">Seating Chart</a>
+          <a href="#fact-fluency" data-view="fact-fluency">Fact Fluency</a>
+          <a href="#prompts" data-view="prompts">Prompts</a>
           <a href="#my-questions" data-view="my-questions">My Questions</a>
         </div>
       </div>
@@ -58,28 +63,29 @@
 
 <!-- HOME -->
 <main class="page" id="view-home" data-view="home">
-  <section class="hero hero-scene">
-    <div class="hero-art" aria-hidden="true"></div>
-    <div class="hero-hello glass" data-rise>
-      <h1 id="greeting">Good morning!</h1>
-      <p>Everything you need for the board, one click away.</p>
-    </div>
-    <div class="hero-side" data-rise>
-      <div class="date-card">
-        <span class="date-day" id="dateDay">20</span>
-        <span class="date-text"><b id="dateWeekday">Friday</b><span id="dateMonth">November 2026</span></span>
+  <section class="welcome" aria-label="Welcome" data-rise>
+    <div class="wel-main">
+      <div class="wel-text">
+        <p class="wel-date" id="homeDate">Today</p>
+        <h1 id="greeting">Good morning!</h1>
+        <a class="wel-open" href="#board">Open My Board
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
       </div>
-      <div id="petMini"></div>
+      <div class="wel-scene" aria-hidden="true">
+        <span class="wel-floor"></span>
+        <div class="wel-window" id="homeWindow"></div>
+        <div class="wel-mascot" id="homeMascot"></div>
+      </div>
     </div>
-  </section>
-
-  <section class="feature glass" aria-label="Today's Would You Rather" data-rise>
-    <div style="min-width:0">
-      <span class="eyebrow">Today's Would You Rather</span>
-      <p class="feature-q" id="todayQ">Would you rather …</p>
+    <div class="wel-q" aria-label="Today's Would You Rather">
+      <div class="wel-q-text">
+        <span class="wel-q-label">Today’s Would You Rather</span>
+        <p class="wel-q-line" id="todayQ">…</p>
+      </div>
+      <a class="wel-q-go" id="todayGo" href="#would-you-rather"><span id="todayGoText">Show the Class</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
     </div>
-    <a class="btn primary big" href="#would-you-rather">Show the Class
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
+    <div id="petMini" hidden></div>
   </section>
 
   <section class="home-daily" aria-labelledby="dailyHead">
@@ -109,7 +115,7 @@
       <a class="tool c-rose" href="#points">
         <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h8M7 6h10l1 3v9a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3V9z"/><circle cx="10" cy="16" r="1.4" fill="currentColor"/><circle cx="14" cy="16" r="1.4" fill="currentColor"/><circle cx="12" cy="12.5" r="1.4" fill="currentColor"/></svg></span>
         <h3>Class Points</h3>
-        <p>Fill a marble jar toward a class reward, or keep team points.</p>
+        <p>Fill a marble jar toward a reward the class votes on, or keep team points.</p>
         <span class="go">Add Points <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
       </a>
       <a class="tool c-lime" href="#pet">
@@ -186,6 +192,18 @@
         <h3>Seating Chart</h3>
         <p>Build your room, then drag students to their seats or shuffle them.</p>
         <span class="go">Arrange Seats <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+      </a>
+      <a class="tool c-emerald" href="#fact-fluency">
+        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 5v6M3 8h6M15 8h6M4 15l5 5M9 15l-5 5M15 17.500h6"/><circle cx="18" cy="14.500" r=".6" fill="currentColor"/><circle cx="18" cy="20.500" r=".6" fill="currentColor"/></svg></span>
+        <h3>Fact Fluency</h3>
+        <p>Quick rounds of math facts with a class best to beat.</p>
+        <span class="go">Start a Round <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+      </a>
+      <a class="tool c-amber" href="#prompts">
+        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.500c.7.700 1 1.500 1 2.500h6c0-1 .3-1.800 1-2.500A6 6 0 0 0 12 3z"/></svg></span>
+        <h3>Prompts</h3>
+        <p>Writing prompts, discussion starters and This or That questions by grade.</p>
+        <span class="go">Get a Prompt <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
       </a>
       <a class="tool c-rose" href="#games">
         <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v3M5.5 12.5h3"/><circle cx="16" cy="11.5" r="1" fill="currentColor"/><circle cx="18" cy="13.5" r="1" fill="currentColor"/></svg></span>
@@ -361,6 +379,24 @@
   <section class="panel" id="pointsMount"></section>
 </main>
 
+<!-- FACT FLUENCY -->
+<main class="page c-emerald" id="view-fact-fluency" data-view="fact-fluency" hidden>
+  <header class="tool-head">
+    <div><span class="eyebrow">Classroom tool</span><h1>Fact Fluency</h1><p>Quick rounds of math facts. Type the answer or tap the number pad, and try to beat the class best.</p></div>
+    <div class="row js-fs-slot"></div>
+  </header>
+  <section class="panel" id="fluencyMount"></section>
+</main>
+
+<!-- PROMPTS -->
+<main class="page c-amber" id="view-prompts" data-view="prompts" hidden>
+  <header class="tool-head">
+    <div><span class="eyebrow">Classroom tool</span><h1>Prompts</h1><p>Something to write about, talk about or choose between, picked for your grade.</p></div>
+    <div class="row js-fs-slot"></div>
+  </header>
+  <section class="panel" id="promptsMount"></section>
+</main>
+
 <!-- EXIT TICKETS -->
 <main class="page c-coral" id="view-exit-tickets" data-view="exit-tickets" hidden>
   <header class="tool-head">
@@ -402,25 +438,35 @@
 <script src="tools/timer.js"></script>
 <script src="tools/picker.js"></script>
 <script src="tools/groups.js"></script>
+<script src="tools/mascot.js"></script>
+<script src="tools/welcome.js"></script>
 <script src="would-you-rather/questions.js"></script>
 <script src="would-you-rather/app.js"></script>
 <script src="assets/backgrounds.js"></script>
 <script src="tools/season.js"></script>
 <script src="tools/widgets.js"></script>
 <script src="tools/daily.js"></script>
+<script src="tools/templates.js"></script>
+<script src="tools/board-pen.js"></script>
 <script src="tools/board.js"></script>
 <script src="tools/pet-art.js"></script>
 <script src="tools/pet.js"></script>
 <script src="tools/wheel.js"></script>
+<script src="tools/grade-data.js"></script>
 <script src="tools/games.js"></script>
+<script src="tools/trivia-grades.js"></script>
 <script src="tools/puzzles.js"></script>
 <script src="tools/escape-art.js"></script>
+<script src="tools/escape-grades.js"></script>
+<script src="tools/escape-reward.js"></script>
 <script src="tools/escape.js"></script>
 <script src="tools/trail.js"></script>
 <script src="tools/custom.js"></script>
 <script src="tools/tickets.js"></script>
+<script src="tools/seating-art.js"></script>
 <script src="tools/seating.js"></script>
 <script src="tools/extras.js"></script>
+<script src="tools/learn.js"></script>
 <script src="assets/app.js"></script>
 <script src="tools/fit.js"></script>
 <script src="tools/home.js"></script>

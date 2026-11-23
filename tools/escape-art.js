@@ -312,6 +312,52 @@
 
   TT.escapeScenes = SCENES;
   // The whole picture for a scene, ready to drop into the page.
+  // ------------------------------------------------------------------ Rooms that use Kevin's own artwork
+  // The room is a picture (assets/escape/<id>.jpg, 1600 x 900). The spots are lined up with the picture,
+  // and a glow appears on each thing once its lock is open. The exit lights up when the class escapes.
+  function pictureScene(id, spots, exit, tint, strip) {
+    SCENES[id].spots = spots; SCENES[id].exit = exit;
+    SCENES[id].art = function (p) {
+      var out = '<defs>' + glow(p + 'g', tint, 0.45) + glow(p + 'x', '#FFF3C4', 0.5) + '</defs>' +
+        '<image href="assets/escape/' + id + '.jpg" x="0" y="0" width="1600" height="900" preserveAspectRatio="xMidYMid slice"/>';
+      spots.forEach(function (s, i) {
+        out += G('on-' + i, E(s.x + s.w / 2, s.y + s.h / 2, s.w * 0.62, s.h * 0.58, 'url(#' + p + 'g)', 'opacity=".5" style="mix-blend-mode:screen"'));
+      });
+      return out + G('x-open', E(exit.x + exit.w / 2, exit.y + exit.h / 2, exit.w * 0.75, exit.h * 0.62, 'url(#' + p + 'x)', 'style="mix-blend-mode:screen"') +
+        (strip ? R(exit.x + exit.w / 2 - 5, exit.y + 40, 10, exit.h - 40, '#FFF6D0', 5, 'opacity=".95"') : ''));
+    };
+  }
+  pictureScene('library', [
+    { name: 'The Tall Bookshelf', x: 50, y: 74, w: 372, h: 668 },
+    { name: 'The Dusty Book', x: 518, y: 506, w: 172, h: 92 },
+    { name: 'The Pinned Note', x: 812, y: 166, w: 192, h: 204 },
+    { name: 'The Door Keypad', x: 1146, y: 376, w: 62, h: 104 },
+    { name: 'The Grandfather Clock', x: 1008, y: 160, w: 132, h: 584 }
+  ], { name: 'The Library Doors', x: 1208, y: 118, w: 344, h: 620 }, '#FFD76A', true);
+  pictureScene('space', [
+    { name: 'The Star Map Computer', x: 493, y: 512, w: 483, h: 163 },
+    { name: 'The Fuel Tank', x: 1292, y: 536, w: 278, h: 230 },
+    { name: 'The Radio Decoder', x: 603, y: 683, w: 252, h: 60 },
+    { name: 'The Meal Locker', x: 448, y: 188, w: 126, h: 305 },
+    { name: 'The Big Window', x: 813, y: 96, w: 450, h: 354 }
+  ], { name: 'The Airlock', x: 62, y: 148, w: 383, h: 360 }, '#FFE08A', false);
+
+  pictureScene('pirate', [
+    { name: 'The Treasure Map', x: 77, y: 392, w: 459, h: 278 },
+    { name: 'The Carved Sign', x: 75, y: 75, w: 327, h: 146 },
+    { name: 'The Pile of Coins', x: 67, y: 766, w: 211, h: 105 },
+    { name: 'The Talking Parrot', x: 1191, y: 81, w: 244, h: 310 },
+    { name: 'The Message in a Bottle', x: 1316, y: 526, w: 258, h: 105 }
+  ], { name: 'The Treasure Chest', x: 878, y: 536, w: 404, h: 306 }, '#FFE08A', false);
+
+  pictureScene('museum', [
+    { name: 'The Dinosaur Painting', x: 1247, y: 120, w: 332, h: 254 },
+    { name: 'The Giant Skeleton', x: 550, y: 263, w: 690, h: 311 },
+    { name: 'The Fossil Case', x: 29, y: 536, w: 316, h: 258 },
+    { name: 'The Tour Clock', x: 383, y: 225, w: 139, h: 392 },
+    { name: 'The Night Guard’s Book', x: 1287, y: 550, w: 292, h: 140 }
+  ], { name: 'The Exit Doors', x: 57, y: 215, w: 280, h: 321 }, '#FFE08A', false);
+
   TT.escapeArt = function (id, prefix) {
     var s = SCENES[id] || SCENES.classroom;
     return '<svg class="ea" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">' + s.art(prefix || ('ea' + id)) + '</svg>';

@@ -328,10 +328,10 @@
   var TEAM_COLORS = ['cobalt', 'coral', 'emerald', 'amber', 'violet', 'rose'];
   TT.mountPoints = function (el) {
     var state = TT.load('points', null) || {};
-    state.mode = state.mode === 'teams' ? 'teams' : 'jar';
+    state.mode = state.mode === 'teams' ? 'teams' : state.mode === 'reward' && TT.rewardsTab ? 'reward' : 'jar';
     state.jar = state.jar || { count: 0, goal: 20, reward: 'Extra Recess' };
     if (!Array.isArray(state.teams) || !state.teams.length) state.teams = [{ name: 'Table 1', pts: 0 }, { name: 'Table 2', pts: 0 }, { name: 'Table 3', pts: 0 }, { name: 'Table 4', pts: 0 }];
-    var tabs = h('div', { class: 'segmented', role: 'group', 'aria-label': 'How to keep points' }, [['jar', 'Class Jar'], ['teams', 'Team Points']].map(function (t) {
+    var tabs = h('div', { class: 'segmented', role: 'group', 'aria-label': 'How to keep points' }, [['jar', 'Class Jar'], ['teams', 'Team Points']].concat(TT.rewardsTab ? [['reward', 'Pick a Reward']] : []).map(function (t) {
       return h('button', { type: 'button', class: 'seg', 'data-m': t[0], onclick: function () { state.mode = t[0]; save(); paint(); } }, t[1]);
     }));
     var box = h('div', { class: 'pts-body' });
@@ -382,7 +382,8 @@
     function paint() {
       tabs.querySelectorAll('.seg').forEach(function (b) { var on = b.getAttribute('data-m') === state.mode; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
       box.textContent = '';
-      (state.mode === 'jar' ? jar : teams)();
+      if (state.mode === 'reward') TT.rewardsTab(box, state, save, function () { state.mode = 'jar'; save(); paint(); });
+      else (state.mode === 'jar' ? jar : teams)();
     }
     paint();
   };

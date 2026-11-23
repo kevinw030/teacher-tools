@@ -4,22 +4,42 @@
   var $ = function (id) { return document.getElementById(id); };
 
   // ---------- Home: date and greeting ----------
+  var homeMascot = null, shownScene = '';
   function paintDate() {
-    var d = new Date();
-    $('dateDay').textContent = d.getDate();
-    $('dateWeekday').textContent = d.toLocaleDateString(undefined, { weekday: 'long' });
-    $('dateMonth').textContent = d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
-    var hr = d.getHours();
+    var now = TT.clock(), hr = now.hour;
+    $('homeDate').textContent = now.text;
     var who = TT.settings.name ? ', ' + TT.settings.name : '';
     $('greeting').textContent = (hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening') + who + '!';
-    $('wyrDate').textContent = d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) + ' · Pick a side, then tell a partner why.';
+    // The window shows the teacher's own time of day, and the sill shows the season.
+    var season = TT.season ? TT.season() : null, key = TT.dayPhase(hr) + (hr < 12 ? 'a' : 'p') + (season ? season.id : '');
+    if (key !== shownScene) { shownScene = key; $('homeWindow').innerHTML = TT.homeWindow(hr, season); }
+    if (!homeMascot) {
+      homeMascot = TT.mascot({ mood: 'wave' }); $('homeMascot').append(homeMascot);
+      setTimeout(function () { homeMascot.mood('idle'); }, 2200);
+      // Tap him for a trick, and he reacts when you reach for a button.
+      var tricks = ['yay', 'twirl', 'hop', 'work', 'dance', 'peek'], t = 0;
+      $('homeMascot').addEventListener('click', function () { homeMascot.play(tricks[t++ % tricks.length]); if (TT.tick) TT.tick(); });
+      var open = document.querySelector('.wel-open'), go = $('todayGo');
+      if (open) { open.addEventListener('pointerenter', function () { homeMascot.play('yay'); }); open.addEventListener('focus', function () { homeMascot.play('yay'); }); }
+      if (go) { go.addEventListener('pointerenter', function () { homeMascot.play('ponder'); }); go.addEventListener('focus', function () { homeMascot.play('ponder'); }); }
+    }
+    $('wyrDate').textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) + ' · Pick a side, then tell a partner why.';
   }
+  TT.paintWelcome = function () { paintDate(); };
+  // The banner keeps today's question a secret until the class has spun for it.
   function paintToday() {
     var q = TT.wyr && TT.wyr.current();
-    var box = $('todayQ');
-    box.textContent = '';
-    if (!q) { box.textContent = 'Add questions to get started.'; return; }
-    box.append('Would you rather ', h('span', { class: 'x', text: q[0] }), ' or ', h('span', { class: 'y', text: q[1] }), '?');
+    var box = $('todayQ'), go = $('todayGo'), label = $('todayGoText');
+    box.classList.toggle('secret', !q);
+    if (!TT.wyr || !TT.wyr.count()) { box.textContent = 'Add questions to get started.'; label.textContent = 'Open'; return; }
+    if (!q) {
+      box.textContent = 'It’s still a secret. Spin the wheel to find out!';
+      label.textContent = 'Spin the Wheel';
+      go.onclick = function () { TT.wyr.autoSpin = true; };
+      return;
+    }
+    go.onclick = null; label.textContent = 'Show the Class';
+    box.textContent = q[0].charAt(0).toUpperCase() + q[0].slice(1) + ' or ' + q[1] + '?';
   }
 
   // ---------- My links ----------
@@ -58,7 +78,7 @@
 
   // ---------- Games: one card and one page per game ----------
   var arrow = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>';
-  var gameMounters = {}, gameTitles = {};
+  var gameMounters = {}, gameTitles = {}, gameClosers = {};
   (TT.games || []).forEach(function (g) {
     $('gamesList').append(h('a', { class: 'tool c-' + g.color, href: '#' + g.id },
       h('span', { class: 'tool-icon', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + g.icon + '</svg>' }),
@@ -70,6 +90,12 @@
         h('div', { class: 'row js-fs-slot' })),
       mount));
     gameMounters[g.id] = function () { return g.mount(mount) || {}; };
+    // Leaving a game closes it out: the page is emptied and any half-finished game is forgotten,
+    // so the next visit starts fresh. Scores between rounds, best times and settings are kept.
+    gameClosers[g.id] = function () {
+      (g.forget || []).forEach(function (k) { TT.save(k, null); });
+      mount.textContent = '';
+    };
     gameTitles[g.id] = g.title;
   });
 
@@ -105,11 +131,13 @@
     jobs: function () { return TT.mountJobs($('jobsMount')); },
     points: function () { return TT.mountPoints($('pointsMount')); },
     'exit-tickets': function () { return TT.mountTickets($('ticketsMount')); },
-    seating: function () { return TT.mountSeating($('seatingMount')); }
+    seating: function () { return TT.mountSeating($('seatingMount')); },
+    'fact-fluency': function () { return TT.mountFluency($('fluencyMount')); },
+    prompts: function () { return TT.mountPrompts($('promptsMount')); }
   };
   Object.keys(gameMounters).forEach(function (k) { mounters[k] = gameMounters[k]; });
   var views = document.querySelectorAll('[data-view]:not(a)');
-  var titles = { home: 'Teacher Tools', board: 'Classroom Board', timer: 'Timer', 'name-picker': 'Name Picker', groups: 'Group Maker', 'would-you-rather': 'Would You Rather', pet: 'Classroom Pet', games: 'Games', 'name-wheel': 'Name Wheel', 'morning-meeting': 'Morning Meeting', 'brain-breaks': 'Brain Breaks', settings: 'Settings', account: 'My Account', 'my-questions': 'My Questions', 'sound-level': 'Sound Level', schedule: 'Daily Schedule', jobs: 'Class Jobs', points: 'Class Points', 'exit-tickets': 'Exit Tickets', seating: 'Seating Chart' };
+  var titles = { home: 'ED Sidekick', board: 'Classroom Board', timer: 'Timer', 'name-picker': 'Name Picker', groups: 'Group Maker', 'would-you-rather': 'Would You Rather', pet: 'Classroom Pet', games: 'Games', 'name-wheel': 'Name Wheel', 'morning-meeting': 'Morning Meeting', 'brain-breaks': 'Brain Breaks', settings: 'Settings', account: 'My Account', 'my-questions': 'My Questions', 'sound-level': 'Sound Level', schedule: 'Daily Schedule', jobs: 'Class Jobs', points: 'Class Points', 'exit-tickets': 'Exit Tickets', seating: 'Seating Chart', 'fact-fluency': 'Fact Fluency', prompts: 'Prompts' };
   Object.keys(gameTitles).forEach(function (k) { titles[k] = gameTitles[k]; });
 
   // ---------- Menus in the top bar ----------
@@ -142,12 +170,13 @@
     });
     closeMenus();
     if (last && last !== name && mounted[last] && mounted[last].hide) mounted[last].hide();
+    if (last && last !== name && gameClosers[last] && mounted[last]) { gameClosers[last](); delete mounted[last]; }
     last = name;
     document.body.classList.toggle('board-mode', name === 'board');
     if (!mounted[name] && mounters[name]) mounted[name] = mounters[name]() || {};
     if (mounted[name] && mounted[name].show) mounted[name].show();
     if (name === 'home') { paintDate(); paintToday(); if (petMini) petMini.refresh(); }
-    document.title = name === 'home' ? 'Teacher Tools' : titles[name] + ' · Teacher Tools';
+    document.title = name === 'home' ? 'ED Sidekick' : titles[name] + ' · ED Sidekick';
     window.scrollTo(0, 0);
   }
   window.addEventListener('hashchange', route);
@@ -155,6 +184,7 @@
   var shown = new Date().toDateString();
   setInterval(function () {
     if (new Date().toDateString() !== shown) { shown = new Date().toDateString(); paintDate(); paintToday(); }
+    else if (!$('view-home').hidden) paintDate();   // keeps the greeting and the window in step with the clock
   }, 60000);
 
   document.querySelector('.nav-gear').innerHTML = TT.icon('gear');

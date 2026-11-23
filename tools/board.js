@@ -28,6 +28,8 @@
       screens = { active: first.id, list: [first] };
     }
     screens.list.forEach(function (x) { if (x.name === 'My board') x.name = 'My Board'; });
+    // The starting background changed from the blue Sky to Warm Morning. Boards still on the old default move over once.
+    if (!TT.load('board-bg2', null)) { screens.list.forEach(function (x) { if (x.state && x.state.bg === 'sky') x.state.bg = 'morning'; }); TT.save('board-bg2', 1); }
     function activeScreen() { return screens.list.filter(function (x) { return x.id === screens.active; })[0] || screens.list[0]; }
     var state = activeScreen().state;
     var canvas = h('div', { class: 'board-canvas' });
@@ -77,6 +79,11 @@
           TT.button('Copy This Screen', { kind: 'small', onclick: function () { addScreen(true); } }),
           TT.button('Start Blank', { kind: 'small primary', onclick: function () { addScreen(false); } })),
         screenMsg),
+      h('div', { class: 'bg-group' }, h('h4', { text: 'Start From a Template' }),
+        h('div', { class: 'tpl-list' }, (TT.BOARD_TEMPLATES || []).map(function (t) {
+          return h('button', { type: 'button', class: 'tpl', onclick: function () { addTemplate(t); } },
+            h('span', { class: 'tpl-dot', style: 'background:' + t.color }), h('span', { class: 'screen-text' }, h('b', { text: t.name }), h('small', { text: t.desc })));
+        }))),
       h('div', { class: 'bg-group' }, h('h4', { text: 'This Screen' }),
         h('div', { class: 'screen-form' }, renameInput,
           TT.button('Rename', { kind: 'small', onclick: function () { if (renameInput.value.trim()) { activeScreen().name = renameInput.value.trim(); save(); paintScreens(); } } }),
@@ -134,9 +141,9 @@
       mounted = {}; canvas.querySelectorAll('.widget').forEach(function (n) { n.remove(); });
     }
     function loadState() {
-      if (!state || !Array.isArray(state.widgets)) { state = { bg: 'sky', widgets: [] }; seed(); }
+      if (!state || !Array.isArray(state.widgets)) { state = { bg: 'morning', widgets: [] }; seed(); }
       else requestAnimationFrame(function () { state.widgets.forEach(function (w) { clamp(w); renderWidget(w); }); });
-      setBg(state.bg || 'sky');
+      setBg(state.bg || 'morning');
       paintScreens();
       requestAnimationFrame(drawInk);
     }
@@ -149,9 +156,22 @@
     function addScreen(copy) {
       if (screens.list.length >= TT.config.maxScreens) { paintScreens(); return; }
       save();
-      var st = copy ? JSON.parse(JSON.stringify(state)) : { bg: state.bg || 'sky', widgets: [] };
+      var st = copy ? JSON.parse(JSON.stringify(state)) : { bg: state.bg || 'morning', widgets: [] };
       if (copy) st.widgets.forEach(function (w, i) { w.id = 'w' + Date.now().toString(36) + i; });
       var sc = { id: 's' + Date.now().toString(36), name: screenName.value.trim() || 'Screen ' + (screens.list.length + 1), state: st };
+      screens.list.push(sc); screenName.value = '';
+      unrenderAll(); screens.active = sc.id; state = st;
+      loadState(); save(); screenPanel.hidden = true;
+    }
+    // A template becomes a new saved screen, so the screen you were on is never changed.
+    function addTemplate(t) {
+      if (screens.list.length >= TT.config.maxScreens) { paintScreens(); return; }
+      save();
+      var b = bounds(), st = t.build(b);
+      st.ref = b;
+      st.widgets.forEach(function (w, i) { w.id = 'w' + Date.now().toString(36) + i; w.x = Math.round(w.x); w.y = Math.round(w.y); w.w = Math.round(w.w); w.h = Math.round(w.h); if (!w.data) w.data = TYPES[w.type] && TYPES[w.type].init ? TYPES[w.type].init() : {}; });
+      st.widgets = st.widgets.filter(function (w) { return TYPES[w.type]; });
+      var sc = { id: 's' + Date.now().toString(36), name: screenName.value.trim() || t.name, state: st };
       screens.list.push(sc); screenName.value = '';
       unrenderAll(); screens.active = sc.id; state = st;
       loadState(); save(); screenPanel.hidden = true;
@@ -179,117 +199,9 @@
         h('span', { class: 'dock-label', text: TYPES[t].title })));
     });
 
-    // ----- Drawing pen: draw right on the board, on top of everything -----
-    var PEN_COLORS = [['#0E1120', 'Black'], ['#FFFFFF', 'White'], ['#E5484D', 'Red'], ['#2563EB', 'Blue'], ['#0FA974', 'Green'], ['#F5AE14', 'Yellow'], ['#8B5CF6', 'Purple']];
-    var PEN_SIZES = [[3, 'Thin'], [7, 'Medium'], [14, 'Thick']];
-    var pen = { on: false, color: '#E5484D', size: 7 }, stroke = null;
-    var ink = h('canvas', { class: 'board-ink', 'aria-hidden': 'true' });
-    var penColors = h('div', { class: 'pen-group', role: 'group', 'aria-label': 'Pen color' }, PEN_COLORS.map(function (c) {
-      return h('button', { type: 'button', class: 'pen-color', 'data-c': c[0], title: c[1], 'aria-label': c[1], style: 'background:' + c[0], onclick: function () { pen.color = c[0]; paintPen(); } });
-    }));
-    var penSizes = h('div', { class: 'pen-group', role: 'group', 'aria-label': 'Pen size' }, PEN_SIZES.map(function (z) {
-      return h('button', { type: 'button', class: 'pen-size', 'data-s': z[0], title: z[1], 'aria-label': z[1], onclick: function () { pen.size = z[0]; paintPen(); } },
-        h('i', { style: 'width:' + (z[0] + 3) + 'px;height:' + (z[0] + 3) + 'px' }));
-    }));
-    var penBar = h('div', { class: 'pen-bar', hidden: true, role: 'toolbar', 'aria-label': 'Drawing tools' }, penColors, penSizes,
-      TT.button('Undo', { icon: 'reset', kind: 'small', onclick: function () { if (state.strokes && state.strokes.length) { state.strokes.pop(); save(); drawInk(); } } }),
-      TT.button('Erase All', { icon: 'trash', kind: 'small', onclick: function () { state.strokes = []; save(); drawInk(); } }),
-      TT.button('Done', { kind: 'small primary', onclick: function () { setPen(false); } }));
-    var penBtn = h('button', { type: 'button', class: 'dock-btn dock-pen', title: 'Draw on the board', 'aria-pressed': 'false', onclick: function () { setPen(!pen.on); } },
-      h('span', { class: 'dock-icon', style: 'background:#0E1120', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3l4 4L8 20l-5 1 1-5z"/><path d="M14 6l4 4"/></svg>' }),
-      h('span', { class: 'dock-label', text: 'Draw' }));
-    dock.append(penBtn);
-    canvas.append(ink, penBar);
-    function paintPen() {
-      penColors.querySelectorAll('.pen-color').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-c') === pen.color); });
-      penSizes.querySelectorAll('.pen-size').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-s') === pen.size); });
-    }
-    function setPen(on) {
-      pen.on = on; ink.classList.toggle('on', on); penBar.hidden = !on;
-      penBtn.classList.toggle('on', on); penBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      paintPen();
-    }
-    // Strokes are drawn as smooth curves through the midpoints between pen points, so there are
-    // no corners. `from` redraws only the newest part while the pen is moving.
-    function line(ctx, st, b, from) {
-      var p = st.p, n = p.length / 2;
-      function X(i) { return p[i * 2] * b.w; } function Y(i) { return p[i * 2 + 1] * b.h; }
-      ctx.strokeStyle = st.c; ctx.fillStyle = st.c; ctx.lineWidth = st.s; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-      if (n === 1) { ctx.beginPath(); ctx.arc(X(0), Y(0), st.s / 2, 0, Math.PI * 2); ctx.fill(); return; }
-      ctx.beginPath();
-      if (from == null) {
-        ctx.moveTo(X(0), Y(0));
-        for (var i = 1; i < n - 1; i++) ctx.quadraticCurveTo(X(i), Y(i), (X(i) + X(i + 1)) / 2, (Y(i) + Y(i + 1)) / 2);
-        ctx.lineTo(X(n - 1), Y(n - 1));
-      } else {
-        // the piece that ends at the midpoint before the newest point
-        var k = n - 1;
-        if (k === 1) { ctx.moveTo(X(0), Y(0)); ctx.lineTo((X(0) + X(1)) / 2, (Y(0) + Y(1)) / 2); }
-        else { ctx.moveTo((X(k - 2) + X(k - 1)) / 2, (Y(k - 2) + Y(k - 1)) / 2); ctx.quadraticCurveTo(X(k - 1), Y(k - 1), (X(k - 1) + X(k)) / 2, (Y(k - 1) + Y(k)) / 2); }
-      }
-      ctx.stroke();
-    }
-    function drawInk() {
-      var b = bounds(), dpr = window.devicePixelRatio || 1;
-      if (ink.width !== Math.round(b.w * dpr) || ink.height !== Math.round(b.h * dpr)) { ink.width = Math.round(b.w * dpr); ink.height = Math.round(b.h * dpr); }
-      var ctx = inkCtx();
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, b.w, b.h);
-      (state.strokes || []).forEach(function (st) { if (st.p && st.p.length >= 2) line(ctx, st, b); });
-    }
-    function inkCtx() { return ink.getContext('2d', { desynchronized: true }); }
-    // Pen input. Every reading the device reports is used (not only one per frame), then eased
-    // a little toward the pen so shaky hands and noisy touch panels still give a clean line.
-    var penId = null, penKind = '', sx = 0, sy = 0, inkRect = null;
-    function raw(e) { return [(e.clientX - inkRect.left) / inkRect.width, (e.clientY - inkRect.top) / inkRect.height]; }
-    function r5(v) { return Math.round(v * 1e5) / 1e5; }
-    function addPoint(x, y, b) {
-      var n = stroke.p.length, dx = (x - stroke.p[n - 2]) * b.w, dy = (y - stroke.p[n - 1]) * b.h;
-      if (dx * dx + dy * dy < 2.25) return;
-      stroke.p.push(r5(x), r5(y));
-      line(inkCtx(), stroke, b, n / 2);
-    }
-    ink.addEventListener('pointerdown', function (e) {
-      if (!pen.on || e.button) return;
-      // one pen at a time: a resting palm or second finger never starts or breaks a line
-      if (penId !== null) { if (e.pointerType === 'pen' && penKind !== 'pen') endStroke(); else return; }
-      e.preventDefault();
-      try { ink.setPointerCapture(e.pointerId); } catch (err) {}
-      penId = e.pointerId; penKind = e.pointerType; inkRect = ink.getBoundingClientRect();
-      if (!Array.isArray(state.strokes)) state.strokes = [];
-      var pt = raw(e); sx = pt[0]; sy = pt[1];
-      stroke = { c: pen.color, s: pen.size, p: [r5(sx), r5(sy)] };
-      state.strokes.push(stroke);
-      line(inkCtx(), stroke, bounds());
-    });
-    ink.addEventListener('pointermove', function (e) {
-      if (!stroke || e.pointerId !== penId) return;
-      e.preventDefault();
-      var b = bounds(), list = e.getCoalescedEvents ? e.getCoalescedEvents() : null;
-      if (!list || !list.length) list = [e];
-      // Small wobbles are eased away; quick, deliberate moves are followed exactly so corners and
-      // fast writing stay crisp. Fingers on a touch panel get a little more easing than a mouse or stylus.
-      var base = penKind === 'touch' ? 0.35 : 0.5;
-      for (var i = 0; i < list.length; i++) {
-        var pt = raw(list[i]);
-        var d = Math.sqrt(Math.pow((pt[0] - sx) * b.w, 2) + Math.pow((pt[1] - sy) * b.h, 2)), ease = Math.min(1, base + d / 60);
-        sx += (pt[0] - sx) * ease; sy += (pt[1] - sy) * ease;
-        addPoint(sx, sy, b);
-      }
-    });
-    function endStroke(e) {
-      if (!stroke || (e && e.pointerId !== penId)) return;
-      // finish exactly where the pen lifted, then redraw the whole stroke as one clean curve
-      if (e && e.type === 'pointerup' && inkRect) {
-        var pt = raw(e), n = stroke.p.length, b = bounds();
-        if (Math.abs(pt[0] - stroke.p[n - 2]) * b.w + Math.abs(pt[1] - stroke.p[n - 1]) * b.h > 0.5) stroke.p.push(r5(pt[0]), r5(pt[1]));
-      }
-      stroke = null; penId = null; save(); drawInk();
-    }
-    ink.addEventListener('pointerup', endStroke);
-    ink.addEventListener('pointercancel', endStroke);
-    ink.addEventListener('lostpointercapture', endStroke);
-    ink.addEventListener('contextmenu', function (e) { if (pen.on) e.preventDefault(); });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && pen.on) setPen(false); });
+    // ----- Drawing tools (tools/board-pen.js): pen, highlighter, eraser and shapes drawn on top of everything -----
+    var penApi = TT.boardPen({ canvas: canvas, dock: dock, bounds: bounds, getState: function () { return state; }, save: function () { save(); } });
+    function drawInk() { penApi.draw(); }
 
     // ----- Minimize the widget bar; full screen keeps everything small -----
     var ui = TT.load('board-ui', { dockMin: false }), fsHide = false;
@@ -403,6 +315,7 @@
       node.style.zoom = k === 1 ? '' : k;
       node.style.left = Math.max(0, fx * (b.w - w.w * k)) / k + 'px'; node.style.top = Math.max(0, fy * (b.h - w.h * k)) / k + 'px';
       node.style.width = w.w + 'px'; node.style.height = w.h + 'px';
+      node.style.transform = w.rot ? 'rotate(' + w.rot + 'deg)' : '';
     }
 
     function renderWidget(w, fresh) {
@@ -412,8 +325,7 @@
       var closeBtn = h('button', { type: 'button', class: 'w-close', 'aria-label': 'Close ' + t.title, title: 'Close', html: TT.icon('close'), onclick: function () { removeWidget(w.id); } });
       var lockBtn = h('button', { type: 'button', class: 'w-close w-lock', onclick: function () { w.locked = !w.locked; paintLock(); save(); } });
       var head = h('div', { class: 'w-head' }, h('span', { class: 'w-title', text: t.title }), h('span', { class: 'w-btns' }, lockBtn, closeBtn));
-      var grip = h('div', { class: 'w-resize', 'aria-hidden': 'true' });
-      var node = h('div', { class: 'widget w-' + w.type + (fresh ? ' fresh' : ''), 'data-id': w.id }, head, body, grip);
+      var node = h('div', { class: 'widget w-' + w.type + (fresh ? ' fresh' : ''), 'data-id': w.id }, head, body);
       function paintLock() {
         node.classList.toggle('locked', !!w.locked);
         lockBtn.innerHTML = TT.icon(w.locked ? 'lock' : 'unlock');
@@ -433,7 +345,46 @@
         w.x = fw > 1 ? start.x + dx / fw * (r.w - w.w) : start.x; w.y = fh > 1 ? start.y + dy / fh * (r.h - w.h) : start.y;
         clamp(w); place(node, w);
       }, w, head.querySelector('.w-btns'));
-      drag(grip, function (dx, dy, start) { var k = scale(); w.w = start.w + dx / k; w.h = start.h + dy / k; clamp(w); place(node, w); }, w);
+      // Resize handles on every side and corner. Dragging a left or top handle moves that edge and keeps the opposite one still.
+      ['n', 'e', 's', 'w', 'ne', 'nw', 'sw', 'se'].forEach(function (dir) {
+        var g = h('div', { class: 'w-resize w-rs-' + dir, 'aria-hidden': 'true' });
+        node.append(g);
+        drag(g, function (dx, dy, start) {
+          var k = scale(), r = ref(), X = dx / k, Y = dy / k;
+          // a turned box is resized along its own sides, not the screen's
+          if (w.rot) { var a = -w.rot * Math.PI / 180, x0 = X; X = x0 * Math.cos(a) - Y * Math.sin(a); Y = x0 * Math.sin(a) + Y * Math.cos(a); }
+          var nw = start.w, nh = start.h, nx = start.x, ny = start.y;
+          if (dir.indexOf('e') >= 0) nw = Math.min(start.w + X, r.w - start.x);
+          if (dir.indexOf('s') >= 0) nh = Math.min(start.h + Y, r.h - start.y);
+          if (dir.indexOf('w') >= 0) { nw = Math.max(160, Math.min(start.w - X, start.x + start.w)); nx = start.x + start.w - nw; }
+          if (dir.indexOf('n') >= 0) { nh = Math.max(120, Math.min(start.h - Y, start.y + start.h)); ny = start.y + start.h - nh; }
+          w.w = nw; w.h = nh; w.x = nx; w.y = ny; clamp(w); place(node, w);
+          if (mounted[w.id] && mounted[w.id].restyle) mounted[w.id].restyle();
+        }, w);
+      });
+
+      // Rotation handle under the box: drag it around to turn the box. It snaps to straight and to every 15 degrees.
+      var deg = h('span', { class: 'w-rot-deg' });
+      var rot = h('div', { class: 'w-rot', title: 'Turn (Double-Click to Straighten)', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9a9 9 0 0 0 16 0"/><path d="M4 14V9h5M20 14V9h-5"/></svg>' }, deg);
+      function paintRot() { deg.textContent = Math.round(w.rot || 0) + '°'; node.classList.toggle('turned', !!w.rot); }
+      paintRot();
+      rot.addEventListener('pointerdown', function (e) {
+        if (w.locked) return;
+        e.preventDefault(); e.stopPropagation(); rot.setPointerCapture(e.pointerId);
+        var r = node.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        function ang(ev) { return Math.atan2(ev.clientY - cy, ev.clientX - cx) * 180 / Math.PI; }
+        var a0 = ang(e), r0 = w.rot || 0;
+        node.classList.add('turning');
+        function mv(ev) {
+          var v = r0 + ang(ev) - a0; v = ((v + 180) % 360 + 360) % 360 - 180;
+          var near = Math.round(v / 15) * 15; if (Math.abs(v - near) < 4) v = near;
+          w.rot = Math.round(v) || 0; place(node, w); paintRot();
+        }
+        function up() { rot.removeEventListener('pointermove', mv); rot.removeEventListener('pointerup', up); rot.removeEventListener('pointercancel', up); node.classList.remove('turning'); save(); }
+        rot.addEventListener('pointermove', mv); rot.addEventListener('pointerup', up); rot.addEventListener('pointercancel', up);
+      });
+      rot.addEventListener('dblclick', function () { if (w.locked) return; w.rot = 0; place(node, w); paintRot(); save(); });
+      node.append(rot);
 
       if (!w.data) w.data = {};
       mounted[w.id] = (WIDGETS[w.type] || t.mount)(body, w, save) || {};
@@ -484,28 +435,158 @@
           ['book', 'Storybook', '"Merriweather", serif'],
           ['type', 'Typewriter', '"Courier Prime", monospace']
         ];
-        var TEXT_COLORS = ['auto', '#0E1120', '#FFFFFF', '#2563EB', '#F2643D', '#0FA974', '#E5397A', '#7B4DEB', '#E89A00'];
-        var BOX_COLORS = ['default', 'clear', '#FFFFFF', '#161A2B', '#FFF3B0', '#FFD6E0', '#CDE7FF', '#D5F5E3', '#E6DBFF', '#FFD9B8', '#2563EB', '#0FA974', '#E5397A'];
+        // Two rows of colors: strong on top, soft below. The last soft slot is a special choice.
+        var STRONG = ['#0E1120', '#EF4444', '#FB923C', '#FBBF24', '#22C55E', '#22D3EE', '#3B82F6', '#8B5CF6', '#FF4FA3', '#FFFFFF'];
+        var SOFT = ['#9CA3AF', '#FECACA', '#FED7AA', '#FEF3C7', '#DCFCE7', '#CFFAFE', '#DBEAFE', '#DDD6FE', '#FBCFE8'];
+        var TEXT_COLORS = STRONG.concat(SOFT, ['auto']);
+        var BOX_COLORS = STRONG.concat(['default'], SOFT.slice(1), ['clear']);
+        var HL_COLORS = ['#FDE047', '#FDBA74', '#FCA5A5', '#F9A8D4', '#D8B4FE', '#93C5FD', '#67E8F9', '#86EFAC', '#D1D5DB', 'clear'];
         if (!d.font) d.font = 'modern';
         if (!d.align) d.align = 'left';
         if (!d.box) d.box = 'default';
         if (!d.color || d.color === 'ink') d.color = 'auto';
 
-        var area = h('textarea', { class: 'note-area', 'aria-label': 'Message', id: 'txt-' + w.id, placeholder: 'Type here' });
-        area.value = d.text || '';
-        area.addEventListener('input', function () { d.text = area.value; save(); });
+        // The message is rich text, so single words or lines can have their own color.
+        function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+        // Keep only line breaks and the styles the toolbar can give (color, highlight, bold, italic, underline, strikethrough, font, size); drop every other tag and attribute.
+        function clean(html) {
+          var t = document.createElement('template'); t.innerHTML = html;
+          (function walk(n) {
+            [].slice.call(n.childNodes).forEach(function (c) {
+              if (c.nodeType === 3) return;
+              if (c.nodeType !== 1) { c.remove(); return; }
+              var tag = c.tagName;
+              if (['BR', 'DIV', 'SPAN', 'FONT', 'P', 'B', 'I', 'U', 'S', 'STRIKE', 'STRONG', 'EM'].indexOf(tag) < 0) {
+                if (['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'LINK', 'META'].indexOf(tag) >= 0) { c.remove(); return; }
+                walk(c); c.replaceWith.apply(c, [].slice.call(c.childNodes)); return;
+              }
+              var col = (c.style && c.style.color) || c.getAttribute('color') || '', bg = (c.style && c.style.backgroundColor) || '';
+              var cs = c.style || {}, fw = cs.fontWeight, fi = cs.fontStyle, td = cs.textDecorationLine || cs.textDecoration, ff = cs.fontFamily, fz = cs.fontSize;
+              [].slice.call(c.attributes).forEach(function (a) { c.removeAttribute(a.name); });
+              if (fw && /^(bold|normal|[1-9]00)$/.test(fw)) c.style.fontWeight = fw;
+              if (fi && /^(italic|normal)$/.test(fi)) c.style.fontStyle = fi;
+              if (td && /^(underline|line-through|none)( (underline|line-through))?$/.test(td)) c.style.textDecorationLine = td;
+              if (ff && /^[\w\s,"'-]+$/.test(ff)) c.style.fontFamily = ff;
+              if (fz && /^[\d.]+(em|px|%)$/.test(fz)) c.style.fontSize = fz;
+              if (col && /^[#a-z0-9(),.\s%]+$/i.test(col)) c.style.color = col;
+              if (bg && bg !== 'transparent' && /^[#a-z0-9(),.\s%]+$/i.test(bg)) c.style.backgroundColor = bg;
+              walk(c);
+            });
+          })(t.content);
+          return t.innerHTML;
+        }
+        var area = h('div', { class: 'note-area', contenteditable: 'true', role: 'textbox', 'aria-multiline': 'true', 'aria-label': 'Message', id: 'txt-' + w.id, 'data-ph': 'Type here', spellcheck: 'false' });
+        // Underline used to be a whole-box switch. It now lives in the text itself, so single words can have it.
+        if (d.underline) { d.html = '<span style="text-decoration-line: underline;">' + (d.html != null ? d.html : esc(d.text || '').replace(/\n/g, '<br>')) + '</span>'; d.underline = false; }
+        area.innerHTML = clean(d.html != null ? d.html : esc(d.text || '').replace(/\n/g, '<br>'));
+        function keepText() { if (area.innerHTML === '<br>') area.innerHTML = ''; d.html = area.innerHTML; d.text = area.innerText; save(); }
+        area.addEventListener('input', keepText);
+        area.addEventListener('paste', function (e) {
+          e.preventDefault();
+          var t = (e.clipboardData || window.clipboardData).getData('text');
+          document.execCommand('insertText', false, t);
+        });
+        // Remember where the cursor or highlight was, so a color can still be applied after the color picker takes focus.
+        var lastRange = null;
+        document.addEventListener('selectionchange', function () {
+          var sel = window.getSelection();
+          if (sel.rangeCount && area.contains(sel.anchorNode) && area.contains(sel.focusNode)) lastRange = sel.getRangeAt(0).cloneRange();
+          if (node.isConnected) marks();
+        });
+        area.addEventListener('blur', function () { setTimeout(function () { if (!node.contains(document.activeElement)) lastRange = null; }, 0); });
+        // Color only the highlighted words, or what is typed next. With no cursor in the box, color the whole box.
+        function intoText() {
+          var sel = window.getSelection();
+          var inside = document.activeElement === area && sel.rangeCount && area.contains(sel.anchorNode);
+          if (!inside && lastRange) { area.focus(); sel.removeAllRanges(); sel.addRange(lastRange); inside = true; }
+          return inside;
+        }
+        // Highlight the selected words (or what is typed next) like a marker. With no cursor in the box, highlight all of it.
+        var hlNow = '#FDE047';
+        function hiliteText(c) {
+          if (c !== 'clear') hlNow = c;
+          var sel = window.getSelection();
+          if (!intoText()) { area.focus(); sel.selectAllChildren(area); }
+          document.execCommand('styleWithCSS', false, true);
+          document.execCommand('hiliteColor', false, c === 'clear' ? 'transparent' : c);
+          keepText(); style();
+        }
+        function colorText(c) {
+          var sel = window.getSelection();
+          var inside = intoText();
+          if (!inside) { set('color', c); return; }
+          document.execCommand('styleWithCSS', false, true);
+          if (c === 'auto') {
+            if (sel.isCollapsed) document.execCommand('foreColor', false, getComputedStyle(area).color);
+            else document.execCommand('removeFormat', false, null);
+          } else document.execCommand('foreColor', false, c);
+          keepText();
+        }
+
+        // Bold, italic, underline and strikethrough change the highlighted words, or what is typed next.
+        // With no cursor in the box, bold and italic switch the whole box; underline and strikethrough cover all of the text.
+        function fmt(cmd, key) {
+          var sel = window.getSelection();
+          if (!intoText()) {
+            if (key) { set(key, !d[key]); return; }
+            area.focus(); sel.selectAllChildren(area);
+          }
+          document.execCommand('styleWithCSS', false, true);
+          document.execCommand(cmd, false, null);
+          keepText(); marks();
+        }
+        function inText() { var sel = window.getSelection(); return document.activeElement === area && sel.rangeCount && area.contains(sel.anchorNode); }
+        function hasRange() { return lastRange && !lastRange.collapsed && node.contains(document.activeElement); }
+        function state(cmd) { try { return document.queryCommandState(cmd); } catch (e) { return false; } }
+        // Show which styles the cursor is sitting in.
+        function marks() {
+          var inside = inText();
+          boldBtn.classList.toggle('on', inside ? state('bold') : !!d.bold);
+          italBtn.classList.toggle('on', inside ? state('italic') : !!d.italic);
+          undBtn.classList.toggle('on', inside && state('underline'));
+          strikeBtn.classList.toggle('on', inside && state('strikeThrough'));
+        }
+        // A different font or size for just the highlighted words.
+        function fontFor(family) {
+          intoText();
+          document.execCommand('styleWithCSS', false, true);
+          document.execCommand('fontName', false, family);
+          keepText();
+        }
+        function sizeFor(step) {
+          intoText();
+          var sel = window.getSelection(), at = sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentNode);
+          var base = parseFloat(getComputedStyle(area).fontSize) || 1, cur = at ? parseFloat(getComputedStyle(at).fontSize) : base;
+          var target = Math.max(0.3, Math.min(5, cur / base + step * 0.15));
+          document.execCommand('styleWithCSS', false, true);
+          document.execCommand('fontSize', false, 7);
+          [].forEach.call(area.querySelectorAll('span, font'), function (n) {
+            if (n.style.fontSize !== 'xxx-large' && n.getAttribute('size') !== '7') return;
+            n.removeAttribute('size');
+            var parent = parseFloat(getComputedStyle(n.parentNode).fontSize) || base;
+            n.style.fontSize = (target * base / parent).toFixed(3) + 'em';
+            // words inside that already had their own size follow the new one
+            [].forEach.call(n.querySelectorAll('[style]'), function (k) { k.style.fontSize = ''; });
+          });
+          keepText();
+        }
 
         function lum(hex) { var n = parseInt(hex.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000; }
         function set(k, v) { d[k] = v; style(); save(); }
         function tb(label, aria, key, html) {
-          return h('button', { type: 'button', class: 'tb tb-' + key, 'aria-label': aria, title: aria, html: html || label, onclick: function () { set(key, !d[key]); } });
+          return h('button', { type: 'button', class: 'tb tb-' + key, 'aria-label': aria, title: aria, html: html || label, onclick: function () {
+            if (key === 'bold') fmt('bold', 'bold'); else if (key === 'italic') fmt('italic', 'italic'); else if (key === 'underline') fmt('underline'); else if (key === 'strike') fmt('strikeThrough'); else set(key, !d[key]);
+          } });
         }
         var fontSel = h('select', { class: 'tb-select', 'aria-label': 'Font', id: 'font-' + w.id }, FONTS.map(function (f) {
           var o = h('option', { value: f[0], text: f[1] }); o.style.fontFamily = f[2]; return o;
         }));
-        fontSel.addEventListener('change', function () { set('font', fontSel.value); });
+        fontSel.addEventListener('change', function () {
+          var f = FONTS.filter(function (x) { return x[0] === fontSel.value; })[0] || FONTS[0];
+          if (hasRange()) { fontFor(f[2]); fontSel.value = d.font; } else set('font', fontSel.value);
+        });
         var boldBtn = tb('B', 'Bold', 'bold'), italBtn = tb('I', 'Italic', 'italic'), undBtn = tb('U', 'Underline', 'underline');
-        var shadowBtn = tb('S', 'Text shadow', 'shadow');
+        var strikeBtn = tb('S', 'Strikethrough', 'strike'), shadowBtn = tb('A', 'Text Shadow', 'shadow');
         var alignIcons = {
           left: '<path d="M4 6h16M4 11h10M4 16h14"/>', center: '<path d="M4 6h16M7 11h10M5 16h14"/>', right: '<path d="M4 6h16M10 11h10M6 16h14"/>'
         };
@@ -517,28 +598,49 @@
           html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 12h16M12 3v5M9.5 5.5 12 8l2.5-2.5M12 21v-5M9.5 18.5 12 16l2.5 2.5"/></svg>',
           onclick: function () { set('middle', !d.middle); } });
 
-        function swatches(list, key, label) {
-          var custom = h('input', { type: 'color', class: 'dot-custom', 'aria-label': label + ': any color', title: 'Any color' });
-          custom.addEventListener('input', function () { set(key, custom.value); });
-          var btns = list.map(function (c) {
-            var special = c === 'auto' || c === 'default' || c === 'clear';
-            return h('button', { type: 'button', class: 'dot' + (special ? ' dot-' + c : ''), 'data-c': c, style: special ? null : 'background:' + c,
-              'aria-label': label + ': ' + (c === 'auto' ? 'automatic' : c === 'default' ? 'standard' : c === 'clear' ? 'see-through' : c),
-              title: c === 'auto' ? 'Automatic' : c === 'default' ? 'Standard' : c === 'clear' ? 'See-through' : c, onclick: function () { set(key, c); } });
+        // A palette: two rows of ten, then the teacher's own saved colors and a "+" to add one.
+        function palette(list, key, label) {
+          function pick(c) { if (key === 'color') colorText(c); else if (key === 'hl') hiliteText(c); else set(key, c); }
+          var custom = h('input', { type: 'color', class: 'pal-input', 'aria-label': label + ': add a color', title: 'Add a Color' });
+          custom.addEventListener('change', function () {
+            var mine = TT.load('board-colors', []) || [], v = custom.value.toUpperCase();
+            if (mine.indexOf(v) < 0) { mine.unshift(v); TT.save('board-colors', mine.slice(0, 9)); }
+            pick(v); paintMine();
           });
-          return { el: h('div', { class: 'tb-row' }, h('span', { class: 'tb-label', text: label }), btns, custom), btns: btns, custom: custom };
+          function dot(c) {
+            var special = c === 'auto' || c === 'default' || c === 'clear';
+            var name = c === 'auto' ? 'Automatic' : c === 'default' ? 'Standard' : c === 'clear' ? (key === 'hl' ? 'No Highlight' : 'See-Through') : c;
+            return h('button', { type: 'button', class: 'dot' + (special ? ' dot-' + c : ''), 'data-c': c, style: special ? null : 'background:' + c, 'aria-label': label + ': ' + name, title: name, onclick: function () { pick(c); } });
+          }
+          var btns = list.map(dot), mineRow = h('div', { class: 'pal-mine' });
+          function paintMine() {
+            mineRow.textContent = '';
+            (TT.load('board-colors', []) || []).forEach(function (c) { if (/^#[0-9A-F]{6}$/i.test(c)) mineRow.append(dot(c)); });
+            mineRow.append(h('label', { class: 'pal-add', title: 'Add a Color' }, h('span', { 'aria-hidden': 'true', text: '+' }), custom));
+          }
+          paintMine();
+          return { el: h('div', { class: 'pal', hidden: true }, h('div', { class: 'pal-grid' }, btns), h('span', { class: 'tb-label pal-label', text: 'My Colors' }), mineRow), btns: btns, paintMine: paintMine };
         }
-        var textSw = swatches(TEXT_COLORS, 'color', 'Text');
-        var boxSw = swatches(BOX_COLORS, 'box', 'Box');
+        var textSw = palette(TEXT_COLORS, 'color', 'Text');
+        var boxSw = palette(BOX_COLORS, 'box', 'Box');
+        var hlSw = palette(HL_COLORS, 'hl', 'Highlight');
+        var palOpen = '';
+        function tab(key, word, tip) {
+          return h('button', { type: 'button', class: 'tb pal-tab', title: tip, 'aria-label': tip, onclick: function () { palOpen = palOpen === key ? '' : key; style(); } }, h('i', { class: 'pal-now' }), h('span', { text: word }));
+        }
+        var textTab = tab('color', 'Text', 'Text Color'), hlTab = tab('hl', 'Highlight', 'Highlight Color'), boxTab = tab('box', 'Box', 'Box Color');
 
         var bar = h('div', { class: 'text-toolbar' },
           h('div', { class: 'tb-panel' },
-            h('div', { class: 'tb-row' }, fontSel,
-              h('button', { type: 'button', class: 'tb', 'aria-label': 'Smaller text', title: 'Smaller', text: 'A−', onclick: function () { set('size', Math.max(12, d.size - 4)); } }),
-              h('button', { type: 'button', class: 'tb', 'aria-label': 'Bigger text', title: 'Bigger', text: 'A+', onclick: function () { set('size', Math.min(200, d.size + 4)); } }),
-              h('span', { class: 'tb-sep' }), boldBtn, italBtn, undBtn, shadowBtn,
-              h('span', { class: 'tb-sep' }), aligns, midBtn),
-            textSw.el, boxSw.el));
+            h('div', { class: 'tb-row tb-one' }, fontSel,
+              h('button', { type: 'button', class: 'tb', 'aria-label': 'Smaller text', title: 'Smaller', text: 'A−', onclick: function () { if (hasRange()) sizeFor(-1); else set('size', Math.max(12, d.size - 4)); } }),
+              h('button', { type: 'button', class: 'tb', 'aria-label': 'Bigger text', title: 'Bigger', text: 'A+', onclick: function () { if (hasRange()) sizeFor(1); else set('size', Math.min(200, d.size + 4)); } }),
+              h('span', { class: 'tb-sep' }), boldBtn, italBtn, undBtn, strikeBtn, shadowBtn,
+              h('span', { class: 'tb-sep' }), aligns, midBtn,
+              h('span', { class: 'tb-sep' }), textTab, hlTab, boxTab),
+            textSw.el, hlSw.el, boxSw.el));
+        // Clicking the toolbar must not take the cursor out of the text.
+        bar.addEventListener('mousedown', function (e) { if (!e.target.closest('select, input, label')) e.preventDefault(); });
         body.append(area, bar);
 
         function style() {
@@ -548,7 +650,7 @@
           area.style.fontSize = d.size + 'px';
           area.style.fontWeight = d.bold ? '700' : '400';
           area.style.fontStyle = d.italic ? 'italic' : 'normal';
-          area.style.textDecoration = d.underline ? 'underline' : 'none';
+          area.style.textDecoration = 'none';
           area.style.textAlign = d.align;
           // Box color
           var clear = d.box === 'clear', custom = d.box.charAt(0) === '#';
@@ -563,15 +665,19 @@
           area.style.textShadow = d.shadow ? '0 2px 0 rgba(0,0,0,.18), 0 4px 14px rgba(0,0,0,.28)' : 'none';
           body.classList.toggle('middle', !!d.middle);
           if (d.middle) { area.style.height = 'auto'; area.style.height = Math.min(area.scrollHeight, body.clientHeight - 8) + 'px'; } else area.style.height = '';
-          boldBtn.classList.toggle('on', !!d.bold); italBtn.classList.toggle('on', !!d.italic);
-          undBtn.classList.toggle('on', !!d.underline); shadowBtn.classList.toggle('on', !!d.shadow); midBtn.classList.toggle('on', !!d.middle);
+          marks(); shadowBtn.classList.toggle('on', !!d.shadow); midBtn.classList.toggle('on', !!d.middle);
           aligns.forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-al') === d.align); });
           textSw.btns.forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-c') === d.color); });
           boxSw.btns.forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-c') === d.box); });
+          textSw.el.hidden = palOpen !== 'color'; boxSw.el.hidden = palOpen !== 'box'; hlSw.el.hidden = palOpen !== 'hl';
+          textTab.classList.toggle('on', palOpen === 'color'); boxTab.classList.toggle('on', palOpen === 'box'); hlTab.classList.toggle('on', palOpen === 'hl');
+          hlTab.firstChild.style.background = hlNow;
+          textTab.firstChild.style.background = color;
+          boxTab.firstChild.style.background = custom ? d.box : clear ? 'transparent' : 'var(--surface)';
         }
         area.addEventListener('input', function () { if (d.middle) style(); });
         // Open the toolbar above the box when there is no room below it.
-        node.addEventListener('pointerenter', function () { node.classList.toggle('tb-up', w.y + w.h + 150 > ref().h); });
+        node.addEventListener('pointerenter', function () { node.classList.toggle('tb-up', w.y + w.h + 230 > ref().h); });
         style();
         return { restyle: style };
       },

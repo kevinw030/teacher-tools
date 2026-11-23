@@ -6,6 +6,7 @@
 
   window.TT.BACKGROUNDS = [
     { group: 'Gradients', items: [
+      { id: 'morning', name: 'Warm Morning', css: 'radial-gradient(circle at 10% 8%,#FFE2A6 0%,transparent 52%),radial-gradient(circle at 92% 96%,#FFC3A0 0%,transparent 55%),radial-gradient(circle at 85% 10%,#FFE9D2 0%,transparent 45%),#FBEFDD' },
       { id: 'sky', name: 'Sky', css: 'linear-gradient(135deg,#8EC5FF 0%,#C9B8FF 100%)' },
       { id: 'sunrise', name: 'Sunrise', css: 'linear-gradient(135deg,#FFB38A 0%,#FF8FB1 55%,#C79BFF 100%)' },
       { id: 'meadow', name: 'Meadow', css: 'linear-gradient(135deg,#A8EBC6 0%,#6CCFB0 50%,#4BA3C7 100%)' },

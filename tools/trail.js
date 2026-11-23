@@ -230,7 +230,7 @@
   }
 
   TT.games = (TT.games || []).concat([
-    { id: 'trail-race', title: 'Multiplication Race', desc: 'A class board game. Teams roll, race around the track and solve multiplication facts to get ahead.', color: 'emerald', mount: trail,
+    { id: 'trail-race', title: 'Multiplication Race', desc: 'A class board game. Teams roll, race around the track and solve multiplication facts to get ahead.', color: 'emerald', mount: trail, forget: ['trail'],
       icon: '<path d="M4 19h5a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h8"/><path d="M16 3v8M16 4h5l-1.5 2L21 8h-5"/><circle cx="4" cy="19" r="1.4" fill="currentColor"/>' }
   ]);
 })();

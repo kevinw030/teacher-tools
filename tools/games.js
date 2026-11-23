@@ -216,17 +216,30 @@
     var grid = h('div', { class: 'mem' });
     var setSel = h('div', { class: 'segmented' });
     var set = 'animals', cards, open, matched, turn, lock, pts;
-    Object.keys(SETS).forEach(function (k) {
-      setSel.append(h('button', { type: 'button', class: 'seg' + (k === set ? ' on' : ''), 'data-set': k, onclick: function () { set = k; setSel.querySelectorAll('.seg').forEach(function (s) { s.classList.toggle('on', s.getAttribute('data-set') === k); }); reset(); } }, k.charAt(0).toUpperCase() + k.slice(1)));
+    // Picture sets match two of the same card. "Learning Pairs" match two cards that go together, by grade.
+    var learn = h('div', { class: 'row center mem-learn', hidden: true });
+    var pairSel = h('div', { class: 'segmented' }), pairSet = '';
+    function pairSets() { return (TT.GRADE_PAIRS || {})[TT.grade ? TT.grade() : 4] || {}; }
+    function paintPairs() {
+      var names = Object.keys(pairSets()); if (names.indexOf(pairSet) < 0) pairSet = names[0];
+      pairSel.textContent = '';
+      names.forEach(function (n) { pairSel.append(h('button', { type: 'button', class: 'seg' + (n === pairSet ? ' on' : ''), onclick: function () { pairSet = n; paintPairs(); reset(); } }, n)); });
+    }
+    if (TT.GRADE_PAIRS) { learn.append(TT.gradePicker(function () { paintPairs(); reset(); }), pairSel); paintPairs(); }
+    function choose(k) { set = k; setSel.querySelectorAll('.seg').forEach(function (s) { s.classList.toggle('on', s.getAttribute('data-set') === k); }); learn.hidden = k !== 'learn'; reset(); }
+    Object.keys(SETS).concat(TT.GRADE_PAIRS ? ['learn'] : []).forEach(function (k) {
+      setSel.append(h('button', { type: 'button', class: 'seg' + (k === set ? ' on' : ''), 'data-set': k, onclick: function () { choose(k); } }, k === 'learn' ? 'Learning Pairs' : k.charAt(0).toUpperCase() + k.slice(1)));
     });
-    el.append(h('div', { class: 'game' }, sb.el, st, grid, h('div', { class: 'row center' }, setSel, TT.button('New Game', { icon: 'reset', kind: 'primary', onclick: reset }))));
+    el.append(h('div', { class: 'game' }, sb.el, st, grid, h('div', { class: 'row center' }, setSel, TT.button('New Game', { icon: 'reset', kind: 'primary', onclick: reset })), learn));
     function reset() {
-      var pick = TT.shuffle(SETS[set]).slice(0, 10);
-      cards = TT.shuffle(pick.concat(pick)); open = []; matched = {}; turn = 0; lock = false; pts = [0, 0];
-      grid.textContent = '';
+      var deck = [];
+      if (set === 'learn') TT.shuffle((pairSets()[pairSet] || []).slice()).slice(0, 10).forEach(function (p, i) { deck.push({ t: p[0], k: i }, { t: p[1], k: i }); });
+      else TT.shuffle(SETS[set]).slice(0, 10).forEach(function (e, i) { deck.push({ t: e, k: i }, { t: e, k: i }); });
+      cards = TT.shuffle(deck); open = []; matched = {}; turn = 0; lock = false; pts = [0, 0];
+      grid.textContent = ''; grid.classList.toggle('mem-words', set === 'learn');
       cards.forEach(function (e, i) {
         grid.append(h('button', { type: 'button', class: 'mem-card', 'aria-label': 'Card ' + (i + 1), onclick: function () { flip(i); } },
-          h('span', { class: 'mem-inner' }, h('span', { class: 'mem-back' }), h('span', { class: 'mem-front', text: e }))));
+          h('span', { class: 'mem-inner' }, h('span', { class: 'mem-back' }), h('span', { class: 'mem-front', text: e.t }))));
       });
       paint();
     }
@@ -236,7 +249,7 @@
       if (open.length < 2) return;
       lock = true;
       var a = open[0], b = open[1];
-      if (cards[a] === cards[b]) {
+      if (cards[a].k === cards[b].k) {
         matched[a] = matched[b] = true; pts[turn]++; open = []; lock = false;
         if (Object.keys(matched).length === cards.length) {
           var w = pts[0] === pts[1] ? -1 : pts[0] > pts[1] ? 0 : 1;
@@ -276,14 +289,22 @@
     var catSel = h('div', { class: 'segmented' });
     var custom = h('input', { type: 'text', id: 'wordCustom', placeholder: 'Or type your own secret word', 'aria-label': 'Your own secret word', maxlength: 14 });
     var cat = 'Animals', word, guessed, misses, over;
-    Object.keys(LIST).forEach(function (k) {
-      catSel.append(h('button', { type: 'button', class: 'seg' + (k === cat ? ' on' : ''), 'data-cat': k, onclick: function () { cat = k; catSel.querySelectorAll('.seg').forEach(function (s) { s.classList.toggle('on', s.getAttribute('data-cat') === k); }); reset(); } }, k));
-    });
+    // Words come from the chosen grade (1st to 5th). Each grade has its own categories.
+    function paintCats() {
+      if (TT.GRADE_WORDS) LIST = TT.GRADE_WORDS[TT.grade()] || LIST;
+      if (!LIST[cat]) cat = Object.keys(LIST)[0];
+      catSel.textContent = '';
+      Object.keys(LIST).forEach(function (k) {
+        catSel.append(h('button', { type: 'button', class: 'seg' + (k === cat ? ' on' : ''), 'data-cat': k, onclick: function () { cat = k; paintCats(); reset(); } }, k));
+      });
+    }
+    paintCats();
+    var gradeSel = TT.gradePicker ? TT.gradePicker(function () { paintCats(); reset(); }) : null;
     'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(function (L) {
       keys.append(h('button', { type: 'button', class: 'key', 'data-k': L, onclick: function () { guess(L); } }, L));
     });
     el.append(h('div', { class: 'game' }, st, balloons, wordEl, keys,
-      h('div', { class: 'row center' }, catSel, TT.button('New Word', { icon: 'reset', kind: 'primary', onclick: reset })),
+      h('div', { class: 'row center' }, gradeSel, catSel, TT.button('New Word', { icon: 'reset', kind: 'primary', onclick: reset })),
       h('div', { class: 'row center' }, custom, TT.button('Use My Word', { onclick: function () {
         var w = custom.value.toUpperCase().replace(/[^A-Z]/g, ''); if (w.length < 2) return; custom.value = ''; start(w, 'Teacher’s word');
       } }))));

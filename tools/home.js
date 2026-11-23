@@ -36,3 +36,31 @@
   window.addEventListener('hashchange', function () { setTimeout(play, 0); });
   play();
 })();
+
+// Every other page springs in when it opens.
+(function () {
+  var t;
+  function enter() {
+    var name = location.hash.replace('#', '') || 'home';
+    if (name === 'home' || name === 'board') return;
+    var pg = document.querySelector('.page:not([hidden])');
+    if (!pg || pg.id === 'view-home' || pg.classList.contains('fs')) return;
+    pg.classList.remove('page-enter'); void pg.offsetWidth; pg.classList.add('page-enter');
+    clearTimeout(t); t = setTimeout(function () { pg.classList.remove('page-enter'); }, 1200);
+  }
+  window.addEventListener('hashchange', function () { setTimeout(enter, 0); });
+  setTimeout(enter, 0);
+})();
+
+// An "All Tools" button at the top of every tool page (the same spot as "All Games" on game pages). It goes back to the home page.
+(function () {
+  var TT = window.TT; if (!TT || !TT.h) return;
+  var heads = document.querySelectorAll('main.page > header.tool-head');
+  for (var i = 0; i < heads.length; i++) {
+    var box = heads[i].firstElementChild;
+    if (!box || box.querySelector('a.btn.small')) continue;   // game pages already have "All Games"
+    var eyebrow = box.querySelector('.eyebrow');
+    var back = TT.h('a', { class: 'btn small back-all', href: '#home', html: TT.icon('back') + '<span>All Tools</span>' });
+    if (eyebrow) eyebrow.replaceWith(back); else box.prepend(back);
+  }
+})();

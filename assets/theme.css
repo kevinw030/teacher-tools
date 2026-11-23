@@ -1,0 +1,127 @@
+/* Site-wide look, matching the home page: warm paper canvas, one spacing scale (--s1..--s8 in home.css),
+   flat color tiles instead of gradient chips, frosted glass where a layer really sits over something, and spring motion. */
+:root { --bg: #F6F1E8; --line: #E6DFD2; --surface-2: #EFE8DB; --muted: #625D55; --r: 24px;
+  --shadow-sm: 0 1px 2px rgba(60, 40, 15, .05), 0 2px 8px rgba(60, 40, 15, .04);
+  --shadow: 0 1px 2px rgba(60, 40, 15, .04), 0 16px 36px -14px rgba(60, 40, 15, .18);
+  --shadow-lg: 0 2px 4px rgba(60, 40, 15, .06), 0 28px 60px -16px rgba(60, 40, 15, .34); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #12100E; --surface: #1B1815; --surface-2: #26221D; --line: #332E28; --muted: #ADA598;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.4); --shadow: 0 12px 32px -8px rgba(0,0,0,.6); --shadow-lg: 0 24px 60px -12px rgba(0,0,0,.7); } }
+:root[data-theme="dark"] { --bg: #12100E; --surface: #1B1815; --surface-2: #26221D; --line: #332E28; --muted: #ADA598;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.4); --shadow: 0 12px 32px -8px rgba(0,0,0,.6); --shadow-lg: 0 24px 60px -12px rgba(0,0,0,.7); }
+
+/* Page frame: title block sits close to its panel, pages breathe at the edges. */
+.page { gap: var(--s5); padding-block: var(--s6) var(--s8); }
+.tool-head { gap: var(--s4); align-items: flex-end; }
+.tool-head h1 { margin: var(--s1) 0 0; font-size: clamp(34px, 4.4vw, 54px); font-weight: 800; line-height: 1; letter-spacing: -.025em; }
+.tool-head p { margin: var(--s2) 0 0; font-size: 17px; }
+.eyebrow { letter-spacing: .1em; }
+.panel { border-radius: 28px; padding: clamp(var(--s4), 2.6vw, var(--s6)); }
+.section-head h2 { font-weight: 800; }
+
+/* Flat color tiles everywhere (games grid, menus), no gradient chips or glows. */
+.tool-icon { background: color-mix(in srgb, var(--c) 16%, var(--surface)); color: var(--c); box-shadow: none; border-radius: 16px; transition: transform .5s var(--spring); }
+.tool { border-radius: 24px; transition: transform .55s var(--spring), box-shadow .25s ease, border-color .2s ease; }
+a.tool:hover, button.tool:hover { transform: translateY(-6px) scale(1.015); }
+a.tool:hover .tool-icon, button.tool:hover .tool-icon { transform: rotate(-8deg) scale(1.12); }
+a.tool:active, button.tool:active { transform: scale(.97); transition-duration: .12s; }
+.tool .go svg { transition: transform .5s var(--spring); }
+a.tool:hover .go svg { transform: translateX(6px); }
+
+/* Stages: one calm tint of the page color instead of two-corner pastel gradients. */
+.pick-stage { background: color-mix(in srgb, var(--violet) 13%, var(--surface)); border: 1px solid color-mix(in srgb, var(--violet) 22%, var(--line)); border-radius: 24px; }
+.bb-stage { background: color-mix(in srgb, var(--emerald) 13%, var(--surface)); border: 1px solid color-mix(in srgb, var(--emerald) 22%, var(--line)); }
+.mem-back { background: var(--violet); }
+
+/* Morning Meeting: one warm flat color for the greeting instead of a two-tone gradient. */
+.mm { gap: var(--s4); }
+.mm-hero { border-radius: 32px; padding: clamp(var(--s5), 3.4vw, var(--s7)); background: #FFD58A; border: 1px solid #F2BE62; }
+.mm-card { border-radius: 24px; }
+
+/* Glass where layers float over content: sticky bar, menus, the board's widget bar. */
+.nav { background: color-mix(in srgb, var(--bg) 72%, transparent); -webkit-backdrop-filter: saturate(1.6) blur(20px); backdrop-filter: saturate(1.6) blur(20px); }
+.nav-pop { background: color-mix(in srgb, var(--surface) 94%, transparent); border-radius: 20px; transform-origin: 20% 0; animation: pop-in .45s var(--spring) both; }
+.dock { background: rgba(255, 252, 246, .7); -webkit-backdrop-filter: blur(22px) saturate(1.6); backdrop-filter: blur(22px) saturate(1.6); border-radius: 26px; }
+.dock-icon { transition: transform .5s var(--spring); }
+.dock-btn:hover .dock-icon { transform: translateY(-4px) scale(1.1); }
+.dock-btn:active .dock-icon { transform: scale(.92); transition-duration: .1s; }
+@keyframes pop-in { from { opacity: 0; transform: translateY(-8px) scale(.92); } }
+
+/* Spring motion on the controls people touch most. */
+.btn { border-radius: 14px; transition: transform .45s var(--spring), background .15s ease, border-color .15s ease; }
+.btn:hover:not(:disabled) { transform: scale(1.04); }
+.btn:active:not(:disabled) { transform: scale(.95); transition-duration: .1s; }
+.btn svg { transition: transform .5s var(--spring); }
+.chip { transition: transform .4s var(--spring), border-color .15s ease, background .15s ease; }
+.chip:not(.static):hover { transform: scale(1.06); }
+.chip:not(.static):active { transform: scale(.94); transition-duration: .1s; }
+.seg { transition: transform .4s var(--spring), background .2s ease, color .2s ease; }
+.seg:active { transform: scale(.94); }
+.nav-links a { transition: transform .4s var(--spring), background .2s ease, color .2s ease; }
+.nav-links a:active { transform: scale(.94); }
+.logo { transition: transform .6s var(--spring); }
+.brand:hover .logo { transform: rotate(-10deg) scale(1.08); }
+.link { transition: transform .5s var(--spring); } .link:hover { transform: translateY(-3px); }
+
+/* Pages spring in when you open them. An animation (not a lasting transform) so full screen scaling is untouched. */
+.page.page-enter > * { animation: page-rise .8s var(--spring) both; }
+.page.page-enter > *:nth-child(2) { animation-delay: 70ms; }
+.page.page-enter > *:nth-child(3) { animation-delay: 140ms; }
+.page.page-enter > *:nth-child(n+4) { animation-delay: 210ms; }
+.page.fs > *, .page.fs .fs-fit > * { animation: none !important; }
+@keyframes page-rise { from { opacity: 0; transform: translateY(24px) scale(.97); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .page.page-enter > *, .nav-pop { animation: none; }
+  .btn, .chip, .seg, .tool, .tool-icon, .dock-icon, .nav-links a, .logo, .link { transition: none; }
+}
+
+/* Site title: an "ED" badge followed by "Sidekick". The badge alone is the small mark and the browser tab icon. */
+.brand { gap: var(--s2); }
+.logo.logo-ed { display: inline-flex; align-items: center; justify-content: center; gap: 0; width: auto; min-width: 0; height: 38px; padding: 0 10px; border-radius: 12px; background: var(--coral); color: #fff;
+  font-family: var(--display); font-weight: 900; font-size: 21px; line-height: 1; letter-spacing: -.01em; transform: rotate(-4deg); box-shadow: 0 6px 14px -6px color-mix(in srgb, var(--coral) 70%, transparent); }
+.brand:hover .logo.logo-ed { transform: rotate(4deg) scale(1.1); }
+.brand-name { font-weight: 800; font-size: 23px; letter-spacing: -.02em; }
+
+/* Brain Breaks: a fixed-size reel. Text slides through it, so nothing on the page grows or shrinks while it spins. */
+.bb-stage { min-height: 0; height: clamp(300px, 34vw, 400px); overflow: hidden; }
+.bb-reel { position: relative; width: 100%; max-width: 30ch; height: calc(1.12em * 3 + .3em); flex: none; overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 22%, #000 78%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 22%, #000 78%, transparent 100%); }
+.bb-item { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; text-wrap: balance; will-change: transform, opacity; }
+.bb-stage.spinning .pick-name { opacity: 1; }
+.bb-stage.spinning .bb-item { color: color-mix(in srgb, var(--ink) 55%, transparent); }
+.bb-stage.reveal .bb-activity { animation: none; }
+.bb-stage .pick-sub { min-height: 1.5em; }
+@media (max-width: 640px) { .bb-stage { height: 340px; } .bb-reel { height: calc(1.12em * 5 + .3em); } }
+
+/* Trivia Showdown: grade picker shown before each game. */
+.tv-start { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--s2); padding: var(--s4) 0; }
+.tv-start-h { margin: 0; font-size: clamp(30px, 4vw, 48px); font-weight: 800; letter-spacing: -.02em; }
+.tv-start p { margin: 0; max-width: 56ch; }
+.tv-grades { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--s3); width: 100%; margin: var(--s5) 0; }
+.tv-grade { appearance: none; cursor: pointer; font: inherit; color: var(--ink); display: flex; flex-direction: column; align-items: center; gap: var(--s1); padding: var(--s5) var(--s3);
+  border-radius: 24px; background: var(--c-soft); border: 2px solid var(--c-line); transition: transform .5s var(--spring), border-color .2s ease, background .2s ease; }
+.tv-grade b { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 22px; background: var(--c); color: #fff; font-family: var(--display); font-weight: 900; font-size: 44px; line-height: 1; margin-bottom: var(--s2); transition: transform .5s var(--spring); }
+.tv-grade span { font-family: var(--display); font-weight: 800; font-size: clamp(18px, 1.9vw, 24px); }
+.tv-grade small { color: var(--muted); font-size: 14px; line-height: 1.3; text-wrap: balance; }
+.tv-grade:hover { transform: scale(1.04); border-color: var(--c); }
+.tv-grade:hover b { transform: rotate(-8deg) scale(1.1); }
+.tv-grade:active { transform: scale(.96); transition-duration: .1s; }
+.tv-grade.last { border-color: var(--c); }
+.tv-grade-chip { display: inline-flex; align-items: center; padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 14px; background: var(--surface-2); border: 1px solid var(--line); }
+@media (max-width: 760px) { .tv-grades { grid-template-columns: repeat(2, minmax(0, 1fr)); } .tv-grade { padding: var(--s4) var(--s2); } }
+/* Back buttons ("All Tools", "All Games") sit a step above the page title. */
+.tool-head a.btn.small { margin-bottom: var(--s2); }
+.tool-head a.btn.small svg { transition: transform .5s var(--spring); }
+.tool-head a.btn.small:hover svg { transform: translateX(-4px); }
+
+.tv-teams { display: flex; align-items: center; justify-content: center; gap: var(--s3); flex-wrap: wrap; margin-bottom: var(--s4); }
+.tv-teams-label { font-family: var(--display); font-weight: 800; font-size: 18px; }
+.tv-grades { margin-bottom: var(--s4); }
+.trivia .scorebar { flex-wrap: wrap; justify-content: center; }
+
+/* Name Picker: names roll through a fixed window, like Brain Breaks */
+.pk-reel { position: relative; width: 100%; height: 1.3em; flex: none; overflow: hidden; -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 16%, #000 84%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 16%, #000 84%, transparent 100%); }
+.pk-reel .bb-item { white-space: nowrap; }
+.pick-stage.spinning .pk-reel { opacity: 1; }
+.pick-stage.spinning .pk-reel .bb-item { color: color-mix(in srgb, var(--ink) 55%, transparent); }
+.pick-stage.reveal .pk-reel { animation: none; }
