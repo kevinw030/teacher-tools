@@ -84,10 +84,10 @@
     out += '<rect x="44" y="14" width="252" height="226" rx="6" fill="none" stroke="#9A5A30" stroke-width="16"/><rect x="44" y="14" width="252" height="226" rx="6" fill="none" stroke="#C07A45" stroke-width="5"/>' +
       '<path d="M170 22 V232 M52 124 H288" stroke="#9A5A30" stroke-width="9"/>';
     // sill with a warm glow, and the season's little thing
-    out += '<ellipse cx="170" cy="246" rx="150" ry="26" fill="#FFD58A" opacity="' + (ph === 'night' || ph === 'sunset' ? '.22' : '.12') + '"/>' +
-      '<rect x="18" y="240" width="342" height="20" rx="5" fill="#C87A42"/><rect x="18" y="240" width="342" height="7" rx="3.5" fill="#E09A5C"/><rect x="34" y="260" width="326" height="40" fill="#8E4E28"/>';
+    out += '<ellipse cx="170" cy="246" rx="140" ry="24" fill="#FFD58A" opacity="' + (ph === 'night' || ph === 'sunset' ? '.22' : '.12') + '"/>' +
+      '<rect x="18" y="240" width="304" height="20" rx="5" fill="#C87A42"/><rect x="18" y="240" width="304" height="7" rx="3.5" fill="#E09A5C"/><path d="M34 260 H306 V288 a8 8 0 0 1 -8 8 H42 a8 8 0 0 1 -8 -8Z" fill="#8E4E28"/>';
     out += (season && SILL[season.id] ? SILL[season.id]() : plain());
-    return '<svg viewBox="0 0 360 300" aria-hidden="true" focusable="false">' + out + '</svg>';
+    return '<svg viewBox="0 0 340 300" aria-hidden="true" focusable="false">' + out + '</svg>';
   };
   TT.dayPhase = phase;
 })();

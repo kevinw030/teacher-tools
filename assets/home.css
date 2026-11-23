@@ -144,9 +144,9 @@ body.home-mode { --bg: #F6F1E8; --line: #E6DFD2; --surface-2: #EFE8DB; }
 .wel-scene { position: relative; min-width: 0; }
 .wel-scene::before { content: ""; position: absolute; right: -8%; top: -30%; width: 120%; aspect-ratio: 1; border-radius: 50%; background: var(--wel-bg2); z-index: -1; }
 .wel-floor { position: absolute; left: -12%; right: 30%; bottom: -16px; height: 46px; border-radius: 50%; background: #3A2799; }
-.wel-window { position: absolute; right: 0; bottom: 0; height: 94%; aspect-ratio: 360 / 300; }
+.wel-window { position: absolute; right: var(--s5); bottom: 10px; height: 90%; aspect-ratio: 340 / 300; }
 .wel-window svg { display: block; width: 100%; height: 100%; }
-.wel-mascot { position: absolute; bottom: 4px; right: calc(clamp(210px, 19vw, 250px) * 1.04); height: 90%; aspect-ratio: 420 / 576; }
+.wel-mascot { position: absolute; bottom: 4px; right: calc(clamp(210px, 19vw, 250px) * 1.04 + var(--s5)); height: 90%; aspect-ratio: 420 / 576; }
 .wel-mascot .mascot { width: 100%; }
 .wel-mascot .mascot-shadow { background: rgba(10, 6, 40, .45); }
 .hw-star { animation: hw-twinkle 3.2s ease-in-out infinite; }
@@ -173,7 +173,7 @@ body.home-mode { --bg: #F6F1E8; --line: #E6DFD2; --surface-2: #EFE8DB; }
   .wel-main { grid-template-columns: 1fr; min-height: 0; }
   .wel-text { padding: var(--s5) var(--s4) 0; }
   .wel-scene { height: 170px; margin-top: var(--s3); }
-  .wel-window { height: 100%; } .wel-mascot { height: 92%; right: 200px; }
+  .wel-window { height: 96%; right: var(--s4); bottom: 6px; } .wel-mascot { height: 92%; right: 200px; }
   .wel-q { flex-direction: column; align-items: flex-start; gap: var(--s3); padding: var(--s4); }
 }
 @media (prefers-reduced-motion: reduce) { .hw-star, .hw-cloud, .hw-snow { animation: none; } .wel-open, .wel-q-go { transition: none; } }
