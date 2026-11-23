@@ -335,12 +335,20 @@
     { name: 'The Grandfather Clock', x: 1008, y: 160, w: 132, h: 584 }
   ], { name: 'The Library Doors', x: 1208, y: 118, w: 344, h: 620 }, '#FFD76A', true);
   pictureScene('space', [
-    { name: 'The Main Computer', x: 410, y: 532, w: 201, h: 111 },
-    { name: 'The Fuel Gauge', x: 78, y: 228, w: 250, h: 250 },
-    { name: 'The Radio Decoder', x: 632, y: 532, w: 188, h: 111 },
-    { name: 'The Meal Locker', x: 1091, y: 319, w: 156, h: 397 },
-    { name: 'The Big Window', x: 392, y: 110, w: 665, h: 402 }
-  ], { name: 'The Airlock', x: 1279, y: 228, w: 269, h: 504 }, '#5BF0A5', false);
+    { name: 'The Star Map Computer', x: 493, y: 512, w: 483, h: 163 },
+    { name: 'The Fuel Tank', x: 1292, y: 536, w: 278, h: 230 },
+    { name: 'The Radio Decoder', x: 603, y: 683, w: 252, h: 60 },
+    { name: 'The Meal Locker', x: 448, y: 188, w: 126, h: 305 },
+    { name: 'The Big Window', x: 813, y: 96, w: 450, h: 354 }
+  ], { name: 'The Airlock', x: 62, y: 148, w: 383, h: 360 }, '#FFE08A', false);
+
+  pictureScene('pirate', [
+    { name: 'The Treasure Map', x: 77, y: 392, w: 459, h: 278 },
+    { name: 'The Carved Sign', x: 75, y: 75, w: 327, h: 146 },
+    { name: 'The Pile of Coins', x: 67, y: 766, w: 211, h: 105 },
+    { name: 'The Talking Parrot', x: 1191, y: 81, w: 244, h: 310 },
+    { name: 'The Message in a Bottle', x: 1316, y: 526, w: 258, h: 105 }
+  ], { name: 'The Treasure Chest', x: 878, y: 536, w: 404, h: 306 }, '#FFE08A', false);
 
   TT.escapeArt = function (id, prefix) {
     var s = SCENES[id] || SCENES.classroom;
