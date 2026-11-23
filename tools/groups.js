@@ -59,7 +59,7 @@
     function paintGroups(animate) {
       grid.textContent = '';
       if (!state.groups.length) {
-        grid.append(h('div', { class: 'empty' }, 'Choose how to split the class, then press “Make groups.”'));
+        grid.append(h('div', { class: 'empty' }, 'Choose how to split the class, then press “Make Groups.”'));
         return;
       }
       state.groups.forEach(function (g, i) {

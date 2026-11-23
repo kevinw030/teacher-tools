@@ -84,7 +84,7 @@
 
     function paint() {
       var d = new Date(), hr = d.getHours();
-      var who = TT.settings.className || 'class';
+      var who = TT.settings.className || 'Class';
       greet.textContent = (hr < 5 ? 'Hello, ' : hr < 12 ? 'Good Morning, ' : hr < 17 ? 'Good Afternoon, ' : 'Good Evening, ') + who + '!';
       dateEl.textContent = 'Today is ' + d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
       var cur = state.weather && state.weather.day === TT.today() ? state.weather.v : null;
@@ -118,7 +118,7 @@
     var state = TT.load('breaks', { seen: [] });
     var cur = null, left = 0, total = 0, iv = 0, running = false, spinning = false;
     // The reel is a fixed-size window. Activities slide through it, so the page never changes size while it spins.
-    var item = h('div', { class: 'bb-item' }, 'Ready for a brain break?');
+    var item = h('div', { class: 'bb-item' }, 'Ready for a Brain Break?');
     var actEl = h('div', { class: 'pick-name bb-activity bb-reel', 'aria-live': 'polite' }, item);
     var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     function slide(text, ms, last) {
