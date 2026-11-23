@@ -21,7 +21,7 @@
 
   var net;
   function play() {
-    var on = (location.hash.replace('#', '') || 'home') === 'home' || home.hidden === false;
+    var on = TT.page() === 'home' || home.hidden === false;
     document.body.classList.toggle('home-mode', !home.hidden);
     if (home.hidden || !on) return;
     var items = home.querySelectorAll('[data-rise]'), scene = home.querySelector('.hero-scene');
@@ -33,7 +33,7 @@
     // Safety net: never leave anything hidden if the page is not scrolled the usual way.
     clearTimeout(net); net = setTimeout(function () { for (var k = 0; k < items.length; k++) land(items[k], 0); }, 3000);
   }
-  window.addEventListener('hashchange', function () { setTimeout(play, 0); });
+  window.addEventListener('tt:page', function () { setTimeout(play, 0); });
   play();
 })();
 
@@ -41,14 +41,14 @@
 (function () {
   var t;
   function enter() {
-    var name = location.hash.replace('#', '') || 'home';
+    var name = TT.page();
     if (name === 'home' || name === 'board') return;
     var pg = document.querySelector('.page:not([hidden])');
     if (!pg || pg.id === 'view-home' || pg.classList.contains('fs')) return;
     pg.classList.remove('page-enter'); void pg.offsetWidth; pg.classList.add('page-enter');
     clearTimeout(t); t = setTimeout(function () { pg.classList.remove('page-enter'); }, 1200);
   }
-  window.addEventListener('hashchange', function () { setTimeout(enter, 0); });
+  window.addEventListener('tt:page', function () { setTimeout(enter, 0); });
   setTimeout(enter, 0);
 })();
 
@@ -60,7 +60,7 @@
     var box = heads[i].firstElementChild;
     if (!box || box.querySelector('a.btn.small')) continue;   // game pages already have "All Games"
     var eyebrow = box.querySelector('.eyebrow');
-    var back = TT.h('a', { class: 'btn small back-all', href: '#home', html: TT.icon('back') + '<span>All Tools</span>' });
+    var back = TT.h('a', { class: 'btn small back-all', href: '/', html: TT.icon('back') + '<span>All Tools</span>' });
     if (eyebrow) eyebrow.replaceWith(back); else box.prepend(back);
   }
 })();

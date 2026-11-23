@@ -8,7 +8,7 @@ TT.PETS_ON = false;
   // For each pose: the picture's width and height, and a size adjustment so the cat looks the same size in every pose.
   TT.PET_ART = {
     cat: {
-      dir: 'assets/pet/cat/', room: 'room.jpg', unit: 1133,
+      dir: '/assets/pet/cat/', room: 'room.jpg', unit: 1133,
       poses: { sit: [955, 1133, 1], happy: [954, 1135, 1], wave: [998, 1137, 1], walk: [992, 886, 1.2], eat: [1192, 755, 0.98], drink: [1237, 748, 0.98], play: [1089, 903, 1.08] }
     }
   };

@@ -45,7 +45,7 @@
     grid.textContent = '';
     var now = current();
     lists[key].forEach(function (it, i) {
-      var a = h('a', { class: 'mob-item ' + it.color + (it.view === now ? ' on' : ''), href: '#' + it.view, style: '--i:' + i, onclick: closeSheet },
+      var a = h('a', { class: 'mob-item ' + it.color + (it.view === now ? ' on' : ''), href: '/' + it.view, style: '--i:' + i, onclick: closeSheet },
         h('span', { class: 'mob-item-ico', html: it.icon }), h('span', { class: 'mob-item-name', text: it.label }));
       grid.append(a);
     });
@@ -80,11 +80,11 @@
 
   // ----- Bottom tabs -----
   var TABS = [
-    { key: 'home', label: 'Home', href: '#home', color: 'c-coral' },
-    { key: 'board', label: 'Board', href: '#board', color: 'c-cobalt' },
+    { key: 'home', label: 'Home', href: '/', color: 'c-coral' },
+    { key: 'board', label: 'Board', href: '/board', color: 'c-cobalt' },
     { key: 'daily', label: 'Daily', color: 'c-amber' },
     { key: 'tools', label: 'Tools', color: 'c-violet' },
-    { key: 'games', label: 'Games', href: '#games', color: 'c-rose' }
+    { key: 'games', label: 'Games', href: '/games', color: 'c-rose' }
   ];
   var bar = h('nav', { class: 'mob-tabs', 'aria-label': 'Sections' });
   TABS.forEach(function (t) {
@@ -92,7 +92,7 @@
     if (t.href) {
       t.el = h('a', { class: 'mob-tab ' + t.color, href: t.href, onclick: function () {
         closeSheet();
-        if (location.hash === t.href || (t.key === 'home' && !location.hash)) window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (location.pathname === t.href) window.scrollTo({ top: 0, behavior: 'smooth' });
       } }, inner);
     } else {
       t.el = h('button', { type: 'button', class: 'mob-tab ' + t.color, 'aria-haspopup': 'dialog', onclick: function () { openSheet(t.key); } }, inner);
@@ -101,11 +101,11 @@
   });
 
   // ----- Top bar: back button and the page name -----
-  var back = h('a', { class: 'mob-back', href: '#home', 'aria-label': 'Back', html: svg(ICON.back) });
+  var back = h('a', { class: 'mob-back', href: '/', 'aria-label': 'Back', html: svg(ICON.back) });
   var title = h('span', { class: 'mob-title' });
   nav.insertBefore(title, nav.firstChild); nav.insertBefore(back, title);
 
-  function current() { return location.hash.replace('#', '') || 'home'; }
+  function current() { return TT.page(); }
   function isGame(name) { return (TT.games || []).some(function (g) { return g.id === name; }); }
   function section(name) {
     if (name === 'home' || name === 'board' || name === 'games') return name;
@@ -126,11 +126,11 @@
     var sub = parts.length > 1;                       // every page but Home is "Name · ED Sidekick"
     document.body.classList.toggle('mob-sub', sub);
     title.textContent = sub ? parts[0] : '';
-    back.setAttribute('href', isGame(name) ? '#games' : '#home');
+    back.setAttribute('href', isGame(name) ? '/games' : '/');
     back.setAttribute('aria-label', isGame(name) ? 'Back to All Games' : 'Back to Home');
     closeSheet(); paintTabs();
   }
-  window.addEventListener('hashchange', function () { setTimeout(paint, 0); });
+  window.addEventListener('tt:page', function () { setTimeout(paint, 0); });
 
   document.body.append(bar, sheet);
   paint();

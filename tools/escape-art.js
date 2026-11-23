@@ -319,7 +319,7 @@
     SCENES[id].spots = spots; SCENES[id].exit = exit;
     SCENES[id].art = function (p) {
       var out = '<defs>' + glow(p + 'g', tint, 0.45) + glow(p + 'x', '#FFF3C4', 0.5) + '</defs>' +
-        '<image href="assets/escape/' + id + '.jpg" x="0" y="0" width="1600" height="900" preserveAspectRatio="xMidYMid slice"/>';
+        '<image href="/assets/escape/' + id + '.jpg" x="0" y="0" width="1600" height="900" preserveAspectRatio="xMidYMid slice"/>';
       spots.forEach(function (s, i) {
         out += G('on-' + i, E(s.x + s.w / 2, s.y + s.h / 2, s.w * 0.62, s.h * 0.58, 'url(#' + p + 'g)', 'opacity=".5" style="mix-blend-mode:screen"'));
       });

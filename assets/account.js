@@ -97,8 +97,8 @@
 
   // A short "See Plans" note for places that hit a free-plan limit.
   TT.upsell = function (text) {
-    return h('p', { class: 'upsell' }, h('span', { text: text + ' ' }), h('a', { href: '#account', text: TT.account.signedIn() ? 'Go Premium' : 'See Plans',
-      onclick: function () { TT.account.wantPlans = true; if (location.hash === '#account' && TT.account.openPlans) TT.account.openPlans(); } }));
+    return h('p', { class: 'upsell' }, h('span', { text: text + ' ' }), h('a', { href: '/account', text: TT.account.signedIn() ? 'Go Premium' : 'See Plans',
+      onclick: function () { TT.account.wantPlans = true; if (TT.page() === 'account' && TT.account.openPlans) TT.account.openPlans(); } }));
   };
 
   function emit() { listeners.forEach(function (fn) { try { fn(); } catch (e) {} }); paintNav(); }
@@ -260,12 +260,12 @@
     if (m) {
       linkError = decodeURIComponent(m[1].replace(/\+/g, ' '));
       if (/expired|invalid/i.test(linkError)) linkError = 'That email link has expired or was already used. Please try again.';
-      history.replaceState(null, '', base + '#account');
+      history.replaceState(null, '', '/account');
     }
     if (/[?&]reset=1/.test(location.search)) { try { sessionStorage.setItem('tt-reset', '1'); } catch (e) {} }
     if (/[?&]paid=1/.test(location.search)) {
       try { sessionStorage.setItem('tt-paid', String(Date.now())); } catch (e) {}
-      history.replaceState(null, '', base + '#account');
+      history.replaceState(null, '', '/account');
     }
   })();
   function resetting() { try { return sessionStorage.getItem('tt-reset') === '1'; } catch (e) { return false; } }
@@ -311,7 +311,7 @@
         drop.forEach(function (k) { localStorage.removeItem(k); });
       } catch (e) {}
       meta = {}; saveMeta();
-      var after = function () { location.hash = '#home'; location.reload(); };
+      var after = function () { location.href = '/'; };
       if (sb) sb.auth.signOut().then(after, after); else after();
     }
     if (meta.dirty && sb && user) {
@@ -338,9 +338,9 @@
         });
       } catch (e) { setStatus('offline'); return; }
       sb.auth.getSession().then(function (r) {
-        if (/[?&](code|reset)=/.test(location.search)) history.replaceState(null, '', base + (resetting() ? '#account' : location.hash));
-        if (resetting()) window.dispatchEvent(new HashChangeEvent('hashchange'));
-        try { if (sessionStorage.getItem('tt-after-google')) { sessionStorage.removeItem('tt-after-google'); if (r.data && r.data.session) location.hash = '#account'; } } catch (e) {}
+        if (/[?&](code|reset)=/.test(location.search)) history.replaceState(null, '', resetting() ? '/account' : location.pathname + location.hash);
+        if (resetting()) window.dispatchEvent(new Event('tt:page'));
+        try { if (sessionStorage.getItem('tt-after-google')) { sessionStorage.removeItem('tt-after-google'); if (r.data && r.data.session) TT.go('account'); } } catch (e) {}
         setUser(r.data && r.data.session ? r.data.session.user : null);
       });
       sb.auth.onAuthStateChange(function (event, session) {
@@ -453,7 +453,7 @@
       card.append(form);
       if (nameIn && !busy) setTimeout(function () { if (!nameIn.value && document.activeElement === document.body) nameIn.focus(); }, 0);
       var m = msg(); if (m) card.append(m);
-      if (signup) card.append(h('p', { class: 'acct-fine' }, 'By creating an account, you confirm you’re 13 or older and agree to the ', h('a', { href: 'terms/', target: '_blank', rel: 'noopener', text: 'Terms of Service' }), ' and ', h('a', { href: 'privacy/', target: '_blank', rel: 'noopener', text: 'Privacy Policy' }), '.'));
+      if (signup) card.append(h('p', { class: 'acct-fine' }, 'By creating an account, you confirm you’re 13 or older and agree to the ', h('a', { href: '/terms/', target: '_blank', rel: 'noopener', text: 'Terms of Service' }), ' and ', h('a', { href: '/privacy/', target: '_blank', rel: 'noopener', text: 'Privacy Policy' }), '.'));
       else card.append(h('p', { class: 'acct-forgot' }, link('Forgot password?', 'forgot')));
       card.append(h('p', { class: 'acct-switch' }, signup ? 'Already have an account? ' : 'New here? ', link(signup ? 'Log In' : 'Create an Account', signup ? 'login' : 'signup')));
 
@@ -555,7 +555,7 @@
         realPlan() === 'owner' ? h('div', { class: 'acct-owner' },
           h('div', null, h('h3', { text: 'Owner Dashboard' }),
             h('p', { class: 'muted', text: meta.viewAs ? 'You are previewing the site as ' + (meta.viewAs === 'free' ? 'Free' : 'Premium') + '. Your account is still the owner account.' : 'Traffic, members, income and the plan preview switch.' })),
-          h('a', { class: 'btn primary small', href: '#owner' }, 'Open Dashboard')) : null,
+          h('a', { class: 'btn primary small', href: '/owner' }, 'Open Dashboard')) : null,
         showSaved ? h('p', { class: 'sync-status s-saved', text: 'Your new password is saved.' }) : null,
         h('p', { class: 'sync-status s-' + status, text: STATUS[status] || '' }),
         sync,
@@ -673,7 +673,7 @@
   ];
   TT.account.AVATARS = AVATARS;
   // Kevin's sticker art, one picture per icon (assets/avatars/<id>.png).
-  function avatarImg(p) { return h('img', { class: 'avatar-art', src: 'assets/avatars/' + p[0] + '.png', alt: '', draggable: 'false' }); }
+  function avatarImg(p) { return h('img', { class: 'avatar-art', src: '/assets/avatars/' + p[0] + '.png', alt: '', draggable: 'false' }); }
   TT.account.avatar = function () { return TT.load('avatar', null); };
   TT.account.setAvatar = function (a) { if (a) TT.save('avatar', a); else { try { localStorage.removeItem('tt:avatar'); } catch (e) {} changed('tt:avatar'); } emit(); };
   TT.account.googlePhoto = function () { return (user && user.user_metadata && (user.user_metadata.avatar_url || user.user_metadata.picture)) || ''; };
@@ -735,7 +735,7 @@
 
   // ---------- Account menu (hover or tap the icon) ----------
   var menu = null, menuWrap = null, hoverTimer = null;
-  function goPlans() { TT.account.wantPlans = true; if (location.hash === '#account' && TT.account.openPlans) TT.account.openPlans(); else location.hash = '#account'; }
+  function goPlans() { TT.account.wantPlans = true; if (TT.page() === 'account' && TT.account.openPlans) TT.account.openPlans(); else TT.go('account'); }
   function buildMenu() {
     var plan = TT.account.plan();
     var label = plan === 'owner' ? 'Owner' : plan === 'premium' ? 'Premium' : 'Free';
@@ -754,10 +754,10 @@
       h('div', { class: 'acct-menu-head' }, paintAvatar(h('span', { class: 'nav-avatar' })),
         h('div', null, h('b', { text: name || 'My Account' }), h('small', { text: TT.account.email() }),
           h('span', { class: 'plan-badge p-' + plan, text: label + ' Plan' }))),
-      item(I.user, 'My Account', function () { TT.account.wantPlans = false; location.hash = '#account'; }),
+      item(I.user, 'My Account', function () { TT.account.wantPlans = false; TT.go('account'); }),
       item(I.plans, 'Plans and Pricing', goPlans),
-      item(TT.icon('gear'), 'Settings', function () { location.hash = '#settings'; }),
-      realPlan() === 'owner' && document.getElementById('view-owner') ? item(I.dash, 'Owner Dashboard', function () { location.hash = '#owner'; }) : null,
+      item(TT.icon('gear'), 'Settings', function () { TT.go('settings'); }),
+      realPlan() === 'owner' && document.getElementById('view-owner') ? item(I.dash, 'Owner Dashboard', function () { TT.go('owner'); }) : null,
       h('div', { class: 'acct-menu-sep' }),
       item(I.out, 'Sign Out', TT.account.signOut, 'danger'));
     return m;
@@ -790,7 +790,7 @@
     }
     document.addEventListener('pointerdown', function (e) { if (menu && !menuWrap.contains(e.target)) closeMenu(); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && menu) { closeMenu(); navBtn.focus(); } });
-    window.addEventListener('hashchange', closeMenu);
+    window.addEventListener('tt:page', closeMenu);
     TT.account.onChange(function () { if (menu) { closeMenu(); } });
   }
 

@@ -55,7 +55,7 @@
   TT.mascot = function (opts) {
     opts = opts || {};
     var body = h('span', { class: 'mascot-body' }, POSES.map(function (p) {
-      return h('img', { class: 'mascot-pose m-' + p, src: 'assets/mascot/' + p + '.webp', alt: '', draggable: 'false', decoding: 'async' });
+      return h('img', { class: 'mascot-pose m-' + p, src: '/assets/mascot/' + p + '.webp', alt: '', draggable: 'false', decoding: 'async' });
     }));
     // His gold antenna bulb lights up when he is excited (see .mascot-glow in assets/learn.css).
     body.prepend(h('span', { class: 'mascot-glow halo' })); body.append(h('span', { class: 'mascot-glow shine' }));

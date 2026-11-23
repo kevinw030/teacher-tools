@@ -4,7 +4,7 @@
 // Artwork lives in assets/race/ (each themed race has its own folder of Kevin's art).
 (function () {
   var TT = window.TT, h = TT.h;
-  var N = 48, COLS = 8, ART = 'assets/race/';
+  var N = 48, COLS = 8, ART = '/assets/race/';
   var MOVES = ['march in place', 'do jumping jacks', 'hop on one foot', 'do arm circles', 'touch your toes', 'do star jumps', 'clap over your head', 'tap your knees'];
   var PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
   function pick(list) { return list[Math.floor(Math.random() * list.length)]; }

@@ -100,7 +100,7 @@
     }));
     var go = TT.button('Get Premium', { kind: 'primary big pm-go', onclick: function () {
       close(); TT.account.wantPlans = true;
-      if (location.hash === '#account' && TT.account.openPlans) TT.account.openPlans(); else location.hash = '#account';
+      if (TT.page() === 'account' && TT.account.openPlans) TT.account.openPlans(); else TT.go('account');
     } });
     var later = TT.button('Maybe Later', { kind: 'big', onclick: close });
 
@@ -129,7 +129,7 @@
     try { if (localStorage.getItem(KEY)) return; localStorage.setItem(KEY, '1'); } catch (e) { return; }
     if (layer) layer.remove();
     lastFocus = document.activeElement;
-    function toAccount() { close(); TT.account.wantSignIn = true; location.hash = '#account'; }
+    function toAccount() { close(); TT.account.wantSignIn = true; TT.go('account'); }
     var make = TT.button('Make a Free Account', { kind: 'primary big', onclick: toAccount });
     var card = h('div', { class: 'pm-card pm-intro', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'pmIntroTitle' },
       h('button', { type: 'button', class: 'pm-x', 'aria-label': 'Close', html: TT.icon('close'), onclick: close }),
@@ -161,7 +161,7 @@
         h('span', { class: 'pm-icon', html: TT.icon('lock') }),
         h('h2', { text: copy[0] }), h('p', { class: 'muted', text: copy[1] }),
         h('div', { class: 'row center' }, TT.button('See What Premium Includes', { kind: 'primary big', onclick: function () { open(name); } }),
-          h('a', { class: 'btn big', href: name === 'trivia' ? '#games' : '#home', text: name === 'trivia' ? 'Back to All Games' : 'Back to All Tools' })));
+          h('a', { class: 'btn big', href: name === 'trivia' ? '/games' : '/', text: name === 'trivia' ? 'Back to All Games' : 'Back to All Tools' })));
       el.append(gateCard);
     }
     paint();
@@ -179,7 +179,7 @@
     e.preventDefault();
     open(name);
   }, true);
-window.addEventListener('hashchange', close);
+window.addEventListener('tt:page', close);
   if (TT.account && TT.account.onChange) TT.account.onChange(paintTags);
   paintTags();
 })();

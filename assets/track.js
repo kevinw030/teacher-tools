@@ -60,18 +60,18 @@
 
   // Something worth counting inside a tool, like which escape room and grade was played.
   TT.track = function (event, detail) {
-    add({ event: clean(event, 40) || 'action', page: clean(location.hash.replace('#', '') || 'home', 60), detail: clean(detail, 80) });
+    add({ event: clean(event, 40) || 'action', page: clean(TT.page(), 60), detail: clean(detail, 80) });
   };
 
   var lastPage = '', lastAt = 0;
   function view() {
-    var page = location.hash.replace('#', '') || 'home';
+    var page = TT.page();
     if (!/^[a-z0-9-]{1,40}$/i.test(page)) return;          // sign-in links and other odd addresses
     var now = Date.now();
     if (page === lastPage && now - lastAt < 3000) return;
     lastPage = page; lastAt = now;
     add({ event: 'view', page: clean(page, 60), source: source() });
   }
-  window.addEventListener('hashchange', view);
+  window.addEventListener('tt:page', view);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', view); else view();
 })();

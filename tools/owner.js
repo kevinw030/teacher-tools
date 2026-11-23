@@ -141,7 +141,7 @@
       var sb = TT.account.client();
       if (!sb) { message('Loading…', 'Connecting to your account.'); setTimeout(load, 700); return; }
       if (!TT.account.signedIn()) {
-        return message('Owner Only', 'Sign in with the owner account to see the dashboard.', h('a', { class: 'btn primary', href: '#account' }, 'Sign In'));
+        return message('Owner Only', 'Sign in with the owner account to see the dashboard.', h('a', { class: 'btn primary', href: '/account' }, 'Sign In'));
       }
       if (loading) return; loading = true;
       if (!data) message('Loading…', 'Gathering your numbers.');
@@ -441,7 +441,7 @@
     }
 
     // Sign-in finishes a moment after the page opens, so try again once the account is known.
-    if (TT.account && TT.account.onChange) TT.account.onChange(function () { if (!data && !loading && TT.account.signedIn() && location.hash === '#owner') load(); });
+    if (TT.account && TT.account.onChange) TT.account.onChange(function () { if (!data && !loading && TT.account.signedIn() && TT.page() === 'owner') load(); });
     load();
     return { show: function () { if (!loading) load(); } };
   };
@@ -461,7 +461,7 @@
     var acct = document.querySelector('.nav-account');
     if (!acct || document.querySelector('.nav-owner')) return;
     var spot = acct.closest('.acct-menu-wrap') || acct;   // sit beside the account menu, not inside it
-    spot.parentNode.insertBefore(h('a', { class: 'nav-owner', href: '#owner', 'data-view': 'owner', text: 'Dashboard' }), spot);
+    spot.parentNode.insertBefore(h('a', { class: 'nav-owner', href: '/owner', 'data-view': 'owner', text: 'Dashboard' }), spot);
   }
   function start() {
     pill(); navLink();

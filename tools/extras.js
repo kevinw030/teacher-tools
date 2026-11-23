@@ -41,7 +41,7 @@
     }
     var acct = TT.account && TT.account.enabled
       ? row('My Account', TT.account.signedIn() ? 'Signed in as ' + TT.account.email() + '. Everything saves to your account.' : 'Sign in to save everything to your account and use it on any computer.',
-          h('a', { class: 'btn', href: '#account' }, TT.account.signedIn() ? 'Open My Account' : 'Sign In'))
+          h('a', { class: 'btn', href: '/account' }, TT.account.signedIn() ? 'Open My Account' : 'Sign In'))
       : null;
     el.append(h('div', { class: 'settings' },
       acct,

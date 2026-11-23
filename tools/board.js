@@ -188,10 +188,10 @@
     }
 
     // Signed out: a small chip says the board isn't being saved, and the first visit explains why.
-    var unsavedChip = h('a', { class: 'btn glass small unsaved-chip', href: '#account', title: 'Sign In to Save', onclick: function () { TT.account.wantSignIn = true; } },
+    var unsavedChip = h('a', { class: 'btn glass small unsaved-chip', href: '/account', title: 'Sign In to Save', onclick: function () { TT.account.wantSignIn = true; } },
       h('span', { class: 'dot', 'aria-hidden': 'true' }), h('span', { text: 'Not Saved · Sign In' }));
     function signInNote(text) {
-      return h('p', { class: 'upsell' }, h('span', { text: text + ' ' }), h('a', { href: '#account', text: 'Sign In', onclick: function () { TT.account.wantSignIn = true; } }));
+      return h('p', { class: 'upsell' }, h('span', { text: text + ' ' }), h('a', { href: '/account', text: 'Sign In', onclick: function () { TT.account.wantSignIn = true; } }));
     }
     function paintSaveState() { unsavedChip.hidden = canSave(); }
     if (TT.account && TT.account.onChange) TT.account.onChange(function () { paintSaveState(); paintScreens(); });
@@ -200,7 +200,7 @@
     var fsBtn = TT.canFullscreen ? TT.button('Full Screen', { icon: 'expand', kind: 'glass', title: 'Full Screen', onclick: function () { TT.toggleFullscreen(); } }) : null;
     bgBtn.title = 'Background'; clearBtn.title = 'Clear the Board'; screenBtn.title = 'Saved Screens';
     var top = h('div', { class: 'board-top' },
-      h('div', { class: 'row' }, h('a', { class: 'btn glass', href: '#home', title: 'All Tools', html: TT.icon('back') + '<span>All Tools</span>' }), h('div', { class: 'bg-wrap' }, screenBtn, screenPanel), screenNav, unsavedChip),
+      h('div', { class: 'row' }, h('a', { class: 'btn glass', href: '/', title: 'All Tools', html: TT.icon('back') + '<span>All Tools</span>' }), h('div', { class: 'bg-wrap' }, screenBtn, screenPanel), screenNav, unsavedChip),
       h('div', { class: 'row' }, clearConfirm, clearBtn, h('div', { class: 'bg-wrap' }, bgBtn, bgPanel),
         fsBtn)
     );

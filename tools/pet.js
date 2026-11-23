@@ -73,7 +73,7 @@
       el.textContent = '';
       var st = TT.load(KEY, null);
       if (!st || !st.pet) {
-        el.append(h('a', { class: 'pet-mini empty-pet', href: '#pet' },
+        el.append(h('a', { class: 'pet-mini empty-pet', href: '/pet' },
           h('span', { class: 'pet-mini-emoji', text: '🐾' }),
           h('span', null, h('b', { text: 'Adopt a Class Pet' }), h('small', { text: 'Choose a pet to care for together' }))));
         return;
@@ -87,7 +87,7 @@
         node = h('button', { type: 'button', class: 'mini-pet', 'aria-label': 'Say hi to ' + st.name }, h('span', { class: 'mini-pet-body', text: pet.emoji }));
         home = h('div', { class: 'mini-home home-' + pet.home }, decor(pet.home), node, bubble);
       }
-      info = h('a', { class: 'mini-info', href: '#pet' },
+      info = h('a', { class: 'mini-info', href: '/pet' },
         h('span', null, h('b', { text: st.name }), h('small', { text: done === CORE.length ? 'All cared for today ❤️' : done + ' of ' + CORE.length + ' care tasks done' })),
         h('span', { class: 'mini-go', html: TT.icon('arrow') }));
       el.append(h('div', { class: 'pet-mini' }, home, info));
@@ -392,9 +392,9 @@
   function off() {
     var links = document.querySelectorAll('a[href="#pet"]');
     for (var i = 0; i < links.length; i++) links[i].hidden = true, links[i].style.display = 'none';
-    if (location.hash === '#pet') location.replace('#home');
+    if (TT.page() === 'pet') TT.go('home', true);
   }
   off();
   document.addEventListener('DOMContentLoaded', off);
-  window.addEventListener('hashchange', off);
+  window.addEventListener('tt:page', off);
 })();

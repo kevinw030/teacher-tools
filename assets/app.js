@@ -83,13 +83,13 @@
   var arrow = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>';
   var gameMounters = {}, gameTitles = {}, gameClosers = {};
   (TT.games || []).forEach(function (g) {
-    $('gamesList').append(h('a', { class: 'tool c-' + g.color, href: '#' + g.id },
+    $('gamesList').append(h('a', { class: 'tool c-' + g.color, href: '/' + g.id },
       h('span', { class: 'tool-icon', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + g.icon + '</svg>' }),
       h('h3', { text: g.title }), h('p', { text: g.desc }), h('span', { class: 'go', html: 'Play ' + arrow })));
     var mount = h('section', { class: 'panel' });
     $('gameViews').append(h('main', { class: 'page c-' + g.color, id: 'view-' + g.id, 'data-view': g.id, hidden: true },
       h('header', { class: 'tool-head' },
-        h('div', null, h('a', { class: 'btn small', href: '#games', html: TT.icon('back') + '<span>All Games</span>' }), h('h1', { text: g.title }), h('p', { text: g.desc })),
+        h('div', null, h('a', { class: 'btn small', href: '/games', html: TT.icon('back') + '<span>All Games</span>' }), h('h1', { text: g.title }), h('p', { text: g.desc })),
         h('div', { class: 'row js-fs-slot' })),
       mount));
     gameMounters[g.id] = function () { return TT.premium.gate(g.id, mount, g.mount); };
@@ -160,9 +160,12 @@
   document.addEventListener('pointerdown', function (e) { if (!e.target.closest('.nav-menu')) closeMenus(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenus(); });
 
+  TT.pages = titles;
   function route() {
-    var name = location.hash.replace('#', '') || 'home';
+    var name = TT.page();
     if (!titles[name]) name = 'home';
+    // Tidy the address: /games/ or /games.html become /games, and unknown pages go home.
+    if (location.pathname !== TT.pageUrl(name)) history.replaceState(null, '', TT.pageUrl(name) + location.search + location.hash);
     views.forEach(function (v) { v.hidden = v.getAttribute('data-view') !== name; });
     document.querySelectorAll('.nav a[data-view]').forEach(function (a) {
       var on = a.getAttribute('data-view') === name || (a.getAttribute('data-view') === 'games' && !!gameTitles[name]);
@@ -183,7 +186,32 @@
     document.title = name === 'home' ? 'ED Sidekick' : titles[name] + ' · ED Sidekick';
     window.scrollTo(0, 0);
   }
-  window.addEventListener('hashchange', route);
+  window.addEventListener('tt:page', route);
+  // Old bookmarks and links like edsidekick.com/#games (or code that still sets location.hash)
+  // are moved to the clean address, /games.
+  function fromHash() {
+    var name = decodeURIComponent(location.hash.replace(/^#\/?/, ''));
+    if (name && titles[name]) { history.replaceState(null, '', TT.pageUrl(name) + location.search); return true; }
+    return false;
+  }
+  window.addEventListener('hashchange', function () { if (fromHash()) window.dispatchEvent(new Event('tt:page')); });
+  fromHash();
+  // Links to site pages change the page in place instead of reloading the whole site.
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var a = e.target.closest && e.target.closest('a[href]');
+    if (!a || (a.target && a.target !== '_self') || a.hasAttribute('download')) return;
+    var url = new URL(a.href, location.href);
+    if (url.origin !== location.origin) return;
+    var path = url.pathname.replace(/^\/+|\/+$/g, ''), name = path || 'home';
+    if (!titles[name]) {
+      if (url.pathname !== location.pathname || !url.hash) return;
+      name = decodeURIComponent(url.hash.replace(/^#\/?/, ''));   // an old-style "#games" link
+      if (!titles[name]) return;
+    }
+    e.preventDefault();
+    TT.go(name);
+  });
 
   var shown = new Date().toDateString();
   setInterval(function () {

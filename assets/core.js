@@ -6,6 +6,25 @@
   // (set to 1 for a free plan later, and raise it for premium).
   TT.config = { maxScreens: 10 };
 
+  // ---------- Page addresses ----------
+  // Every page has a clean address, like edsidekick.com/games. TT.page() names the page
+  // being shown ('home' for the front page) and TT.go('games') moves to another page
+  // without reloading. Listen for the 'tt:page' event to hear about page changes.
+  TT.page = function () {
+    var p = location.pathname;
+    try { p = decodeURIComponent(p); } catch (e) {}
+    p = p.replace(/^\/+|\/+$/g, '').replace(/\.html$/, '');
+    return !p || p === 'index' ? 'home' : p;
+  };
+  TT.pageUrl = function (name) { return !name || name === 'home' ? '/' : '/' + name; };
+  TT.go = function (name, replace) {
+    var url = TT.pageUrl(name);
+    if (url === location.pathname && !replace) return;
+    history[replace ? 'replaceState' : 'pushState'](null, '', url);
+    window.dispatchEvent(new Event('tt:page'));
+  };
+  window.addEventListener('popstate', function () { window.dispatchEvent(new Event('tt:page')); });
+
   // ---------- Storage (safe if the browser blocks it) ----------
   TT.load = function (key, fallback) {
     try { var v = JSON.parse(localStorage.getItem('tt:' + key)); return v == null ? fallback : v; }

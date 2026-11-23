@@ -9,7 +9,7 @@
       ['wyr', 'trivia', 'rooms'].forEach(function (k) { if (!Array.isArray(c[k])) c[k] = []; });
       return c;
     },
-    open: function (tab) { TT.customTab = tab; location.hash = '#my-questions'; }
+    open: function (tab) { TT.customTab = tab; TT.go('my-questions'); }
   };
 
   var TABS = [['wyr', 'Would You Rather'], ['trivia', 'Trivia'], ['rooms', 'Escape Rooms']];

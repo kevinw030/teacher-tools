@@ -57,5 +57,5 @@
     if (el && el.classList.contains('page')) start(el); else stop();
   });
   window.addEventListener('resize', function () { if (page) { clearTimeout(timer); timer = setTimeout(fit, 60); } });
-  window.addEventListener('hashchange', function () { if (page) setTimeout(fit, 120); });
+  window.addEventListener('tt:page', function () { if (page) setTimeout(fit, 120); });
 })();

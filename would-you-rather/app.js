@@ -235,8 +235,8 @@
     TT.wyr.onChange(paint);
     paint();
     // The home page's "Spin the Wheel" button opens this page and starts the spin.
-    function auto() { if (fun && TT.wyr.autoSpin && !current() && !spinning && location.hash === '#would-you-rather') { TT.wyr.autoSpin = false; setTimeout(spin, 650); } }
-    if (fun) { window.addEventListener('hashchange', auto); auto(); }
+    function auto() { if (fun && TT.wyr.autoSpin && !current() && !spinning && TT.page() === 'would-you-rather') { TT.wyr.autoSpin = false; setTimeout(spin, 650); } }
+    if (fun) { window.addEventListener('tt:page', auto); auto(); }
     return { paint: paint, spin: spin };
   };
 })();
