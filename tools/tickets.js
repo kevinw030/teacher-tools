@@ -74,7 +74,9 @@
           TT.button('Ask Again', { kind: 'small', onclick: function () { draft = { type: t.type, q: t.q, choices: t.choices.slice(), mode: t.mode }; paint(); window.scrollTo(0, 0); } }),
           h('button', { type: 'button', class: 'cq-x', 'aria-label': 'Delete this ticket', title: 'Delete', html: TT.icon('trash'), onclick: function () { state.saved.splice(i, 1); save(); paint(); } })));
       });
-      root.append(h('h3', { class: 'cq-h', text: 'Past Tickets (' + state.saved.length + ')' }), list);
+      var keep = TT.limit ? TT.limit('tickets') : 50;
+      root.append(h('h3', { class: 'cq-h', text: 'Past Tickets (' + state.saved.length + ')' }),
+        TT.premium && !TT.premium.has() ? TT.upsell('Your last ' + keep + ' tickets are kept. Premium keeps your last 50.') : null, list);
     }
 
     // ----- 2. Students answer -----
@@ -146,7 +148,7 @@
       root.append(h('div', { class: 'xt-stage results' }, h('span', { class: 'eyebrow', text: dateText(t.date) + ' · ' + t.answers.length + (t.answers.length === 1 ? ' Answer' : ' Answers') }), h('h2', { class: 'xt-q', text: t.q })),
         results(t, false),
         h('div', { class: 'row' },
-          live ? TT.button('Save and Close', { kind: 'primary big', onclick: function () { state.saved.unshift(t); state.saved = state.saved.slice(0, 60); state.cur = null; save(); view = 'setup'; paint(); } }) : null,
+          live ? TT.button('Save and Close', { kind: 'primary big', onclick: function () { state.saved.unshift(t); state.saved = state.saved.slice(0, TT.limit ? TT.limit('tickets') : 50); state.cur = null; save(); view = 'setup'; paint(); } }) : null,
           live ? TT.button('Keep Collecting', { kind: 'big', onclick: function () { t.done = false; save(); view = 'collect'; paint(); } }) : null,
           live ? TT.button('Throw Away', { icon: 'trash', kind: 'big', onclick: function () { state.cur = null; save(); view = 'setup'; paint(); } }) : null,
           !live ? TT.button('Back to Tickets', { icon: 'back', kind: 'big', onclick: function () { viewing = null; view = 'setup'; paint(); } }) : null));

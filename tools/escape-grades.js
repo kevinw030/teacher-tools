@@ -131,8 +131,15 @@
     }
   };
   // The five locks a room uses for a grade (falls back to the room's own set).
+  // Each spot picks one question at random from its grade's pool (tools/escape-pool.js adds the extras),
+  // so the room is a little different every time the class plays.
   TT.escapeLocks = function (room, grade) {
-    var set = !room.mine && TT.ESCAPE_GRADES[room.id];
-    return (set && set[grade]) || room.locks;
+    if (room.mine) return room.locks;
+    var set = TT.ESCAPE_GRADES[room.id], base = (set && set[grade]) || room.locks;
+    var pool = TT.ESCAPE_POOL && TT.ESCAPE_POOL[room.id] && TT.ESCAPE_POOL[room.id][grade];
+    return base.map(function (L, i) {
+      var opts = [L].concat((pool && pool[i]) || []);
+      return opts[Math.floor(Math.random() * opts.length)];
+    });
   };
 })();

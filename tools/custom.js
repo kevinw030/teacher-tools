@@ -26,9 +26,10 @@
     function field(label, input) { return h('label', { class: 'cq-field' }, h('span', { text: label }), input); }
     function input(id, ph, max) { return h('input', { type: 'text', id: id, placeholder: ph, maxlength: max || 120, autocomplete: 'off' }); }
     function full(m) {
-      var max = TT.limit ? TT.limit('questions') : Infinity;
-      if (data.wyr.length + data.trivia.length + data.rooms.length < max) return false;
-      m.textContent = ''; m.append(TT.upsell('The Free plan holds ' + max + ' of your own questions and rooms. Remove one to add another, or go Premium for unlimited.')); m.hidden = false;
+      // Only trivia has a limit on the Free plan. Would You Rather questions are unlimited for everyone.
+      var max = TT.limit ? TT.limit('trivia') : Infinity;
+      if (data.trivia.length < max) return false;
+      m.textContent = ''; m.append(TT.upsell('The Free plan holds ' + max + ' of your own trivia questions. Remove one to add another, or go Premium for unlimited.')); m.hidden = false;
       return true;
     }
     function msgEl() { return h('p', { class: 'form-msg', hidden: true, role: 'status' }); }
@@ -44,7 +45,6 @@
         e.preventDefault();
         var x = clean(a.value), y = clean(b.value);
         if (!x || !y) { say(m, 'Type both choices first.'); (x ? b : a).focus(); return; }
-        if (full(m)) return;
         data.wyr.push([x, y]); save(); a.value = ''; b.value = ''; paint();
         document.getElementById('cqA').focus();
       } },
@@ -105,15 +105,16 @@
     function rooms() {
       if (editing) { roomEditor(); return; }
       var list = h('div', { class: 'cq-list' });
-      if (!data.rooms.length) list.append(empty('No rooms of your own yet. Build one from your spelling words, math facts or a science unit.'));
+      if (!data.rooms.length) list.append(empty('No rooms of your own yet.'));
       data.rooms.forEach(function (r, i) {
         list.append(h('div', { class: 'cq-item' },
           h('div', { class: 'cq-text' }, h('b', { text: r.title }), h('small', { text: r.locks.length + (r.locks.length === 1 ? ' lock' : ' locks') })),
           TT.button('Edit', { icon: 'edit', kind: 'small', onclick: function () { editing = { index: i, room: JSON.parse(JSON.stringify(r)) }; paint(); } }),
           removeBtn('Delete ' + r.title, function () { data.rooms.splice(i, 1); save(); paint(); })));
       });
-      box.append(h('p', { class: 'muted', text: 'Write up to five puzzles. Students type the answer to open each lock. Your rooms show up in Mini Escape Room.' }),
-        h('div', { class: 'row' }, TT.button('Make a New Room', { icon: 'plus', kind: 'primary', onclick: function () { editing = { index: -1, room: { id: 'r' + Date.now().toString(36), title: '', intro: '', locks: [] } }; paint(); } })),
+      // Building whole new rooms is coming soon. Rooms made before keep working and can still be edited.
+      box.append(h('p', { class: 'muted', text: 'Soon you can build a whole room of your own. Until then, Premium lets you change the questions inside any escape room: open a room, pick a grade and press Edit Questions.' }),
+        h('div', { class: 'row' }, TT.soonButton('Make a New Room')),
         h('h3', { class: 'cq-h', text: 'My Rooms (' + data.rooms.length + ')' }), list);
     }
     function roomEditor() {
@@ -138,7 +139,6 @@
         if (!title.value.trim()) { say(m, 'Give your room a name.'); title.focus(); return; }
         if (bad >= 0) { say(m, 'Lock ' + (bad + 1) + ' needs both a puzzle and an answer.'); (locks[bad].q.value.trim() ? locks[bad].a : locks[bad].q).focus(); return; }
         if (!out.length) { say(m, 'Write at least one lock with a puzzle and an answer.'); locks[0].q.focus(); return; }
-        if (editing.index < 0 && full(m)) return;
         r.title = title.value.trim(); r.intro = intro.value.trim(); r.locks = out;
         if (editing.index >= 0) data.rooms[editing.index] = r; else data.rooms.push(r);
         editing = null; save(); paint();
