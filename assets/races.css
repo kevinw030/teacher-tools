@@ -48,3 +48,25 @@
 .th-sea .tr-tile.start { --b: #0E3A33; --e: #3BE0B0; }
 
 @media (max-width: 760px) { .trail[class*="th-"] .tr-wrap { padding: 6.5% 7%; } .tr-pair { display: none; } }
+
+/* ---------- The 3D die (tools/dice.js), shared by all four race games ---------- */
+.tr-dice { --s: 66px; --half: calc(var(--s) / 2); --pip: #0E1120; --one: #F0505A; position: relative; display: inline-block; width: var(--s); height: var(--s); flex: none; margin: 4px 10px 8px 4px; perspective: 520px; }
+.th-garden .tr-dice { --one: #1FAE6B; } .th-desert .tr-dice { --one: #F06A4A; } .th-sea .tr-dice { --one: #6D5BF0; }
+.tr-dice-hop { position: absolute; inset: 0; transform-origin: 50% 100%; transform-style: preserve-3d; }
+.tr-dice-cube { position: absolute; inset: 0; transform-style: preserve-3d; }
+/* Resting tilt on top of the face turn so the top and side edges show, like a die on a table. */
+.tr-dice-tilt { position: absolute; inset: 0; transform-style: preserve-3d; transform: rotateX(-16deg) rotateY(18deg); }
+.tr-dice-face { position: absolute; inset: 0; display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); padding: 13%; border-radius: 22%; backface-visibility: hidden;
+  background: radial-gradient(120% 120% at 28% 22%, #fff 0 45%, #EEF0F7 100%); box-shadow: inset 0 0 0 1px rgba(14,17,32,.08), inset 0 -5px 10px -4px rgba(14,17,32,.14); }
+.tr-dice-face i { margin: 13%; border-radius: 50%; }
+.tr-dice-face i.on { background: radial-gradient(circle at 38% 34%, #3A3F58, var(--pip) 70%); box-shadow: inset 0 2px 2px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.9); }
+.tr-dice-face.f1 i.on { background: radial-gradient(circle at 38% 34%, color-mix(in srgb, var(--one) 70%, #fff), var(--one) 72%); margin: 2%; }
+.tr-dice-core { position: absolute; inset: 2px; background: #E4E7F0; border-radius: 18%; }
+.tr-dice-shadow { position: absolute; left: 8%; right: 8%; bottom: -9px; height: 14px; border-radius: 50%; background: radial-gradient(closest-side, rgba(14,17,32,.42), rgba(14,17,32,0)); }
+/* Landing pop: a soft ring in the theme colour. */
+.tr-dice::after { content: ""; position: absolute; inset: -6px; border-radius: 30%; border: 3px solid var(--one); opacity: 0; transform: scale(.8); pointer-events: none; }
+.tr-dice.landed::after { animation: trDiceRing .6s cubic-bezier(.2,.8,.3,1); }
+@keyframes trDiceRing { 0% { opacity: .9; transform: scale(.85); } 100% { opacity: 0; transform: scale(1.35); } }
+.tr-rollrow { align-items: center; margin-top: 10px; }
+@media (max-width: 560px) { .tr-dice { --s: 56px; } }
+@media (prefers-reduced-motion: reduce) { .tr-dice.landed::after { animation: none; } }
