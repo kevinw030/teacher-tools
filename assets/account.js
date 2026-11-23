@@ -371,7 +371,7 @@
       card.append(form);
       if (nameIn && !busy) setTimeout(function () { if (!nameIn.value && document.activeElement === document.body) nameIn.focus(); }, 0);
       var m = msg(); if (m) card.append(m);
-      if (signup) card.append(h('p', { class: 'acct-fine', text: 'By creating an account, you confirm you’re 13 or older.' }));
+      if (signup) card.append(h('p', { class: 'acct-fine' }, 'By creating an account, you confirm you’re 13 or older and agree to the ', h('a', { href: 'terms/', target: '_blank', rel: 'noopener', text: 'Terms of Service' }), ' and ', h('a', { href: 'privacy/', target: '_blank', rel: 'noopener', text: 'Privacy Policy' }), '.'));
       else card.append(h('p', { class: 'acct-forgot' }, link('Forgot password?', 'forgot')));
       card.append(h('p', { class: 'acct-switch' }, signup ? 'Already have an account? ' : 'New here? ', link(signup ? 'Log In' : 'Create an Account', signup ? 'login' : 'signup')));
 
