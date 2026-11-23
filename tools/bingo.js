@@ -6,7 +6,7 @@
   var TT = window.TT, h = TT.h, B = window.Bingo;
   TT.bingoIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="6" cy="6" r="1.6" fill="currentColor"/><circle cx="18" cy="18" r="1.6" fill="currentColor"/></svg>';
   var DEF = { kind: 'words', text: '', listName: '', lists: [], sample: 0, callClue: true, ops: ['mul'], min: 0, max: 10,
-    size: 5, free: true, pattern: 'line', copies: 24, speak: false, auto: 0 };
+    size: 5, free: true, pattern: 'line', copies: 24, speak: false, auto: 0, guided: false };
   var GAME_KEY = 'tt-bingo-game';   // this tab only, so a refresh keeps the game (and class code) going
   var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -22,7 +22,7 @@
     el.append(root);
     var game = null, conn = null, people = [], claims = [], autoTimer = null, autoStart = 0, sendTimer = null, celebrating = null, liveStatus = 'trying';
 
-    function items() { return S.kind === 'math' ? B.fromFacts(S.ops, S.min, S.max) : B.fromWords(S.text, S.callClue); }
+    function items() { return S.kind === 'math' ? B.fromFacts(S.ops, S.min, S.max, B.cellsNeeded(S.size, free())) : B.fromWords(S.text, S.callClue); }
     function free() { return S.free && S.size % 2 === 1; }
     function title() {
       if (S.kind === 'math') return S.ops.map(function (o) { return { add: 'Addition', sub: 'Subtraction', mul: 'Multiplication', div: 'Division' }[o]; }).join(' and ') + ' Facts';
@@ -120,7 +120,9 @@
         var range = h('div', { class: 'row bgo-range' },
           stepper('Numbers From', S.min, 0, 12, function (v) { S.min = Math.min(v, S.max); save(); paintSetup(); }),
           stepper('To', S.max, 1, 12, function (v) { S.max = Math.max(v, S.min); save(); paintSetup(); }));
-        var mc = h('p', { class: 'bgo-count' + (enough ? '' : ' short'), text: list.length + ' different answers · a ' + sizeLabel(S.size) + ' card needs ' + need });
+        var mc = h('p', { class: 'bgo-count' + (enough ? '' : ' short'), text: list.stretched
+          ? 'Enough answers for a ' + sizeLabel(S.size) + ' card. A few facts start with numbers up to ' + list.stretched + ', so every card is different.'
+          : list.length + ' different answers · a ' + sizeLabel(S.size) + ' card needs ' + need });
         var ex = list.length ? list[Math.floor(list.length / 2)] : null;
         s1.append(ops, range, mc, ex ? h('p', { class: 'bgo-hint', text: 'You call a fact like “' + ex.calls[0] + '”, and students look for ' + ex.card + ' on their card.' }) : null);
       }
@@ -133,7 +135,11 @@
         S.size % 2 ? h('div', { class: 'bgo-opt' }, h('span', { class: 'bgo-lab', text: 'Free Space' }),
           seg([[true, 'On'], [false, 'Off']], !!S.free, function (v) { S.free = v; save(); paintSetup(); }, 'Free space in the middle')) : null,
         h('div', { class: 'bgo-opt' }, h('span', { class: 'bgo-lab', text: 'To Win' }),
-          seg(Object.keys(B.PATTERNS).map(function (k) { return [k, B.PATTERNS[k]]; }), S.pattern, function (v) { S.pattern = v; save(); paintSetup(); }, 'How to win')));
+          seg(Object.keys(B.PATTERNS).map(function (k) { return [k, B.PATTERNS[k]]; }), S.pattern, function (v) { S.pattern = v; save(); paintSetup(); }, 'How to win')),
+        // Guided play: students' cards light up the called answer and say "It's on your card!".
+        h('div', { class: 'bgo-opt' }, h('span', { class: 'bgo-lab', text: 'Guided Play' }),
+          seg([[false, 'Off'], [true, 'On']], !!S.guided, function (v) { S.guided = v; save(); paintSetup(); }, 'Guided play'),
+          h('span', { class: 'bgo-opt-help', text: S.guided ? 'Students’ cards light up the called answer and tell them it’s there. Good for younger players.' : 'Students find the answers on their own.' })));
       var prevBox = h('div', { class: 'bgo-preview', 'aria-hidden': 'true' });
       var shuffleBtn = TT.button('Shuffle Preview', { kind: 'small', icon: 'shuffle', onclick: function () { previewSeed++; paintPreview(); } });
       s2.append(h('div', { class: 'bgo-card-row' }, opts, h('div', { class: 'bgo-prev-col' }, prevBox, shuffleBtn)));
@@ -235,7 +241,7 @@
       if (keep) live = true;
       game = { g: B.randomId(), items: it, order: B.shuffle(it.map(function (_, i) { return i; })), called: [], last: null, round: 1,
         title: title(), size: S.size, free: free(), pattern: S.pattern, live: !!live, code: keep ? keep.code : live ? B.makeCode() : '', winners: [], reveal: false,
-        phase: live ? 'lobby' : 'play', kicked: keep ? keep.kicked || [] : [], avs: keep ? keep.avs || {} : {} };
+        guided: !!S.guided, phase: live ? 'lobby' : 'play', kicked: keep ? keep.kicked || [] : [], avs: keep ? keep.avs || {} : {} };
       claims = [];
       if (!keep) people = [];
       persist();
@@ -297,7 +303,7 @@
     function stateMsg() {
       return { g: game.g, phase: game.phase || 'play', round: game.round, title: game.title, size: game.size, free: game.free, pattern: game.pattern,
         cards: game.items.map(function (i) { return i.card; }), called: game.called,
-        last: game.last ? { i: game.last.i, text: game.last.text, n: game.called.length } : null, winners: game.winners, avs: Lobby.seated(game.avs || {}, hereNow()) };
+        last: game.last ? { i: game.last.i, text: game.last.text, n: game.called.length } : null, winners: game.winners, guided: !!game.guided, avs: Lobby.seated(game.avs || {}, hereNow()) };
     }
     function sendState() {
       if (!conn || !game) return;
@@ -571,13 +577,19 @@
         try { var q = window.qrcode(0, 'M'); q.addData(url); q.make(); qr.innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true }); } catch (e) {}
       }, function () {});
       var card = h('section', { class: 'bgo-join' + (!big && game.called.length && !game.bigCode ? ' compact' : '') },
-        h('div', { class: 'bgo-join-text' },
-          h('span', { class: 'bgo-join-step', text: 'Go To' }),
-          h('span', { class: 'bgo-join-url', text: host + '/join' }),
-          h('span', { class: 'bgo-join-step', text: 'Type the Code' }),
-          h('span', { class: 'bgo-code', 'aria-label': 'Class code ' + game.code.split('').join(' ') },
-            game.code.split('').map(function (ch, i) { return h('span', { class: 'bgo-code-ch', style: '--i:' + i, text: ch }); }))),
-        qr);
+        // Three big numbered steps a first grader can follow from across the room.
+        h('ol', { class: 'bgo-join-text bgo-steps' },
+          h('li', { class: 'bgo-st' }, h('span', { class: 'bgo-st-n', 'aria-hidden': 'true', text: '1' }),
+            h('span', { class: 'bgo-st-body' }, h('span', { class: 'bgo-join-step', text: 'Open the internet and type' }),
+              h('span', { class: 'bgo-join-url', text: host + '/join' }))),
+          h('li', { class: 'bgo-st' }, h('span', { class: 'bgo-st-n', 'aria-hidden': 'true', text: '2' }),
+            h('span', { class: 'bgo-st-body' }, h('span', { class: 'bgo-join-step', text: 'Type this code' }),
+              h('span', { class: 'bgo-code', 'aria-label': 'Class code ' + game.code.split('').join(' ') },
+                game.code.split('').map(function (ch, i) { return h('span', { class: 'bgo-code-ch', style: '--i:' + i, text: ch }); })))),
+          h('li', { class: 'bgo-st bgo-st-3' }, h('span', { class: 'bgo-st-n', 'aria-hidden': 'true', text: '3' }),
+            h('span', { class: 'bgo-st-body' }, h('span', { class: 'bgo-join-step', text: 'Then' }),
+              h('span', { class: 'bgo-st-go', text: 'Press the big pink Join button!' })))),
+        h('div', { class: 'bgo-qr-box' }, qr, h('span', { class: 'bgo-qr-t', text: 'Or scan with a camera' })));
       var size = TT.button(card.classList.contains('compact') ? 'Show the Code Big' : 'Make the Code Smaller', { kind: 'small bgo-join-size', icon: card.classList.contains('compact') ? 'expand' : 'shrink', onclick: function () {
         game.bigCode = card.classList.contains('compact'); persist(); paintGame();
       } });

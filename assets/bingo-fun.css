@@ -70,3 +70,63 @@
 .bgo-again-t { margin: 0; font: 900 clamp(22px, 2.2vw, 28px) var(--display); color: var(--emerald); }
 .bgo-again .join-help { margin: 0; }
 @media (prefers-reduced-motion: reduce) { .bgo-winner, .bgo-win-star { animation: none !important; } }
+.bgo-opt-help { flex-basis: 100%; margin-top: -4px; color: var(--muted); font-size: 14px; }
+
+/* ---------- Joining, made for first graders: three big numbered steps on the teacher's screen ---------- */
+.bgo-steps { list-style: none; margin: 0; padding: 0; gap: var(--s4); }
+.bgo-st { display: flex; align-items: center; gap: var(--s3); }
+.bgo-st-n { flex: none; width: clamp(40px, 3.6vw, 56px); aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; background: #FFD15C; color: #1F1B4D;
+  font: 900 clamp(22px, 2.2vw, 32px)/1 var(--display); box-shadow: inset 0 -4px 0 rgba(0,0,0,.15); }
+.bgo-st-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.bgo-steps .bgo-join-step { font-size: clamp(15px, 1.3vw, 19px); letter-spacing: .02em; text-transform: none; color: #FFE9A8; font-weight: 800; }
+.bgo-steps .bgo-join-url { display: inline-block; margin: 0; padding: 6px 16px; border-radius: 14px; background: #fff; color: #1F1B4D; font-size: clamp(28px, 3.4vw, 52px);
+  box-shadow: inset 0 -5px 0 rgba(31,27,77,.14); user-select: all; }
+.bgo-st-go { font: 900 clamp(20px, 2vw, 30px)/1.15 var(--display); color: #fff; }
+.bgo-qr-box { flex: none; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.bgo-qr-t { font: 700 13px var(--body); color: #E8E4FF; }
+.bgo-qr-box .bgo-qr:empty + .bgo-qr-t { display: none; }
+.lb-host .bgo-join { flex-direction: column; align-items: stretch; }
+.lb-host .bgo-qr-box { flex-direction: row; gap: var(--s3); align-self: flex-start; }
+.lb-host .bgo-qr { width: clamp(100px, 9vw, 140px); }
+/* During the game the card shrinks to one strip: just the address and the code */
+.bgo-join.compact .bgo-steps { flex-direction: row; align-items: center; gap: var(--s4); }
+.bgo-join.compact .bgo-st-n, .bgo-join.compact .bgo-st-3, .bgo-join.compact .bgo-qr-t { display: none; }
+.bgo-join.compact .bgo-steps .bgo-join-url { font-size: clamp(18px, 1.8vw, 26px); padding: 3px 10px; border-radius: 10px; }
+
+/* The student's join form: numbered steps */
+.join-num { display: flex; align-items: center; gap: 10px; font-size: 17px; }
+.join-n { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--rose); color: #fff; font: 900 16px/1 var(--display); }
+.join-last { margin: var(--s3) 0 0; }
+.join-go { font-size: 24px !important; padding-block: 16px !important; }
+
+/* ---------- Draw while you wait ---------- */
+.lb-doodle { width: 100%; display: flex; flex-direction: column; gap: var(--s2); padding: var(--s3); border-radius: 22px; background: color-mix(in srgb, var(--surface) 80%, transparent); border: 1px solid var(--line); }
+.lb-doodle h2 { margin: 0; font-size: 18px; }
+.lb-pad { width: 100%; height: clamp(180px, 34vh, 280px); border-radius: 16px; background: #fff; border: 2px dashed color-mix(in srgb, var(--violet) 30%, var(--line)); touch-action: none; cursor: crosshair; }
+.lb-pad-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); flex-wrap: wrap; }
+.lb-pad-colors { display: flex; gap: 8px; flex-wrap: wrap; }
+.lb-sw { appearance: none; width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--surface); background: var(--c); cursor: pointer; box-shadow: 0 0 0 1px var(--line); transition: transform .3s var(--spring); }
+.lb-sw.on { transform: scale(1.18); box-shadow: 0 0 0 3px var(--ink); }
+.lb-sw:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* ---------- The whole card fits on the screen without scrolling ---------- */
+.join-main.is-play { gap: var(--s2); padding-top: var(--s2); padding-bottom: var(--s4); }
+.join-card-box .bc { width: min(100%, max(250px, calc((100dvh - 350px) / 1.18))); }
+@media (max-height: 820px) {
+  .join-body .join-top { padding-top: var(--s2); }
+  .join-body .join-top .logo { transform: scale(.85); }
+  .join-main.is-play .join-call { min-height: 0; padding: 8px 14px; border-radius: 18px; }
+  .join-main.is-play .join-call-text { font-size: clamp(22px, 5.4vw, 32px); }
+  .join-main.is-play .join-bingo { padding: 8px 14px; }
+  .join-main.is-play .join-bingo .jb-word { font-size: 30px; }
+}
+.bgo-steps .bgo-join-url { white-space: nowrap; overflow-wrap: normal; font-size: clamp(22px, 2.5vw, 44px); }
+.bgo-join:not(.compact) .bgo-steps .bgo-join-url { max-width: 100%; }
+/* Wide, short screens (Chromebooks, laptops): the card sits beside the call, as big as the height allows */
+@media (min-width: 860px) and (orientation: landscape) {
+  .join-main.is-play { max-width: 1180px; display: grid; grid-template-columns: minmax(300px, 1fr) auto; grid-auto-rows: min-content; column-gap: var(--s5); align-content: start; }
+  .join-main.is-play > * { grid-column: 1; }
+  .join-main.is-play > .join-bar { grid-column: 1 / -1; }
+  .join-main.is-play > .join-card-box { grid-column: 2; grid-row: 2 / span 6; }
+  .join-main.is-play .join-card-box .bc { width: max(300px, calc((100dvh - 120px) / 1.16)); max-width: none; }
+}
