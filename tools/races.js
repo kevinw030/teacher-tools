@@ -69,12 +69,16 @@
   });
 
   var flag = '<path d="M16 3v8M16 4h5l-1.5 2L21 8h-5"/>';
-  TT.games = (TT.games || []).concat([
+  var mine = [
     { id: 'addition-race', title: 'Addition Race', desc: 'Garden Rally. Teams roll, race around the track and solve addition facts to get ahead.', color: 'lime', mount: add, forget: ['race-add'],
       icon: flag + '<path d="M7 10v8M3 14h8"/>' },
     { id: 'subtraction-race', title: 'Subtraction Race', desc: 'Desert Rally. Teams roll, race around the track and solve subtraction facts to get ahead.', color: 'coral', mount: sub, forget: ['race-sub'],
       icon: flag + '<path d="M3 14h8"/>' },
     { id: 'division-race', title: 'Division Race', desc: 'Deep Sea Rally. Teams roll, race around the track and solve division facts to get ahead.', color: 'sky', mount: div, forget: ['race-div'],
       icon: flag + '<path d="M3 14h8"/><circle cx="7" cy="10.5" r="1.2" fill="currentColor"/><circle cx="7" cy="17.5" r="1.2" fill="currentColor"/>' }
-  ]);
+  ];
+  // Kevin's order for the races: Addition, Subtraction, Multiplication, Division
+  var games = TT.games || [], at = games.map(function (g) { return g.id; }).indexOf('trail-race');
+  if (at < 0) TT.games = games.concat(mine);
+  else TT.games = games.slice(0, at).concat(mine.slice(0, 2), games[at], mine[2], games.slice(at + 1));
 })();
