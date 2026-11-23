@@ -449,6 +449,36 @@
     var showSaved = false;
 
     var STATUS = { saved: 'All changes saved to your account.', saving: 'Saving…', unsaved: 'Saving soon…', offline: 'Offline. Changes will save when you’re back online.', error: 'Couldn’t save just now. We’ll keep trying.', idle: 'Checking your account…' };
+    var picking = false, avatarMsg = '';
+    function avatarPicker() {
+      var cur = TT.account.avatar() || {};
+      var file = h('input', { type: 'file', id: 'avatarFile', accept: 'image/*', hidden: true });
+      file.addEventListener('change', function () {
+        var f = file.files[0]; file.value = '';
+        if (!f) return;
+        squareImage(f, function (data) {
+          if (!data) { avatarMsg = 'That file isn’t a picture this browser can open. Try a JPG or PNG.'; paint(); return; }
+          avatarMsg = ''; TT.account.setAvatar({ img: data });
+        });
+      });
+      var grid = h('div', { class: 'avatar-grid', role: 'radiogroup', 'aria-label': 'Premade icons' }, AVATARS.map(function (p) {
+        var on = cur.preset === p[0];
+        return h('button', { type: 'button', role: 'radio', 'aria-checked': on ? 'true' : 'false', 'aria-label': p[0], title: p[0].charAt(0).toUpperCase() + p[0].slice(1),
+          class: 'avatar-opt' + (on ? ' on' : ''), style: 'background:linear-gradient(135deg,' + p[2] + ',' + p[3] + ')',
+          onclick: function () { avatarMsg = ''; TT.account.setAvatar({ preset: p[0] }); } }, p[1]);
+      }));
+      var g = TT.account.googlePhoto();
+      return h('div', { class: 'avatar-picker' },
+        h('div', { class: 'avatar-picker-head' }, h('h3', { text: 'Choose Your Icon' }),
+          h('button', { type: 'button', class: 'linkish', onclick: function () { picking = false; paint(); } }, 'Done')),
+        grid,
+        h('div', { class: 'row avatar-actions' },
+          h('label', { class: 'btn small', for: 'avatarFile', html: TT.icon('upload') + '<span>Upload My Own</span>' }), file,
+          g ? TT.button('Use My Google Photo', { kind: 'small', onclick: function () { TT.account.setAvatar({ google: true }); } }) : null,
+          TT.button('Use My Initial', { kind: 'small', onclick: function () { TT.account.setAvatar(null); } })),
+        avatarMsg ? h('p', { class: 'form-msg', text: avatarMsg }) : null,
+        h('p', { class: 'muted small', text: 'Uploaded pictures are shrunk to a small square and saved to your account.' }));
+    }
     function accountCard() {
       var plan = TT.account.plan();
       var label = plan === 'owner' ? 'Owner' : plan === 'premium' ? 'Premium' : 'Free';
@@ -469,11 +499,14 @@
       var outBtn = TT.button('Sign Out', { kind: 'small', onclick: function () { outBtn.hidden = true; outConfirm.hidden = false; } });
       return h('section', { class: 'acct-card' },
         h('div', { class: 'acct-who' },
-          h('span', { class: 'nav-avatar big', text: (TT.account.firstName() || TT.account.email() || '?').charAt(0).toUpperCase() }),
+          h('div', { class: 'avatar-wrap' },
+            h('button', { type: 'button', class: 'avatar-btn', title: 'Change your icon', 'aria-label': 'Change your icon', onclick: function () { picking = !picking; paint(); } },
+              paintAvatar(h('span', { class: 'nav-avatar big' })), h('span', { class: 'avatar-edit', 'aria-hidden': 'true', html: TT.icon('edit') }))),
           h('div', null, h('h2', { text: TT.account.firstName() ? 'Hi, ' + TT.account.firstName() + '!' : TT.account.email() }),
             TT.account.firstName() ? h('p', { class: 'muted acct-email', text: TT.account.email() }) : null,
             h('span', { class: 'plan-badge p-' + plan, text: label + ' Plan' }),
             plan === 'free' ? h('button', { type: 'button', class: 'linkish plan-see', onclick: function () { tab = 'plans'; paint(); } }, 'See Plans') : null)),
+        picking ? avatarPicker() : null,
         showSaved ? h('p', { class: 'sync-status s-saved', text: 'Your new password is saved.' }) : null,
         h('p', { class: 'sync-status s-' + status, text: STATUS[status] || '' }),
         sync,
@@ -580,6 +613,50 @@
     return { show: function () { if (TT.account.wantPlans) { tab = 'plans'; TT.account.wantPlans = false; } if (TT.account.wantSignIn) { tab = 'account'; TT.account.wantSignIn = false; } loadPlan(); paint(); } };
   };
 
+  // ---------- Account icon ----------
+  // Saved as "avatar" with everything else, so it follows the account to any computer.
+  var AVATARS = [
+    ['fox', '🦊', '#FF9A5A', '#FF5E7E'], ['panda', '🐼', '#7CC8FF', '#5B7CFA'], ['owl', '🦉', '#B58CFF', '#7B4DEB'],
+    ['turtle', '🐢', '#5BE0A6', '#13A97A'], ['octopus', '🐙', '#FF8FB8', '#E5397A'], ['unicorn', '🦄', '#FFC4F0', '#A383FF'],
+    ['rocket', '🚀', '#6B97FF', '#2A3FAF'], ['rainbow', '🌈', '#9FE3FF', '#4CC3F5'], ['star', '⭐', '#FFE08A', '#FF9E3D'],
+    ['apple', '🍎', '#FFB199', '#F2643D'], ['books', '📚', '#B9F18C', '#5E9C0C'], ['palette', '🎨', '#FFD36E', '#E89A00'],
+    ['cat', '🐱', '#FFD1A8', '#FF8A5B'], ['dino', '🦖', '#A6F0C6', '#2FD199'], ['bee', '🐝', '#FFF0A0', '#FFC043'], ['planet', '🪐', '#C9B8FF', '#5B4BCB']
+  ];
+  TT.account.AVATARS = AVATARS;
+  TT.account.avatar = function () { return TT.load('avatar', null); };
+  TT.account.setAvatar = function (a) { if (a) TT.save('avatar', a); else { try { localStorage.removeItem('tt:avatar'); } catch (e) {} changed('tt:avatar'); } emit(); };
+  TT.account.googlePhoto = function () { return (user && user.user_metadata && (user.user_metadata.avatar_url || user.user_metadata.picture)) || ''; };
+  // Fill an element with the account icon: uploaded photo, premade icon, or first letter.
+  function paintAvatar(el) {
+    var a = TT.account.avatar(), name = TT.account.firstName() || TT.account.email() || '?';
+    el.textContent = ''; el.style.background = ''; el.style.backgroundImage = '';
+    el.classList.remove('has-img', 'has-emoji');
+    var src = a && (a.img || (a.google && TT.account.googlePhoto()));
+    if (src) { el.style.backgroundImage = 'url("' + src.replace(/"/g, '%22') + '")'; el.classList.add('has-img'); return el; }
+    var p = a && a.preset && AVATARS.filter(function (x) { return x[0] === a.preset; })[0];
+    if (p) { el.style.background = 'linear-gradient(135deg,' + p[2] + ',' + p[3] + ')'; el.textContent = p[1]; el.classList.add('has-emoji'); return el; }
+    el.textContent = name.charAt(0).toUpperCase();
+    return el;
+  }
+  TT.account.paintAvatar = paintAvatar;
+  // Shrink an uploaded picture to a small square (center crop) so it saves quickly.
+  function squareImage(file, done) {
+    var r = new FileReader();
+    r.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var n = 160, c = document.createElement('canvas'); c.width = c.height = n;
+        var side = Math.min(img.width, img.height);
+        c.getContext('2d').drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, n, n);
+        done(c.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = function () { done(null); };
+      img.src = r.result;
+    };
+    r.onerror = function () { done(null); };
+    r.readAsDataURL(file);
+  }
+
   // ---------- Top bar button ----------
   var navBtn = null;
   function paintNav() {
@@ -587,8 +664,7 @@
     var signed = !!(user || meta.userId);
     navBtn.textContent = '';
     if (signed) {
-      var em = TT.account.firstName() || TT.account.email() || '?';
-      navBtn.append(h('span', { class: 'nav-avatar', text: em.charAt(0).toUpperCase() }));
+      navBtn.append(paintAvatar(h('span', { class: 'nav-avatar' })));
       navBtn.title = 'My Account';
       navBtn.setAttribute('aria-label', 'My account');
       navBtn.classList.add('signed');
