@@ -1126,3 +1126,19 @@ button.cb-peg.big:hover { transform: scale(1.1); }
 .acct-sent { margin: 18px 0 14px; padding: 18px 20px; border-radius: 16px; background: var(--surface-2); }
 .acct-sent h3 { margin: 0 0 6px; font-size: 18px; }
 .acct-sent p { margin: 0 0 6px; }
+
+.acct-stack { display: grid; gap: 12px; margin: 18px 0 8px; }
+.acct-stack input { width: 100%; min-width: 0; font: inherit; font-size: 17px; padding: 13px 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); box-sizing: border-box; }
+.acct-stack input:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+.acct-submit { width: 100%; justify-content: center; margin-top: 4px; }
+.pw-wrap { position: relative; }
+.pw-wrap input { padding-right: 74px; }
+.pw-show { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); border: 0; background: none; color: var(--muted); font: inherit; font-weight: 700; font-size: 14px; padding: 8px 10px; border-radius: 10px; cursor: pointer; }
+.pw-show:hover { color: var(--ink); background: var(--surface); }
+.linkish { border: 0; background: none; padding: 0; font: inherit; font-weight: 800; color: var(--violet); cursor: pointer; }
+.linkish:hover { text-decoration: underline; }
+.acct-switch { text-align: center; margin: 14px 0 0; color: var(--muted); }
+.acct-forgot { text-align: right; margin: 4px 0 0; font-size: 14px; }
+.acct-fine { text-align: center; font-size: 13.5px; color: var(--muted); margin: 8px 0 0; }
+.acct-disclaimer { margin: 20px 0 10px; padding: 14px 16px; border-radius: 14px; background: var(--surface-2); font-size: 13.5px; line-height: 1.5; color: var(--muted); }
+.acct-email { margin: 0 0 6px; font-size: 14px; overflow-wrap: anywhere; }

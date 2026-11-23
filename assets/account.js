@@ -177,6 +177,43 @@
 
   // ---------- Sign in and out ----------
   var base = location.origin + location.pathname;
+  // Coming back from a "reset password" email, or from a link that failed (expired or used).
+  var linkError = '';
+  (function () {
+    var q = location.search + '&' + location.hash.replace(/^#/, '');
+    var m = q.match(/error_description=([^&]+)/);
+    if (m) {
+      linkError = decodeURIComponent(m[1].replace(/\+/g, ' '));
+      if (/expired|invalid/i.test(linkError)) linkError = 'That email link has expired or was already used. Please try again.';
+      history.replaceState(null, '', base + '#account');
+    }
+    if (/[?&]reset=1/.test(location.search)) { try { sessionStorage.setItem('tt-reset', '1'); } catch (e) {} }
+  })();
+  function resetting() { try { return sessionStorage.getItem('tt-reset') === '1'; } catch (e) { return false; } }
+  function friendly(err) {
+    var m = (err && err.message) || '';
+    if (/invalid login credentials/i.test(m)) return 'That email and password don’t match. Try again, or choose Forgot Password.';
+    if (/email not confirmed/i.test(m)) return 'Please confirm your email first. Tap the link in the email we sent you.';
+    if (/already registered|already been registered|user already exists/i.test(m)) return 'There’s already an account with that email. Choose Log In instead.';
+    if (/password should be|weak password|at least/i.test(m)) return 'Choose a password with at least 8 characters.';
+    if (/rate limit|too many|security purposes/i.test(m)) return 'Too many tries just now. Please wait a minute and try again.';
+    return m ? 'That didn’t work: ' + m : 'That didn’t work. Please try again.';
+  }
+  TT.account.signUp = function (name, email, password) {
+    return sb.auth.signUp({ email: email, password: password, options: { data: { first_name: name }, emailRedirectTo: base } });
+  };
+  TT.account.logIn = function (email, password) {
+    return sb.auth.signInWithPassword({ email: email, password: password });
+  };
+  TT.account.forgot = function (email) {
+    return sb.auth.resetPasswordForEmail(email, { redirectTo: base + '?reset=1' });
+  };
+  TT.account.setPassword = function (password) {
+    return sb.auth.updateUser({ password: password });
+  };
+  TT.account.firstName = function () {
+    return (user && user.user_metadata && (user.user_metadata.first_name || (user.user_metadata.full_name || user.user_metadata.name || '').split(' ')[0])) || meta.firstName || '';
+  };
   TT.account.sendCode = function (email) {
     return sb.auth.signInWithOtp({ email: email, options: { shouldCreateUser: true, emailRedirectTo: base } });
   };
@@ -206,7 +243,7 @@
   function setUser(u) {
     var was = user && user.id;
     user = u || null;
-    if (user) { meta.email = user.email; saveMeta(); }
+    if (user) { meta.email = user.email; meta.firstName = TT.account.firstName(); saveMeta(); }
     emit();
     if (user && user.id !== was) { loadPlan(); check(true); }
   }
@@ -221,11 +258,13 @@
         });
       } catch (e) { setStatus('offline'); return; }
       sb.auth.getSession().then(function (r) {
-        if (/[?&]code=/.test(location.search)) history.replaceState(null, '', base + location.hash);
+        if (/[?&](code|reset)=/.test(location.search)) history.replaceState(null, '', base + (resetting() ? '#account' : location.hash));
+        if (resetting()) window.dispatchEvent(new HashChangeEvent('hashchange'));
         setUser(r.data && r.data.session ? r.data.session.user : null);
       });
       sb.auth.onAuthStateChange(function (event, session) {
-        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') setUser(session ? session.user : null);
+        if (event === 'PASSWORD_RECOVERY') { try { sessionStorage.setItem('tt-reset', '1'); } catch (e) {} }
+        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED' || event === 'PASSWORD_RECOVERY') setUser(session ? session.user : null);
       });
     };
     s.onerror = function () { setStatus('offline'); emit(); };
@@ -236,7 +275,9 @@
   TT.mountAccount = function (el) {
     var root = h('div', { class: 'acct' });
     el.append(root);
-    var step = 'email', email = '', msgText = '', busy = false;
+    // mode: signup, login, forgot, sent (check your email)
+    var mode = 'signup', email = '', fName = '', fPass = '', msgText = linkError, busy = false, sentText = '';
+    linkError = '';
 
     function msg() { return msgText ? h('p', { class: 'form-msg', role: 'status', text: msgText }) : null; }
     function feature(text, on) { return h('li', { class: on ? 'yes' : 'no' }, h('span', { 'aria-hidden': 'true', text: on ? '✓' : '–' }), text); }
@@ -244,66 +285,113 @@
       if (!url || !user) return '';
       return url + (url.indexOf('?') < 0 ? '?' : '&') + 'client_reference_id=' + encodeURIComponent(user.id) + '&prefilled_email=' + encodeURIComponent(user.email || '');
     }
+    function go(m) { mode = m; msgText = ''; fPass = ''; paint(); }
+    function link(text, m) { return h('button', { type: 'button', class: 'linkish', onclick: function () { go(m); } }, text); }
+    function field(type, id, ph, auto) {
+      return h('input', { type: type, id: id, placeholder: ph, autocomplete: auto, 'aria-label': ph });
+    }
+    function pwField(id, ph, auto) {
+      var input = field('password', id, ph, auto);
+      var t = h('button', { type: 'button', class: 'pw-show', 'aria-label': 'Show password', onclick: function () {
+        var show = input.type === 'password'; input.type = show ? 'text' : 'password';
+        t.textContent = show ? 'Hide' : 'Show'; t.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      } }, 'Show');
+      return { wrap: h('div', { class: 'pw-wrap' }, input, t), input: input };
+    }
+    function googleBtn() {
+      var g = h('button', { type: 'button', class: 'btn big google-btn', onclick: function () {
+        TT.account.google().then(function (r) { if (r && r.error) { msgText = 'Google sign-in isn’t ready yet. Use your email for now.'; paint(); } });
+      } });
+      g.innerHTML = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span>Continue with Google</span>';
+      return g;
+    }
+    function submitBtn(label, busyLabel) { var b = TT.button(busy ? busyLabel : label, { kind: 'primary big acct-submit' }); b.type = 'submit'; b.disabled = busy; return b; }
+    function validEmail(v) { return /^\S+@\S+\.\S+$/.test(v); }
+    function run(promise, onOk) {
+      busy = true; msgText = ''; paint();
+      promise.then(function (r) { busy = false; if (r.error) { msgText = friendly(r.error); paint(); } else onOk(r); }, function () { busy = false; msgText = 'Can’t reach the sign-in service. Check the internet connection.'; paint(); });
+    }
+    var DISCLAIMER = 'Some games and activities can share a class code so others can join in. People who join with a code don’t make an account, and nothing about them is saved: no name, birthday, location or anything else.';
 
     function signInCard() {
-      var card = h('section', { class: 'acct-card' },
-        h('h2', { text: 'Teacher Sign In' }),
-        h('p', { class: 'muted', text: 'Sign in or create a free teacher account. Your boards, questions, schedule and settings follow you to any computer. No password to remember.' }),
-        h('p', { class: 'muted small', text: 'Accounts are for teachers only. Students never sign in or make accounts.' }));
-      if (!sb) { card.append(h('p', { class: 'form-msg', text: status === 'offline' ? 'Can’t reach the sign-in service. Check the internet connection and reload.' : 'Loading…' })); return card; }
-      if (CFG.google) {
-        var g = h('button', { type: 'button', class: 'btn big google-btn', onclick: function () {
-          TT.account.google().then(function (r) { if (r && r.error) { msgText = 'Google sign-in isn’t ready yet. Use your email for now.'; paint(); } });
-        } });
-        g.innerHTML = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span>Continue with Google</span>';
-        card.append(g,
-          h('div', { class: 'acct-or' }, h('span', { text: 'or use your email' })));
+      var card = h('section', { class: 'acct-card' });
+      if (!sb) {
+        card.append(h('h2', { text: 'Sign In' }), h('p', { class: 'form-msg', text: status === 'offline' ? 'Can’t reach the sign-in service. Check the internet connection and reload.' : 'Loading…' }));
+        return card;
       }
-      if (step === 'email') {
-        var input = h('input', { type: 'email', id: 'acctEmail', placeholder: 'you@school.org', autocomplete: 'email', 'aria-label': 'Email address', required: true });
-        input.value = email;
-        var form = h('form', { class: 'acct-form', novalidate: true, onsubmit: function (e) {
-          e.preventDefault();
-          email = input.value.trim();
-          if (!/^\S+@\S+\.\S+$/.test(email)) { msgText = 'Type your email address, like you@school.org.'; paint(); return; }
-          busy = true; msgText = ''; paint();
-          TT.account.sendCode(email).then(function (r) {
-            busy = false;
-            if (r.error) { msgText = 'That didn’t work: ' + r.error.message; } else { step = 'code'; msgText = ''; }
-            paint();
-          });
-        } }, input, TT.button(busy ? 'Sending…' : (CFG.emailCode ? 'Email Me a Sign-In Code' : 'Email Me a Sign-In Link'), { kind: 'primary big' }));
-        form.querySelector('button').type = 'submit';
-        card.append(form);
-      } else if (!CFG.emailCode) {
-        card.append(h('div', { class: 'acct-sent' },
-          h('h3', { text: 'Check Your Email' }),
-          h('p', { text: 'We sent a sign-in link to ' + email + '. Open the email on this computer and tap the link, and you’re in.' }),
-          h('p', { class: 'muted small', text: 'Don’t see it? Check your spam folder, or wait a minute and send another.' })),
-          h('div', { class: 'row' },
-            TT.button('Send Another Link', { kind: 'small', onclick: function () { step = 'email'; msgText = ''; paint(); } }),
-            TT.button('Use a Different Email', { kind: 'small', onclick: function () { step = 'email'; email = ''; msgText = ''; paint(); } })));
-      } else {
-        var code = h('input', { type: 'text', id: 'acctCode', inputmode: 'numeric', autocomplete: 'one-time-code', maxlength: 8, placeholder: '123456', 'aria-label': 'Sign-in code' });
-        var f2 = h('form', { class: 'acct-form', novalidate: true, onsubmit: function (e) {
-          e.preventDefault();
-          var c = code.value.replace(/\D/g, '');
-          if (c.length < 6) { msgText = 'Type the code from the email.'; paint(); return; }
-          busy = true; msgText = ''; paint();
-          TT.account.verifyCode(email, c).then(function (r) {
-            busy = false;
-            if (r.error) { msgText = 'That code didn’t work. Check it, or send a new one.'; paint(); }
-          });
-        } }, code, TT.button(busy ? 'Checking…' : 'Sign In', { kind: 'primary big' }));
-        f2.querySelector('button').type = 'submit';
-        card.append(h('p', { text: 'We sent a code to ' + email + '. Type it here, or tap the link in the email.' }), f2,
-          TT.button('Use a Different Email', { kind: 'small', onclick: function () { step = 'email'; msgText = ''; paint(); } }));
-        setTimeout(function () { var c = document.getElementById('acctCode'); if (c) c.focus(); }, 0);
+      if (mode === 'sent') {
+        card.append(h('h2', { text: 'Check Your Email' }), h('p', { text: sentText }),
+          h('p', { class: 'muted small', text: 'Open the link on this same computer and browser. Don’t see it? Check your spam folder.' }),
+          h('p', { class: 'acct-switch' }, link('Back to Log In', 'login')));
+        return card;
       }
+      if (mode === 'forgot') {
+        var fe = field('email', 'acctEmail', 'Email', 'email'); fe.value = email;
+        var ff = h('form', { class: 'acct-stack', novalidate: true, onsubmit: function (e) {
+          e.preventDefault(); email = fe.value.trim();
+          if (!validEmail(email)) { msgText = 'Type your email address.'; paint(); return; }
+          run(TT.account.forgot(email), function () { sentText = 'If there’s an account for ' + email + ', we sent a link to choose a new password.'; go('sent'); });
+        } }, fe, submitBtn('Email Me a Reset Link', 'Sending…'));
+        card.append(h('h2', { text: 'Forgot Your Password?' }), h('p', { class: 'muted', text: 'Type your email and we’ll send a link to choose a new one.' }), ff);
+        var fm = msg(); if (fm) card.append(fm);
+        card.append(h('p', { class: 'acct-switch' }, link('Back to Log In', 'login')));
+        return card;
+      }
+      var signup = mode === 'signup';
+      card.append(h('h2', { text: signup ? 'Create Your Free Account' : 'Welcome Back' }),
+        h('p', { class: 'muted', text: signup ? 'Save your boards, lists, questions and settings, and use them on any computer.' : 'Log in to get your boards, lists and settings on this computer.' }));
+      if (CFG.google) card.append(googleBtn(), h('div', { class: 'acct-or' }, h('span', { text: 'OR' })));
+      var nameIn = signup ? field('text', 'acctName', 'First name', 'given-name') : null;
+      if (nameIn) nameIn.value = fName;
+      var emailIn = field('email', 'acctEmail', 'Email', 'email'); emailIn.value = email;
+      var pw = pwField('acctPassword', signup ? 'Password (8+ characters)' : 'Password', signup ? 'new-password' : 'current-password');
+      pw.input.value = fPass;
+      var form = h('form', { class: 'acct-stack', novalidate: true, onsubmit: function (e) {
+        e.preventDefault();
+        email = emailIn.value.trim();
+        var pass = pw.input.value, name = nameIn ? nameIn.value.trim() : '';
+        fPass = pass; if (nameIn) fName = name;
+        if (signup && !name) { msgText = 'Type your first name.'; paint(); return; }
+        if (!validEmail(email)) { msgText = 'Type your email address, like you@example.com.'; paint(); return; }
+        if (signup && pass.length < 8) { msgText = 'Choose a password with at least 8 characters.'; paint(); return; }
+        if (!pass) { msgText = 'Type your password.'; paint(); return; }
+        if (signup) {
+          run(TT.account.signUp(name.slice(0, 40), email, pass), function (r) {
+            fPass = '';
+            if (r.data && r.data.session) return; // signed in right away
+            sentText = 'We sent a link to ' + email + '. Tap it to finish creating your account.'; go('sent');
+          });
+        } else {
+          run(TT.account.logIn(email, pass), function () { fPass = ''; });
+        }
+      } }, nameIn, emailIn, pw.wrap, submitBtn(signup ? 'Create Account' : 'Log In', signup ? 'Creating…' : 'Logging In…'));
+      card.append(form);
+      if (nameIn && !busy) setTimeout(function () { if (!nameIn.value && document.activeElement === document.body) nameIn.focus(); }, 0);
       var m = msg(); if (m) card.append(m);
-      card.append(h('p', { class: 'muted small', text: 'Not signing in is fine too. Everything still works and saves on this computer.' }));
+      if (signup) card.append(h('p', { class: 'acct-fine', text: 'By creating an account, you confirm you’re 13 or older.' }));
+      else card.append(h('p', { class: 'acct-forgot' }, link('Forgot password?', 'forgot')));
+      card.append(h('p', { class: 'acct-switch' }, signup ? 'Already have an account? ' : 'New here? ', link(signup ? 'Log In' : 'Create an Account', signup ? 'login' : 'signup')));
+      card.append(h('p', { class: 'acct-disclaimer', text: DISCLAIMER }),
+        h('p', { class: 'muted small', text: 'Not signing in is fine too. Everything still works and saves on this computer.' }));
       return card;
     }
+
+    function resetCard() {
+      var pw = pwField('acctNewPassword', 'New password (8+ characters)', 'new-password');
+      var form = h('form', { class: 'acct-stack', novalidate: true, onsubmit: function (e) {
+        e.preventDefault();
+        if (pw.input.value.length < 8) { msgText = 'Choose a password with at least 8 characters.'; paint(); return; }
+        run(TT.account.setPassword(pw.input.value), function () {
+          try { sessionStorage.removeItem('tt-reset'); } catch (e) {}
+          msgText = ''; paint(); showSaved = true; paint();
+        });
+      } }, pw.wrap, submitBtn('Save New Password', 'Saving…'));
+      var c = h('section', { class: 'acct-card' }, h('h2', { text: 'Choose a New Password' }), form);
+      var m = msg(); if (m) c.append(m);
+      c.append(h('p', { class: 'acct-switch' }, h('button', { type: 'button', class: 'linkish', onclick: function () { try { sessionStorage.removeItem('tt-reset'); } catch (e) {} paint(); } }, 'Skip for Now')));
+      return c;
+    }
+    var showSaved = false;
 
     var STATUS = { saved: 'All changes saved to your account.', saving: 'Saving…', unsaved: 'Saving soon…', offline: 'Offline. Changes will save when you’re back online.', error: 'Couldn’t save just now. We’ll keep trying.', idle: 'Checking your account…' };
     function accountCard() {
@@ -326,8 +414,11 @@
       var outBtn = TT.button('Sign Out', { kind: 'small', onclick: function () { outBtn.hidden = true; outConfirm.hidden = false; } });
       return h('section', { class: 'acct-card' },
         h('div', { class: 'acct-who' },
-          h('span', { class: 'nav-avatar big', text: (TT.account.email() || '?').charAt(0).toUpperCase() }),
-          h('div', null, h('h2', { text: TT.account.email() }), h('span', { class: 'plan-badge p-' + plan, text: label + ' Plan' }))),
+          h('span', { class: 'nav-avatar big', text: (TT.account.firstName() || TT.account.email() || '?').charAt(0).toUpperCase() }),
+          h('div', null, h('h2', { text: TT.account.firstName() ? 'Hi, ' + TT.account.firstName() + '!' : TT.account.email() }),
+            TT.account.firstName() ? h('p', { class: 'muted acct-email', text: TT.account.email() }) : null,
+            h('span', { class: 'plan-badge p-' + plan, text: label + ' Plan' }))),
+        showSaved ? h('p', { class: 'sync-status s-saved', text: 'Your new password is saved.' }) : null,
         h('p', { class: 'sync-status s-' + status, text: STATUS[status] || '' }),
         sync,
         h('div', { class: 'row' }, outBtn, outConfirm));
@@ -375,6 +466,7 @@
     function paint() {
       root.textContent = '';
       if (!enabled) { root.append(h('section', { class: 'acct-card' }, h('h2', { text: 'Accounts Are Coming Soon' }), h('p', { class: 'muted', text: 'For now, everything saves on this computer.' }))); return; }
+      if (user && resetting()) root.append(resetCard());
       root.append(user ? accountCard() : signInCard(), plansCard());
     }
     TT.account.onChange(paint);
@@ -389,7 +481,7 @@
     var signed = !!(user || meta.userId);
     navBtn.textContent = '';
     if (signed) {
-      var em = TT.account.email() || '?';
+      var em = TT.account.firstName() || TT.account.email() || '?';
       navBtn.append(h('span', { class: 'nav-avatar', text: em.charAt(0).toUpperCase() }));
       navBtn.title = 'My Account';
       navBtn.setAttribute('aria-label', 'My account');
