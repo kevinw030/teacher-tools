@@ -330,7 +330,7 @@
       icon: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/><circle cx="12" cy="16" r="1.3" fill="currentColor"/>' },
     { id: 'code-breaker', title: 'Code Breaker', desc: 'Crack the secret color code using clues from each guess.', color: 'sky', mount: code,
       icon: '<circle cx="6" cy="12" r="2.5"/><circle cx="12" cy="12" r="2.5"/><circle cx="18" cy="12" r="2.5"/><path d="M3 19h18M3 5h18"/>' },
-    { id: 'trivia', title: 'Trivia Showdown', desc: 'A quiz-show board with categories and points for one to four teams.', color: 'cobalt', mount: trivia,
+    { id: 'trivia', title: 'Trivia Showdown', desc: 'A quiz-show board with categories and points for one to four teams.', color: 'cobalt', mount: trivia, forget: ['trivia'],
       icon: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16M15 4v16"/>' }
   ]);
 })();

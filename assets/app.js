@@ -67,7 +67,7 @@
 
   // ---------- Games: one card and one page per game ----------
   var arrow = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>';
-  var gameMounters = {}, gameTitles = {};
+  var gameMounters = {}, gameTitles = {}, gameClosers = {};
   (TT.games || []).forEach(function (g) {
     $('gamesList').append(h('a', { class: 'tool c-' + g.color, href: '#' + g.id },
       h('span', { class: 'tool-icon', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + g.icon + '</svg>' }),
@@ -79,6 +79,12 @@
         h('div', { class: 'row js-fs-slot' })),
       mount));
     gameMounters[g.id] = function () { return g.mount(mount) || {}; };
+    // Leaving a game closes it out: the page is emptied and any half-finished game is forgotten,
+    // so the next visit starts fresh. Scores between rounds, best times and settings are kept.
+    gameClosers[g.id] = function () {
+      (g.forget || []).forEach(function (k) { TT.save(k, null); });
+      mount.textContent = '';
+    };
     gameTitles[g.id] = g.title;
   });
 
@@ -152,6 +158,7 @@
     });
     closeMenus();
     if (last && last !== name && mounted[last] && mounted[last].hide) mounted[last].hide();
+    if (last && last !== name && gameClosers[last] && mounted[last]) { gameClosers[last](); delete mounted[last]; }
     last = name;
     document.body.classList.toggle('board-mode', name === 'board');
     if (!mounted[name] && mounters[name]) mounted[name] = mounters[name]() || {};
