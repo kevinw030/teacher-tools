@@ -108,6 +108,7 @@
         state: onState,
         verdict: onVerdict,
         countdown: onCountdown,
+        poke: function (m) { if (m && room) room.poke(m.id); },
         kick: function (m) { if (m && m.id === me.id) removed(); },
         end: function () { over(); },
         pause: function () { hostHere = false; if (state) paintHost(); }
@@ -173,7 +174,7 @@
   // ---------- Playing ----------
   var callEl, gridBox, bingoBtn, calledEl, hostEl, toastEl;
   function meta() { return { name: me.name, av: me.av | 0, at: me.at || 0 }; }
-  var players = [], room = null, counting = false, waitingPaint = false;
+  var players = [], room = null, counting = false, waitingPaint = false, countedIn = false;
 
   // ---------- The lobby: "You're In!" and everyone else who has joined ----------
   function paintLobby() {
@@ -181,12 +182,22 @@
     root.className = 'join-main is-lobby';
     cardKey = '';
     var meBox = h('div', { class: 'lb-me-wrap' });
+    var lastPoke = 0;
     function drawMe() {
       meBox.textContent = '';
-      var p = Lobby.player({ id: me.id, name: me.name, av: me.av }, { me: false });
+      var p = Lobby.player({ id: me.id, name: me.name, av: me.av }, { me: false, onTap: function (x, el) {
+        // Tap your animal: it jumps and sparkles here, and bounces on everyone else's screen too.
+        Lobby.poke(el, true);
+        if (Date.now() - lastPoke > 600 && conn) { lastPoke = Date.now(); conn.send('poke', { id: me.id }); }
+        if (room) room.poke(me.id);
+        taps++; tapCount.textContent = taps === 1 ? '1 jump!' : taps + ' jumps!';
+        tapCount.classList.remove('bump'); void tapCount.offsetWidth; tapCount.classList.add('bump');
+      } });
       p.classList.add('lb-me');
-      meBox.append(p);
+      p.setAttribute('aria-label', 'Your animal. Tap to make it jump');
+      meBox.append(p, h('span', { class: 'lb-tap-hint', 'aria-hidden': 'true', text: 'Tap me!' }));
     }
+    var taps = 0, tapCount = h('span', { class: 'lb-taps', 'aria-live': 'polite' });
     drawMe();
     room = Lobby.room({ meId: me.id, empty: 'You’re the first one here!' });
     room.update(players);
@@ -200,14 +211,18 @@
         if (wasName) me.name = funName(me.av);
         store('me', me); if (conn) conn.track(meta()); drawMe(); beep(660, 0.12, 'triangle', 0.07);
       } }, 'Pick a Different Animal'),
-      h('div', { class: 'join-dots', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')),
-      h('p', { class: 'join-lead', text: 'Waiting for your teacher to start the game…' }),
+      tapCount,
+      h('div', { class: 'lb-waiting' },
+        h('div', { class: 'join-dots', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')),
+        h('p', { class: 'lb-waiting-text', text: 'Waiting for Teacher to Start' }),
+        h('p', { class: 'join-help', text: 'Tap your animal to make it jump. Your classmates see it bounce too!' })),
       h('section', { class: 'lb-others' }, h('h2', { text: 'Who’s Here' }), room.el)));
+    if (!document.querySelector('.lb-floaties')) document.body.append(Lobby.floaties());
   }
   // ---------- 3, 2, 1, Go! ----------
   function onCountdown(m) {
     if (!m || counting) return;
-    counting = true;
+    counting = true; countedIn = true;
     Lobby.countdown({ title: m.title || 'Get Ready!', done: function () {
       counting = false;
       if (waitingPaint && state) { waitingPaint = false; cardKey = ''; onState(state); }
@@ -228,7 +243,11 @@
   function onState(s) {
     if (!s || !Array.isArray(s.cards)) return;
     clearTimeout(findTimer);
-    if (s.phase === 'lobby') {
+    // Everyone waits in the lobby until the teacher presses Start Game. (A game from an older teacher page
+    // has no phase: it counts as the lobby until the first call.)
+    var inLobby = s.phase === 'lobby' || (s.phase !== 'play' && !(s.called || []).length);
+    if (inLobby) {
+      s.phase = 'lobby';
       var fresh = !state || state.phase !== 'lobby' || state.g !== s.g;
       state = s; hostHere = true;
       if (fresh || !root.querySelector('.lb-in')) paintLobby();
@@ -236,6 +255,12 @@
     }
     // A countdown is running: the card deals in right after "Go!".
     if (counting) { state = s; waitingPaint = true; return; }
+    // Joining a game that already started: a quick countdown first, never a card out of nowhere.
+    if (!countedIn && !root.querySelector('.bc-play')) {
+      state = s; waitingPaint = true;
+      onCountdown({ title: 'Joining ' + (s.title || 'the Game') + '!' });
+      return;
+    }
     var first = !state || state.phase === 'lobby', key = s.g + ':' + s.round, prev = state && state.phase !== 'lobby' ? state : null;
     state = s; hostHere = true; room = null;
     if (key !== cardKey || first) {
@@ -255,6 +280,7 @@
     (s.winners || []).slice(before).forEach(function (n) { if (n !== me.name) toast(n + ' got Bingo!'); });
   }
   function paintPlay(deal) {
+    var fl = document.querySelector('.lb-floaties'); if (fl) fl.remove();
     root.textContent = '';
     root.className = 'join-main is-play';
     callEl = h('div', { class: 'join-call', role: 'status', 'aria-live': 'assertive' });

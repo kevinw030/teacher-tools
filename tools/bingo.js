@@ -232,7 +232,8 @@
         code: game.code, me: 'host-' + game.g, meta: { host: true },
         on: {
           hello: function (m) { if (m && kickedId(m.id)) conn.send('kick', { id: m.id, g: game.g }); else sendState(); },
-          claim: onClaim
+          claim: onClaim,
+          poke: function (m) { if (!m || kickedId(m.id)) return; if (lobbyRoom) lobbyRoom.poke(m.id); if (gameRoom) gameRoom.poke(m.id); }
         },
         onPeople: function (list) {
           people = list.filter(function (p) {
@@ -628,7 +629,12 @@
     // Pick up a game that was running before the page was refreshed.
     try {
       var old = JSON.parse(sessionStorage.getItem(GAME_KEY) || 'null');
-      if (old && old.items && Date.now() - (old.savedAt || 0) < 8 * 3600e3) { game = old; if (game.live) goLive(); }
+      if (old && old.items && Date.now() - (old.savedAt || 0) < 8 * 3600e3) {
+        game = old;
+        if (!game.phase) game.phase = game.live && !game.called.length ? 'lobby' : 'play';   // a game from before the lobby
+        game.kicked = game.kicked || [];
+        if (game.live) goLive();
+      }
     } catch (e) {}
     if (game) paintNow(); else paintSetup();
     window.addEventListener('pagehide', function () { if (conn && game) conn.send('pause', { g: game.g }); });

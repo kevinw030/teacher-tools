@@ -72,7 +72,39 @@
       emptyEl.hidden = people.length > 0;
       if (people.length) el.append(emptyEl);
     }
-    return { el: el, update: update };
+    // Someone tapped their animal: make it jump here too.
+    function poke(id) { var x = shown[id]; if (x) L.poke(x.node); }
+    return { el: el, update: update, poke: poke };
+  };
+
+  // A happy jump with a little burst of sparkles.
+  var SPARKS = ['✨', '⭐', '💖', '🎉', '💫'];
+  L.poke = function (node, loud) {
+    if (!node) return;
+    var ava = node.querySelector('.lb-ava') || node;
+    ava.classList.remove('jump'); void ava.offsetWidth; ava.classList.add('jump');
+    if (!still) for (var i = 0; i < (loud ? 6 : 3); i++) {
+      var s = h('span', { class: 'lb-spark', 'aria-hidden': 'true', text: SPARKS[Math.floor(Math.random() * SPARKS.length)] });
+      s.style.setProperty('--dx', (Math.random() * 120 - 60) + 'px'); s.style.setProperty('--dy', (-50 - Math.random() * 60) + 'px');
+      s.style.setProperty('--r', (Math.random() * 80 - 40) + 'deg');
+      node.append(s);
+      setTimeout(function (x) { x.remove(); }.bind(null, s), 1000);
+    }
+    if (loud) L.beep(500 + Math.random() * 400, 0.15, 'triangle', 0.08);
+  };
+
+  // Soft colored bubbles drifting up behind the waiting room.
+  L.floaties = function () {
+    var box = h('div', { class: 'lb-floaties', 'aria-hidden': 'true' });
+    var cols = ['#F2643D', '#E89A00', '#0FA974', '#0B9BD8', '#7B4DEB', '#E5397A'];
+    for (var i = 0; i < 14; i++) {
+      var b = h('i');
+      b.style.setProperty('--x', (Math.random() * 100) + '%'); b.style.setProperty('--s', (18 + Math.random() * 46) + 'px');
+      b.style.setProperty('--d', (9 + Math.random() * 10) + 's'); b.style.setProperty('--delay', (-Math.random() * 18) + 's');
+      b.style.setProperty('--c', cols[i % cols.length]);
+      box.append(b);
+    }
+    return box;
   };
 
   // ---------- Sounds (soft, made on the spot) ----------
