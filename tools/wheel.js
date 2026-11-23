@@ -22,7 +22,8 @@
   function lum(hex) { var n = parseInt(hex.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000; }
 
   TT.mountWheel = function (el, side) {
-    var state = TT.load(KEY, { source: 'class', custom: 'Pizza party\nExtra recess\nPick the music\nTeacher’s helper\nHomework pass\nFree draw', removed: [], history: [] });
+    var state = TT.load(KEY, { source: 'class', custom: 'Pizza Party\nExtra Recess\nPick the Music\nTeacher’s Helper\nHomework Pass\nFree Draw', removed: [], history: [] });
+    if (state.custom === 'Pizza party\nExtra recess\nPick the music\nTeacher’s helper\nHomework pass\nFree draw') state.custom = 'Pizza Party\nExtra Recess\nPick the Music\nTeacher’s Helper\nHomework Pass\nFree Draw';   // the old sample list, now in title case
     var rot = 0, spinning = false;
     if (!state.style) state.style = {};
     var st = state.style;

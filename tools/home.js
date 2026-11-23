@@ -60,7 +60,8 @@
     var box = heads[i].firstElementChild;
     if (!box || box.querySelector('a.btn.small')) continue;   // game pages already have "All Games"
     var eyebrow = box.querySelector('.eyebrow');
-    var back = TT.h('a', { class: 'btn small back-all', href: '/', html: TT.icon('back') + '<span>All Tools</span>' });
+    var notTool = /^view-(settings|account)$/.test(heads[i].parentNode.id);   // these pages aren't tools, so they go "Back to Home"
+    var back = TT.h('a', { class: 'btn small back-all', href: '/', html: TT.icon('back') + '<span>' + (notTool ? 'Back to Home' : 'All Tools') + '</span>' });
     if (eyebrow) eyebrow.replaceWith(back); else box.prepend(back);
   }
 })();
