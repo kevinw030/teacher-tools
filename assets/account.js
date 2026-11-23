@@ -671,21 +671,88 @@
     navBtn.textContent = '';
     if (signed) {
       navBtn.append(paintAvatar(h('span', { class: 'nav-avatar' })));
-      navBtn.title = 'My Account';
-      navBtn.setAttribute('aria-label', 'My account');
+      navBtn.title = 'Account menu';
+      navBtn.setAttribute('aria-label', 'Account menu');
+      navBtn.setAttribute('aria-haspopup', 'menu');
       navBtn.classList.add('signed');
     } else {
       navBtn.append(h('span', { text: 'Sign In' }));
       navBtn.title = 'Sign in or create a free account';
       navBtn.removeAttribute('aria-label');
+      navBtn.removeAttribute('aria-haspopup');
       navBtn.classList.remove('signed');
+      closeMenu();
     }
+    // Settings live in the account menu once signed in; the gear stays for visitors.
+    var gear = document.querySelector('.nav-gear');
+    if (gear) gear.hidden = signed;
+  }
+
+  // ---------- Account menu (hover or tap the icon) ----------
+  var menu = null, menuWrap = null, hoverTimer = null;
+  function goPlans() { TT.account.wantPlans = true; if (location.hash === '#account' && TT.account.openPlans) TT.account.openPlans(); else location.hash = '#account'; }
+  function buildMenu() {
+    var plan = TT.account.plan();
+    var label = plan === 'owner' ? 'Owner' : plan === 'premium' ? 'Premium' : 'Free';
+    function item(icon, text, onclick, cls) {
+      return h('button', { type: 'button', role: 'menuitem', class: 'acct-menu-item' + (cls ? ' ' + cls : ''), onclick: function () { closeMenu(); onclick(); } },
+        h('span', { class: 'acct-menu-ico', 'aria-hidden': 'true', html: icon }), h('span', { text: text }));
+    }
+    var I = {
+      user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>',
+      plans: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/></svg>',
+      dash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+      out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H4"/></svg>'
+    };
+    var name = TT.account.firstName();
+    var m = h('div', { class: 'acct-menu', role: 'menu', 'aria-label': 'Account' },
+      h('div', { class: 'acct-menu-head' }, paintAvatar(h('span', { class: 'nav-avatar' })),
+        h('div', null, h('b', { text: name || 'My Account' }), h('small', { text: TT.account.email() }),
+          h('span', { class: 'plan-badge p-' + plan, text: label + ' Plan' }))),
+      item(I.user, 'My Account', function () { TT.account.wantPlans = false; location.hash = '#account'; }),
+      item(I.plans, 'Plans and Pricing', goPlans),
+      item(TT.icon('gear'), 'Settings', function () { location.hash = '#settings'; }),
+      plan === 'owner' && document.getElementById('view-owner') ? item(I.dash, 'Owner Dashboard', function () { location.hash = '#owner'; }) : null,
+      h('div', { class: 'acct-menu-sep' }),
+      item(I.out, 'Sign Out', TT.account.signOut, 'danger'));
+    return m;
+  }
+  function openMenu() {
+    if (!navBtn || !navBtn.classList.contains('signed')) return;
+    clearTimeout(hoverTimer);
+    if (menu) return;
+    menu = buildMenu(); menuWrap.append(menu);
+    navBtn.setAttribute('aria-expanded', 'true');
+  }
+  function closeMenu() {
+    clearTimeout(hoverTimer);
+    if (menu) { menu.remove(); menu = null; }
+    if (navBtn) navBtn.setAttribute('aria-expanded', 'false');
+  }
+  function setupMenu() {
+    menuWrap = h('div', { class: 'acct-menu-wrap' });
+    navBtn.parentNode.insertBefore(menuWrap, navBtn);
+    menuWrap.append(navBtn);
+    var fine = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    navBtn.addEventListener('click', function (e) {
+      if (!navBtn.classList.contains('signed')) return; // Sign In link works as before
+      e.preventDefault();
+      if (menu && !fine) closeMenu(); else openMenu();
+    });
+    if (fine) {
+      menuWrap.addEventListener('mouseenter', openMenu);
+      menuWrap.addEventListener('mouseleave', function () { hoverTimer = setTimeout(closeMenu, 250); });
+    }
+    document.addEventListener('pointerdown', function (e) { if (menu && !menuWrap.contains(e.target)) closeMenu(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && menu) { closeMenu(); navBtn.focus(); } });
+    window.addEventListener('hashchange', closeMenu);
+    TT.account.onChange(function () { if (menu) { closeMenu(); } });
   }
 
   document.addEventListener('DOMContentLoaded', function () {
     navBtn = document.querySelector('.nav-account');
     if (!enabled) return;
-    if (navBtn) navBtn.hidden = false;
+    if (navBtn) { navBtn.hidden = false; setupMenu(); }
     paintNav();
     start();
   });
