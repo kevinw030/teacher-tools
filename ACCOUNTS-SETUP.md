@@ -16,10 +16,7 @@ Part 1 turns on accounts (about 15 minutes, free). Part 2 turns on payments (abo
 4. Open **Authentication > Email Templates**. In both **Magic Link** and **Confirm Signup**, add this line to the message
    so the email includes a code teachers can type on another device:
    `<p>Or type this code: <b>{{ .Token }}</b></p>`
-5. Open **Project Settings > API** and copy two things into `assets/account-config.js`:
-   - **Project URL** goes in `supabaseUrl`
-   - **anon public** key goes in `supabaseKey` (this one is safe to be public; never use the `service_role` key here)
-   Or just paste both to Claude and it will do it.
+5. Done: the project URL and publishable key are already in `assets/account-config.js` (project `nipdxclfxmnbfrzubmrw`).
 6. Open the site, choose **Sign In**, and sign in with your email.
 7. Back in **SQL Editor**, run this with your email, so your account has everything free:
    `update public.profiles set plan = 'owner' where email = 'your-email-here';`

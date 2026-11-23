@@ -2,9 +2,9 @@
 // there is no Sign In button, nothing goes online, and every tool works with no limits,
 // exactly like before. See ACCOUNTS-SETUP.md for how to fill these in.
 window.TT_ACCOUNT_CONFIG = {
-  // From Supabase: Project Settings > API. The "anon public" key is safe to put here.
-  supabaseUrl: '',
-  supabaseKey: '',
+  // From Supabase: Project Settings > API. The publishable (anon) key is safe to put here.
+  supabaseUrl: 'https://nipdxclfxmnbfrzubmrw.supabase.co',
+  supabaseKey: 'sb_publishable_w2dYfWHQZioh3fXWZt1SfA_XQEzomTk',
 
   // Show "Continue with Google" (turn on after setting up Google sign-in in Supabase).
   google: false,

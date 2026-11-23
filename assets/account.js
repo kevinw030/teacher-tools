@@ -6,7 +6,7 @@
   var TT = window.TT, h = TT.h;
   var CFG = window.TT_ACCOUNT_CONFIG || {};
   var enabled = !!(CFG.supabaseUrl && CFG.supabaseKey);
-  var LIB = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js';
+  var LIB = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js';
 
   // ---------- Plans ----------
   var PLANS = {
