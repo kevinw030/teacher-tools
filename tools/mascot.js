@@ -24,21 +24,29 @@
   // A back view of him typing at a computer, drawn to match the artwork (there is no picture of this pose).
   var WORK = '<svg class="mascot-pose m-work" viewBox="0 0 420 576" aria-hidden="true">' +
     // desk and monitor (he faces them, so they sit behind him)
-    '<rect x="150" y="386" width="262" height="18" rx="7" fill="#C87A42" stroke="#470380" stroke-width="6"/><path d="M186 404 V548 M388 404 V548" stroke="#8E4E28" stroke-width="16" stroke-linecap="round"/>' +
-    '<path d="M316 352 h36 l8 34 h-52Z" fill="#B9A9E8" stroke="#470380" stroke-width="6" stroke-linejoin="round"/>' +
+    // a wooden desk with a drawer unit
+    '<rect x="368" y="402" width="98" height="148" rx="8" fill="#A9622F" stroke="#470380" stroke-width="6"/>' +
+    '<rect x="380" y="416" width="74" height="52" rx="6" fill="#C87A42" stroke="#7A421C" stroke-width="4"/><rect x="380" y="480" width="74" height="56" rx="6" fill="#C87A42" stroke="#7A421C" stroke-width="4"/>' +
+    '<rect x="405" y="436" width="24" height="9" rx="4.5" fill="#FFC233"/><rect x="405" y="503" width="24" height="9" rx="4.5" fill="#FFC233"/>' +
+    '<rect x="216" y="404" width="20" height="146" rx="6" fill="#8E4E28" stroke="#470380" stroke-width="6"/>' +
+    '<rect x="150" y="380" width="330" height="26" rx="10" fill="#C87A42" stroke="#470380" stroke-width="6"/><rect x="158" y="385" width="314" height="7" rx="3.5" fill="#E7A468"/>' +
+    // monitor stand and a mug
+    '<ellipse cx="334" cy="378" rx="42" ry="9" fill="#B9A9E8" stroke="#470380" stroke-width="5"/><rect x="322" y="348" width="24" height="30" fill="#B9A9E8" stroke="#470380" stroke-width="5"/>' +
+    '<g class="wk-steam" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".7"><path d="M438 334 q-8 -10 0 -20 q8 -10 0 -20"/><path d="M454 336 q-6 -8 0 -16"/></g>' +
+    '<path d="M462 352 h12 a10 10 0 0 1 0 22 h-10" fill="none" stroke="#470380" stroke-width="6"/><rect x="426" y="344" width="40" height="38" rx="7" fill="#FF8FB8" stroke="#470380" stroke-width="5"/>' +
     '<rect x="236" y="186" width="176" height="170" rx="16" fill="#E9E2FF" stroke="#470380" stroke-width="7"/><rect x="250" y="200" width="148" height="128" rx="8" fill="#1B1F5E"/>' +
     '<g class="wk-glow"><rect x="250" y="200" width="148" height="128" rx="8" fill="#7CC8FF" opacity=".18"/></g>' +
     '<g stroke-linecap="round" stroke-width="9" fill="none"><path class="wk-line l1" d="M264 222 h92" stroke="#7CE0C3"/><path class="wk-line l2" d="M264 246 h118" stroke="#FFC233"/><path class="wk-line l3" d="M264 270 h70" stroke="#FF8FB8"/><path class="wk-line l4" d="M264 294 h104" stroke="#9AD8FF"/></g>' +
-    '<rect x="238" y="368" width="126" height="16" rx="6" fill="#B9A9E8" stroke="#470380" stroke-width="5"/>' +
+    '<rect x="236" y="364" width="118" height="17" rx="6" fill="#E9E2FF" stroke="#470380" stroke-width="5"/><path d="M248 372 h94" stroke="#B9A9E8" stroke-width="5" stroke-dasharray="9 6" stroke-linecap="round"/>' +
     // feet, antenna, body from behind
     '<ellipse cx="128" cy="548" rx="46" ry="19" fill="#4A0E8F"/><ellipse cx="218" cy="548" rx="46" ry="19" fill="#4A0E8F"/>' +
     '<g class="wk-ant"><path d="M186 178 C182 120 200 92 240 84" fill="none" stroke="#470380" stroke-width="27" stroke-linecap="round"/><path d="M186 178 C182 120 200 92 240 84" fill="none" stroke="#9748ED" stroke-width="15" stroke-linecap="round"/><circle cx="262" cy="70" r="38" fill="#FFC107" stroke="#470380" stroke-width="7"/></g>' +
     '<path d="M172 150 C254 150 292 250 292 352 C292 468 250 540 172 540 C96 540 54 468 54 352 C54 250 92 150 172 150Z" fill="#9748ED" stroke="#470380" stroke-width="8"/>' +
     '<path d="M96 300 C84 380 96 460 132 506" fill="none" stroke="#8438DA" stroke-width="16" stroke-linecap="round" opacity=".7"/>' +
-    // a bit of cheek and his arms reaching to the keys
+    // a bit of cheek and his arm reaching to the keys
     '<circle cx="286" cy="300" r="15" fill="#FF7BB5"/>' +
-    '<g class="wk-arm a1"><path d="M250 330 C286 322 300 346 304 366" fill="none" stroke="#470380" stroke-width="40" stroke-linecap="round"/><path d="M250 330 C286 322 300 346 304 366" fill="none" stroke="#9748ED" stroke-width="27" stroke-linecap="round"/></g>' +
-    '<g class="wk-arm a2"><path d="M226 372 C262 356 280 364 284 374" fill="none" stroke="#470380" stroke-width="40" stroke-linecap="round"/><path d="M226 372 C262 356 280 364 284 374" fill="none" stroke="#9748ED" stroke-width="27" stroke-linecap="round"/></g>' +
+    // from this side only his near arm shows (the other is hidden behind his body)
+    '<g class="wk-arm a2"><path d="M196 352 C236 336 276 350 290 372" fill="none" stroke="#470380" stroke-width="42" stroke-linecap="round"/><path d="M196 352 C236 336 276 350 290 372" fill="none" stroke="#9748ED" stroke-width="29" stroke-linecap="round"/><path d="M196 352 C214 344 232 342 248 344" fill="none" stroke="#9748ED" stroke-width="33" stroke-linecap="round"/></g>' +
     '<g class="wk-taps" stroke="#FFC233" stroke-width="8" stroke-linecap="round"><path d="M330 352 l10 -16"/><path d="M352 358 l18 -8"/></g></svg>';
   // The idle routine. [name, pose, how long it lasts, extra]
   var ACTS = [['wave', 'wave', 1900, 'sparks'], ['hop', 'stand', 1300, ''], ['look', 'point', 2000, ''], ['ponder', 'think', 2300, 'ask'],
