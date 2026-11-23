@@ -1,0 +1,138 @@
+/* Customize My Home (Premium): see tools/dashboard.js.
+   Spacing follows the home page scale (4, 8, 12, 16, 24, 32, 48). Tiles always stay in the normal grid. */
+
+/* The Customize button sits at the end of the first heading on the home page. */
+#view-home .section-head .dash-custom { margin-left: auto; align-self: center; gap: 6px; border-radius: 999px; padding: 8px 14px;
+  background: color-mix(in srgb, var(--surface) 70%, transparent); -webkit-backdrop-filter: blur(16px) saturate(1.5); backdrop-filter: blur(16px) saturate(1.5);
+  transition: transform .45s var(--spring), border-color .2s ease, background .2s ease; }
+#view-home .section-head .dash-custom:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--violet) 45%, var(--line)); }
+#view-home .section-head .dash-custom:hover svg { transform: rotate(90deg); }
+#view-home .section-head .dash-custom svg { transition: transform .5s var(--spring); }
+.dash-live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Customize mode ---------- */
+#view-home.dash-edit > .welcome, #view-home.dash-edit > .home-links, #view-home.dash-edit > .home-backup, #view-home.dash-edit > .site-foot { display: none; }
+
+.dash-bar { position: sticky; top: calc(var(--dash-top, 64px) + 8px); z-index: 40; margin-bottom: var(--s6, 32px);
+  border-radius: 24px; padding: var(--s3, 12px) var(--s3, 12px) var(--s3, 12px) var(--s5, 24px);
+  animation: dash-drop .6s var(--spring) both; }
+.dash-bar-main, .dash-ask { display: flex; align-items: center; justify-content: space-between; gap: var(--s3, 12px) var(--s4, 16px); flex-wrap: wrap; }
+.dash-ask { animation: dash-fade .3s ease both; }
+.dash-bar-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.dash-bar-text h2 { margin: 0; font-family: var(--display); font-size: 22px; font-weight: 800; letter-spacing: -.01em; }
+.dash-bar-sub { color: var(--muted); font-size: 14.5px; }
+.dash-bar-btns { display: flex; gap: var(--s2, 8px); flex-wrap: wrap; }
+.dash-bar-btns .btn { border-radius: 999px; }
+.dash-bar .dash-done { padding-inline: 20px; }
+.dash-bar .dd-yes, .dash-bar .dash-done { background: var(--violet); border-color: var(--violet); color: #fff; }
+.dash-bar .dd-yes:hover, .dash-bar .dash-done:hover { background: color-mix(in srgb, var(--violet) 86%, #000); }
+
+.dd-cats { display: flex; flex-direction: column; gap: var(--s5, 24px); }
+.dd-cat, .dd-tray { position: relative; border-radius: 28px; padding: var(--s4, 16px); margin: 0;
+  background: color-mix(in srgb, var(--surface) 55%, transparent); border: 1.5px solid var(--line); }
+.dd-cat.dd-pop { animation: dash-pop .6s var(--spring) both; }
+#view-home .dd-tray { margin-top: var(--s7, 48px); border-style: dashed; background: transparent; }
+#view-home .dd-tray .section-head { padding: var(--s1, 4px) var(--s2, 8px) 0; }
+
+.dd-cat-head { display: flex; align-items: center; gap: var(--s2, 8px); margin-bottom: var(--s3, 12px); flex-wrap: wrap; }
+.dd-pencil { display: grid; place-items: center; color: var(--muted); margin-left: var(--s1, 4px); }
+.dd-pencil svg { width: 18px; height: 18px; }
+#view-home .dd-name { flex: 1 1 200px; min-width: 0; font: 800 26px/1.15 var(--display); letter-spacing: -.02em; color: var(--ink);
+  background: transparent; border: 1.5px solid transparent; border-radius: 12px; padding: 4px 8px; transition: border-color .2s ease, background .2s ease; }
+#view-home .dd-name:hover { border-color: var(--line); }
+#view-home .dd-name:focus { outline: none; border-color: var(--violet); background: var(--surface); box-shadow: 0 0 0 4px color-mix(in srgb, var(--violet) 18%, transparent); }
+.dd-cat-tools { display: flex; gap: var(--s1, 4px); }
+.dd-icon-btn { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer;
+  transition: transform .4s var(--spring), border-color .2s ease, color .2s ease; }
+.dd-icon-btn svg { width: 18px; height: 18px; }
+.dd-icon-btn:hover:not(:disabled) { transform: translateY(-2px); border-color: color-mix(in srgb, var(--ink) 25%, var(--line)); }
+.dd-icon-btn:disabled { opacity: .35; cursor: default; }
+.dd-icon-btn.dd-del:hover { color: var(--rose); border-color: color-mix(in srgb, var(--rose) 50%, var(--line)); }
+.dd-ask { display: flex; align-items: center; gap: var(--s2, 8px) var(--s3, 12px); flex-wrap: wrap; font-size: 14.5px; color: var(--muted); animation: dash-fade .25s ease both; }
+.dd-ask .dd-yes { background: var(--rose); border-color: var(--rose); color: #fff; }
+
+/* The grid keeps exactly the same columns as the normal home page, so what you see is what you get. */
+.dd-grid { position: relative; min-height: 120px; }
+.dd-empty { display: none; grid-column: 1 / -1; min-height: 112px; place-items: center; text-align: center; padding: var(--s4, 16px);
+  border: 2px dashed color-mix(in srgb, var(--ink) 18%, transparent); border-radius: 22px; color: var(--muted); font-weight: 700; font-size: 15px; }
+.dd-grid.is-empty .dd-empty { display: grid; }
+body.dd-dragging .dd-grid.is-empty .dd-empty { border-color: color-mix(in srgb, var(--violet) 55%, transparent); color: var(--violet); background: color-mix(in srgb, var(--violet) 6%, transparent); }
+
+#view-home .dd-tile { cursor: grab; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: manipulation; padding-right: 48px; }
+#view-home .dd-tile:hover { border-color: var(--c-line); box-shadow: var(--shadow); }
+#view-home .dd-tile:focus-visible { outline: 3px solid var(--violet); outline-offset: 3px; }
+#view-home .dd-tile .go { display: none; }
+.dd-more { position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 12px; border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface) 80%, transparent); color: var(--muted); cursor: pointer; z-index: 2; transition: transform .4s var(--spring), color .2s ease; }
+.dd-more svg { width: 18px; height: 18px; }
+.dd-more:hover { color: var(--ink); transform: scale(1.08); }
+.dd-grip { position: absolute; right: 16px; bottom: 14px; width: 20px; height: 20px; color: color-mix(in srgb, var(--ink) 28%, transparent); pointer-events: none; }
+.dd-grip svg { width: 100%; height: 100%; }
+#view-home .dd-tile.dd-press { transform: scale(.97); transition: transform .26s ease; }
+#view-home .dd-tile.dd-ghost { opacity: 1; background: color-mix(in srgb, var(--c) 8%, transparent); border: 2px dashed color-mix(in srgb, var(--c) 55%, transparent); box-shadow: none; }
+#view-home .dd-tile.dd-ghost > * { visibility: hidden; }
+#view-home .dd-tile.dd-held { outline: 3px solid var(--violet); outline-offset: 3px; transform: scale(1.03) rotate(-1.2deg); box-shadow: var(--shadow-lg); z-index: 3; transition: transform .45s var(--spring); }
+#view-home .dd-tile.dd-landed { animation: dash-land .6s var(--spring); }
+body.dd-dragging, body.dd-dragging * { cursor: grabbing !important; }
+body.dd-dragging #view-home .dd-tile:not(.dd-ghost):hover { transform: none; }
+
+/* The tile that follows the pointer. The outer box moves, the inner card lifts with a spring. */
+.dd-float { position: fixed; left: 0; top: 0; z-index: 9000; pointer-events: none; will-change: transform; }
+.dd-float.drop { transition: transform .38s var(--spring); }
+#view-home .dd-float .dd-float-in { width: 100%; height: 100%; margin: 0; transition: transform .45s var(--spring), box-shadow .3s ease; box-shadow: var(--shadow); }
+#view-home .dd-float.lift .dd-float-in { transform: scale(1.06) rotate(-2.5deg); box-shadow: 0 30px 60px -18px rgba(30, 20, 60, .45), 0 0 0 2px color-mix(in srgb, var(--c) 45%, transparent); }
+#view-home .dd-float .dd-more { visibility: hidden; }
+
+.dd-add-cat { width: 100%; margin-top: var(--s4, 16px); display: flex; align-items: center; justify-content: center; gap: var(--s2, 8px); padding: var(--s4, 16px);
+  border-radius: 22px; border: 2px dashed color-mix(in srgb, var(--violet) 40%, var(--line)); background: color-mix(in srgb, var(--violet) 5%, transparent);
+  color: var(--violet); font: 800 17px var(--display); cursor: pointer; transition: transform .45s var(--spring), background .2s ease; }
+.dd-add-cat svg { width: 20px; height: 20px; }
+.dd-add-cat:hover:not(:disabled) { transform: translateY(-2px); background: color-mix(in srgb, var(--violet) 10%, transparent); }
+.dd-add-cat:disabled { opacity: .5; cursor: default; }
+
+/* The ••• menu */
+.dd-menu { position: fixed; z-index: 9500; min-width: 220px; max-width: min(320px, calc(100vw - 16px)); padding: var(--s2, 8px); border-radius: 18px;
+  display: flex; flex-direction: column; gap: 2px; animation: dash-menu .38s var(--spring) both; }
+.dd-menu.out { animation: dash-menu-out .18s ease both; }
+.dd-menu-title { margin: 0; padding: 6px 10px 8px; font: 800 13px var(--body); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.dd-menu-item { text-align: left; padding: 10px 12px; border: 0; border-radius: 12px; background: transparent; color: var(--ink); font: 700 15px var(--body); cursor: pointer; }
+.dd-menu-item:hover, .dd-menu-item:focus-visible { background: color-mix(in srgb, var(--violet) 12%, transparent); outline: none; }
+.dd-menu-item:focus-visible { box-shadow: inset 0 0 0 2px var(--violet); }
+
+@keyframes dash-drop { from { opacity: 0; transform: translateY(-16px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes dash-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dash-pop { from { opacity: 0; transform: translateY(16px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes dash-land { 0% { transform: scale(1.06); } 100% { transform: none; } }
+@keyframes dash-menu { from { opacity: 0; transform: scale(.9) translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes dash-menu-out { to { opacity: 0; transform: scale(.95); } }
+
+/* Phones: two tiles a row like the normal home page, the bar wraps neatly. */
+@media (max-width: 760px) {
+  #view-home .section-head .dash-custom { padding: 6px 12px; font-size: 13.5px; }
+  .dash-bar { top: calc(var(--dash-top, 56px) + 6px); padding: 12px; border-radius: 20px; margin-bottom: 16px; }
+  .dash-bar-text h2 { font-size: 19px; }
+  .dash-bar-sub { font-size: 13.5px; }
+  .dash-bar-main, .dash-ask { gap: 8px; }
+  .dash-bar-btns { width: 100%; flex-wrap: nowrap; gap: 6px; }
+  .dash-bar-btns .btn { flex: 1 1 auto; justify-content: center; padding: 8px 10px; }
+  .dash-bar-btns .dash-add, .dash-bar-btns .dash-reset { flex: 0 0 auto; width: 44px; padding: 8px 0; }
+  .dash-bar-btns .dash-add span, .dash-bar-btns .dash-reset span { display: none; }
+  .dd-cats { gap: 16px; }
+  .dd-cat, .dd-tray { padding: 12px; border-radius: 22px; }
+  #view-home .dd-name { font-size: 21px; flex-basis: 120px; }
+  .dd-icon-btn { width: 36px; height: 36px; }
+  #view-home .dd-tile { padding-right: 16px; padding-top: 16px; }
+  .dd-more { top: 8px; right: 8px; width: 32px; height: 32px; }
+  .dd-grip { display: none; }
+  #view-home .dd-tray { margin-top: 24px; }
+  .dd-size { display: none; }   /* phones always show two tiles a row */
+}
+@media (prefers-reduced-motion: reduce) {
+  .dash-bar, .dd-cat.dd-pop, .dd-menu, #view-home .dd-tile.dd-landed { animation: none; }
+  .dd-float.drop, #view-home .dd-float .dd-float-in { transition: none; }
+}
+/* Small tiles (the Classroom Tools look) are short, so they skip the grip dots. */
+#view-home .home-tools .dd-grip { display: none; }
+#view-home .home-tools .dd-tile { padding-right: 52px; }
+#view-home .home-tools .dd-more { top: 50%; margin-top: -18px; }
+.dd-size { color: var(--violet); }
