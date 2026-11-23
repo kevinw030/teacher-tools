@@ -178,6 +178,20 @@
         if (!ok) printRow.querySelector('.btn.primary').disabled = true;
         playBox.append(printRow);
       }
+      if (again && game && game.live) {
+        // Same class, new game: the students wait in the lobby while the teacher picks new settings.
+        s3.textContent = '';
+        s3.append(stepHead(3, 'Start the New Game'),
+          h('div', { class: 'bgo-again' },
+            h('p', { class: 'bgo-again-t', text: countText(people.length) + ' waiting in the lobby' }),
+            h('p', { class: 'join-help', text: 'Same class code (' + B.showCode(game.code) + '), same students and animals. Pick the words, card size and win rule above, then start.' }),
+            h('div', { class: 'row' },
+              TT.button('Start New Game', { kind: 'primary big', icon: 'play', onclick: function () { if (items().length >= B.cellsNeeded(S.size, free())) start(true); else toast('Add more words, or pick a smaller card.'); } }),
+              TT.button('Close Game', { kind: 'big', icon: 'close', onclick: function () { if (confirmEnd()) endGame(); } }))));
+        root.append(s1, s2, s3);
+        paintPreview();
+        return;
+      }
       root.append(s1, s2, s3);
       paintPreview(); paintPlay();
     }
@@ -215,13 +229,19 @@
     }
     function start(live) {
       var it = items();
+      // "New Game" after a Bingo: same class code, same students and animals, new settings.
+      var keep = again && game && game.live && conn ? game : null;
+      again = false; goWinners = [];
+      if (keep) live = true;
       game = { g: B.randomId(), items: it, order: B.shuffle(it.map(function (_, i) { return i; })), called: [], last: null, round: 1,
-        title: title(), size: S.size, free: free(), pattern: S.pattern, live: !!live, code: live ? B.makeCode() : '', winners: [], reveal: false,
-        phase: live ? 'lobby' : 'play', kicked: [], avs: {} };
-      claims = []; people = [];
+        title: title(), size: S.size, free: free(), pattern: S.pattern, live: !!live, code: keep ? keep.code : live ? B.makeCode() : '', winners: [], reveal: false,
+        phase: live ? 'lobby' : 'play', kicked: keep ? keep.kicked || [] : [], avs: keep ? keep.avs || {} : {} };
+      claims = [];
+      if (!keep) people = [];
       persist();
-      if (live) goLive();
+      if (live && !keep) goLive();
       paintNow();
+      if (keep) { startGame(); return; }
       var pg = root.closest('.page'); if (pg && pg.getBoundingClientRect().top < 0) window.scrollTo({ top: 0, behavior: still ? 'auto' : 'smooth' });
       if (TT.track) TT.track('bingo', live ? 'live' : 'screen');
     }
@@ -320,7 +340,7 @@
       }, 100);
     }
     function newRound() {
-      game.round++; game.called = []; game.last = null; game.winners = []; game.reveal = false;
+      game.round++; game.called = []; game.last = null; game.winners = []; game.reveal = false; goWinners = [];
       game.order = B.shuffle(game.items.map(function (_, i) { return i; }));
       claims = [];
       stopAuto();
@@ -339,6 +359,18 @@
       if (counting) return;
       if (conn) conn.send('countdown', { g: game.g, round: game.round, title: title });
       counting = Lobby.countdown({ title: title, done: function () { counting = null; done(); } });
+    }
+    var again = false, goWinners = [];
+    // After a Bingo: back to the settings with the same class in the lobby.
+    function newGame() {
+      if (!game || !game.live) { endGame(); return; }
+      stopAuto();
+      game.phase = 'lobby'; game.called = []; game.last = null; game.winners = []; game.reveal = false;
+      claims = []; goWinners = [];
+      persist(); sendState();
+      again = true; lobbyRoom = null; gameRoom = null;
+      paintSetup();
+      window.scrollTo({ top: 0, behavior: still ? 'auto' : 'smooth' });
     }
     function startGame() {
       if (!game || game.phase !== 'lobby') return;
@@ -396,7 +428,7 @@
     function endGame() {
       stopAuto();
       if (conn) { conn.send('end', { g: game && game.g }); var c = conn; setTimeout(function () { c.close(); }, 600); conn = null; }
-      game = null; claims = []; people = [];
+      game = null; claims = []; people = []; again = false; goWinners = [];
       persist();
       if (celebrating) { celebrating.remove(); celebrating = null; }
       if (counting) { counting.cancel(); counting = null; }
@@ -429,15 +461,18 @@
       else if (!ok) toast(name + ' called Bingo, but not yet!');
     }
 
-    function winAva(name) {
-      if (!game || !game.live) return null;
+    function winnerAv(name) {
       var p = people.filter(function (x) { return x.name === name; })[0];
-      if (!p) return null;
-      var av = game.avs && game.avs[p.id] != null ? game.avs[p.id] : p.av;
-      return h('div', { class: 'bgo-win-ava', style: '--ac:' + Lobby.avatar(av).c, 'aria-hidden': 'true' }, Lobby.img(av));
+      return p ? (game.avs && game.avs[p.id] != null ? game.avs[p.id] : p.av) : null;
     }
+    // Bingo! Everyone who gets it before the teacher picks Keep Going or New Game shows up together.
     function celebrate(name, line) {
       stopAuto();
+      if (goWinners.indexOf(name) >= 0) return;
+      goWinners.push(name);
+      if (TT.chime) TT.chime();
+      if (S.speak) say(name + ' has Bingo!');
+      if (celebrating && celebrating.isConnected && celebrating.addWinner) { celebrating.addWinner(name); return; }
       if (celebrating) celebrating.remove();
       var conf = h('div', { class: 'bgo-confetti', 'aria-hidden': 'true' });
       if (!still) for (var i = 0; i < 70; i++) {
@@ -446,21 +481,38 @@
         conf.append(bit);
       }
       var mas = TT.mascot ? TT.mascot({ mood: 'party' }) : null;
-      var keep = TT.button('Keep Playing', { kind: 'big', onclick: function () { close(); } });
-      var again = TT.button('New Round', { kind: 'primary big', icon: 'shuffle', onclick: function () { close(); newRound(); } });
-      celebrating = h('div', { class: 'bgo-win', role: 'dialog', 'aria-modal': 'true', 'aria-label': name + ' has Bingo' }, conf,
+      var list = h('div', { class: 'bgo-winners', role: 'list', 'aria-live': 'polite' });
+      var head = h('h2', { class: 'bgo-winners-t' });
+      function addWinner(n) {
+        var av = game.live ? winnerAv(n) : null;
+        list.append(h('div', { class: 'bgo-winner', role: 'listitem' },
+          av != null ? h('span', { class: 'bgo-win-ava', style: '--ac:' + Lobby.avatar(av).c, 'aria-hidden': 'true' }, Lobby.img(av)) : h('span', { class: 'bgo-win-star', 'aria-hidden': 'true', text: '⭐' }),
+          h('span', { class: 'bgo-winner-n', text: n })));
+        list.classList.toggle('many', goWinners.length > 1);
+        head.textContent = goWinners.length === 1 ? n + (game.live ? ' Has Bingo!' : '') : goWinners.length + ' Bingos!';
+      }
+      var keep = TT.button('Keep Going', { kind: 'big', icon: 'play', onclick: function () { close(); } });
+      var fresh = TT.button('New Game', { kind: 'primary big', icon: 'shuffle', onclick: function () { close(true); if (game && game.live) newGame(); else endGame(); } });
+      var shut = TT.button(game.live ? 'Close Game' : 'Back to Setup', { kind: 'small', icon: 'close', onclick: function () { if (!game.live || confirmEnd()) { close(true); endGame(); } } });
+      celebrating = h('div', { class: 'bgo-win', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Bingo!' }, conf,
         h('div', { class: 'bgo-win-card' },
           mas ? h('div', { class: 'bgo-win-mascot' }, mas) : null,
-          winAva(name),
           h('p', { class: 'bgo-win-kicker', text: 'Bingo!' }),
-          h('h2', { text: name + (game.live ? ' Has Bingo!' : '') }),
-          h('div', { class: 'row center' }, keep, again)));
-      function close() { if (!celebrating) return; var c = celebrating; celebrating = null; c.classList.add('out'); setTimeout(function () { c.remove(); }, 300); if (S.auto) restartAuto(); }
+          head, list,
+          h('p', { class: 'bgo-win-ask', text: game.live ? 'Keep going with the same cards, or start a new game with this class?' : 'Keep going with the same cards, or set up a new game?' }),
+          h('div', { class: 'row center' }, keep, fresh),
+          h('div', { class: 'row center' }, shut)));
+      celebrating.addWinner = addWinner;
+      addWinner(name);
+      // Keep Going: same cards, calling picks up again until the next Bingo.
+      function close(quiet) {
+        if (!celebrating) return; var c = celebrating; celebrating = null; goWinners = [];
+        c.classList.add('out'); setTimeout(function () { c.remove(); }, 300);
+        if (!quiet && S.auto) restartAuto();
+      }
       celebrating.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
       (root.closest('.page') || document.body).append(celebrating);
-      setTimeout(function () { again.focus(); }, 50);
-      if (TT.chime) TT.chime();
-      if (S.speak) say(name + ' has Bingo!');
+      setTimeout(function () { keep.focus(); }, 50);
     }
 
     // ---- Game screen ----
