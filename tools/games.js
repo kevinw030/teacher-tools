@@ -132,7 +132,7 @@
 
   // ---------- Checkers ----------
   function checkers(el) {
-    var sb = scoreBar(['Red Team', 'Black Team'], 'g-checkers', ['#C81E1E', '#16181F']);
+    var sb = scoreBar(['Red Team', 'Navy Team'], 'g-checkers', ['#E8524A', '#2B3A55']);
     var st = status();
     var grid = h('div', { class: 'ck' });
     var board, turn, sel, over, chain, cells = [];
@@ -185,7 +185,7 @@
       }
       chain = false; sel = -1; turn = 1 - turn;
       var left = board.some(function (x, k) { return x && x.p === turn && moves(k).length; });
-      if (!left) { over = true; sb.win(1 - turn); paint(); st.textContent = (turn ? 'Red' : 'Black') + ' Team wins!'; TT.chime(); return; }
+      if (!left) { over = true; sb.win(1 - turn); paint(); st.textContent = (turn ? 'Red' : 'Navy') + ' Team wins!'; TT.chime(); return; }
       paint();
     }
     function paint() {
@@ -196,7 +196,7 @@
         c.classList.toggle('target', targets.indexOf(i) >= 0);
         c.innerHTML = pc ? '<span class="ck-pc p' + pc.p + (pc.k ? ' king' : '') + '">' + (pc.k ? '♛' : '') + '</span>' : '';
       });
-      if (!over) st.textContent = (turn ? 'Black' : 'Red') + ' Team’s turn.';
+      if (!over) st.textContent = (turn ? 'Navy' : 'Red') + ' Team’s turn.';
       sb.turn(turn);
     }
     reset();
