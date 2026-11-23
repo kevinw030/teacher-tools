@@ -5,14 +5,27 @@ The site already has everything built for sign-in, cloud saving and plans. It st
 
 Part 1 turns on accounts (about 15 minutes, free). Part 2 turns on payments (about 20 minutes, whenever you're ready).
 
+## Part 0: The edsidekick.com Domain
+
+The site uses only relative paths, so it works the same at `edsidekick.com` as at `kevinw030.github.io/teacher-tools/`.
+
+1. In Namecheap: **Domain List > Manage > Advanced DNS**. Delete the default parking records, then add:
+   - Four **A Records**, Host `@`, values `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
+   - One **CNAME Record**, Host `www`, value `kevinw030.github.io.`
+2. On GitHub: **kevinw030/teacher-tools > Settings > Pages > Custom domain**, type `edsidekick.com` and press **Save**.
+   GitHub adds a `CNAME` file to the repository for you. When the DNS check turns green (minutes to a few hours), tick **Enforce HTTPS**.
+3. After that, the old `kevinw030.github.io/teacher-tools/` address forwards to `edsidekick.com` automatically.
+
+Do step 2 after step 1, so the old address doesn't forward to a domain that isn't pointing anywhere yet.
+
 ## Part 1: Accounts (Supabase, free)
 
 1. Go to https://supabase.com, sign up (Sign in with GitHub is easiest) and choose **New Project**.
    Name it `teacher-tools`, make up a database password (save it somewhere), pick the region closest to you, and choose the **Free** plan.
 2. When it's ready, open **SQL Editor > New query**, paste everything from `supabase/setup.sql`, and press **Run**.
 3. Open **Authentication > URL Configuration**:
-   - Site URL: `https://kevinw030.github.io/teacher-tools/`
-   - Redirect URLs: add `https://kevinw030.github.io/teacher-tools/**`
+   - Site URL: `https://edsidekick.com`
+   - Redirect URLs: add `https://edsidekick.com/**`, `https://www.edsidekick.com/**` and `https://kevinw030.github.io/teacher-tools/**`
 4. Open **Authentication > Email Templates**. In both **Magic Link** and **Confirm Signup**, add this line to the message
    so the email includes a code teachers can type on another device:
    `<p>Or type this code: <b>{{ .Token }}</b></p>`
@@ -32,11 +45,11 @@ This adds a "Continue with Google" button above the email sign-in, so teachers c
    - App name: `Teacher Tools`; support email: your email
    - Audience: **External**
    - Contact email: your email, then agree and press **Create**
-4. Under **Branding**, add the app domain `kevinw030.github.io`, and under **Authorized domains** add `supabase.co`.
+4. Under **Branding**, add the app home page `https://edsidekick.com` and authorized domain `edsidekick.com`, and under **Authorized domains** add `supabase.co`.
    Under **Data Access**, the only scopes needed are `email`, `profile` and `openid` (the defaults).
 5. Open **Clients > Create Client** (or **APIs & Services > Credentials > Create Credentials > OAuth client ID**):
    - Application type: **Web application**, name: `Teacher Tools`
-   - Authorized JavaScript origins: `https://kevinw030.github.io`
+   - Authorized JavaScript origins: `https://edsidekick.com` and `https://kevinw030.github.io`
    - Authorized redirect URIs: the **Callback URL** you copied from Supabase in step 1
    - Press **Create**, then copy the **Client ID** and **Client Secret**.
 6. Back in Supabase on the Google provider page, turn **Enable Sign in with Google** on, paste the Client ID and
@@ -55,7 +68,7 @@ sender (for example Resend, 3,000 emails a month free) under **Project Settings 
 1. Sign up at https://stripe.com and finish the account details (business info and the bank account for payouts).
 2. **Product catalog > Add product**: "Teacher Tools Premium" with two prices: $3.99 monthly and $29 yearly (recurring).
 3. **Payment Links**: make one link for each price. Under After Payment, choose "Don't show confirmation page" and
-   redirect to `https://kevinw030.github.io/teacher-tools/#account`.
+   redirect to `https://edsidekick.com/#account`.
    Put the links in `premiumMonthlyLink` and `premiumYearlyLink`.
 4. **Settings > Billing > Customer portal**: turn it on and copy its link into `manageLink`, so members can cancel or switch.
 5. In Supabase, **Edge Functions > Deploy a new function > Via Editor**, name it `stripe-webhook`, paste

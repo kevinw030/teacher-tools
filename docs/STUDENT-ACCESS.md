@@ -14,7 +14,7 @@ This is a design for a later step. Nothing here is built yet.
    - an exit ticket (answer one question)
    - chosen games or puzzles (Word Guess, Code Breaker, Trivia, the teacher's own escape rooms)
 2. The teacher presses **Start Class Code**. The site shows a big code and link on the board, like `TIGER-42`
-   and `kevinw030.github.io/teacher-tools/#join`.
+   and `edsidekick.com/#join`.
 3. The code works until the teacher presses **End**, or until the end of the school day.
 4. The teacher can change what's open at any time, and students' screens update.
 
