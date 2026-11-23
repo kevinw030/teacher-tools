@@ -42,7 +42,8 @@
 
   // A short "See Plans" note for places that hit a free-plan limit.
   TT.upsell = function (text) {
-    return h('p', { class: 'upsell' }, h('span', { text: text + ' ' }), h('a', { href: '#account', text: TT.account.signedIn() ? 'Go Premium' : 'See Plans' }));
+    return h('p', { class: 'upsell' }, h('span', { text: text + ' ' }), h('a', { href: '#account', text: TT.account.signedIn() ? 'Go Premium' : 'See Plans',
+      onclick: function () { TT.account.wantPlans = true; if (location.hash === '#account' && TT.account.openPlans) TT.account.openPlans(); } }));
   };
 
   function emit() { listeners.forEach(function (fn) { try { fn(); } catch (e) {} }); paintNav(); }
@@ -417,7 +418,8 @@
           h('span', { class: 'nav-avatar big', text: (TT.account.firstName() || TT.account.email() || '?').charAt(0).toUpperCase() }),
           h('div', null, h('h2', { text: TT.account.firstName() ? 'Hi, ' + TT.account.firstName() + '!' : TT.account.email() }),
             TT.account.firstName() ? h('p', { class: 'muted acct-email', text: TT.account.email() }) : null,
-            h('span', { class: 'plan-badge p-' + plan, text: label + ' Plan' }))),
+            h('span', { class: 'plan-badge p-' + plan, text: label + ' Plan' }),
+            plan === 'free' ? h('button', { type: 'button', class: 'linkish plan-see', onclick: function () { tab = 'plans'; paint(); } }, 'See Plans') : null)),
         showSaved ? h('p', { class: 'sync-status s-saved', text: 'Your new password is saved.' }) : null,
         h('p', { class: 'sync-status s-' + status, text: STATUS[status] || '' }),
         sync,
@@ -438,8 +440,8 @@
       var save = mo && yr ? Math.round((1 - yr / (mo * 12)) * 100) : 0;
       var yearly = billing === 'year';
 
-      function startFree() { mode = 'signup'; msgText = ''; paint(); scrollToForm(); }
-      function needAccount() { mode = 'signup'; msgText = 'Create your free account first, then choose your plan.'; paint(); scrollToForm(); }
+      function startFree() { tab = 'account'; mode = 'signup'; msgText = ''; paint(); scrollToForm(); }
+      function needAccount() { tab = 'account'; mode = 'signup'; msgText = 'Create your free account first, then choose your plan.'; paint(); scrollToForm(); }
       function scrollToForm() { setTimeout(function () { var f = document.getElementById('acctName') || document.getElementById('acctEmail'); if (f) { f.scrollIntoView({ behavior: 'smooth', block: 'center' }); f.focus({ preventScroll: true }); } }, 0); }
       function cta(label, kind, opts) {
         opts = opts || {};
@@ -502,20 +504,39 @@
           return h('button', { type: 'button', class: 'seg' + (billing === o[0] ? ' on' : ''), 'aria-pressed': billing === o[0], onclick: function () { billing = o[0]; paint(); } }, o[1]);
         }));
       return h('section', { class: 'pricing' },
-        h('div', { class: 'pricing-head' }, h('h2', { text: 'Plans and Pricing' }),
-          h('p', { class: 'muted', text: 'Start for free. Upgrade when you want more room.' }), toggle),
+        h('div', { class: 'pricing-head' }, h('h2', { text: 'Start Free. Upgrade Anytime.' }),
+          h('p', { class: 'muted', text: 'Every tool and game is free. Premium gives you more room and your own photos.' }), toggle),
         h('div', { class: 'pricing-grid cols-' + cols.length }, cols));
     }
 
+    var tab = 'account';
+    function tabs() {
+      return h('div', { class: 'acct-tabs', role: 'tablist', 'aria-label': 'Account sections' },
+        [['account', user ? 'My Account' : 'Sign In'], ['plans', 'Plans and Pricing']].map(function (t) {
+          return h('button', { type: 'button', role: 'tab', class: 'acct-tab' + (tab === t[0] ? ' on' : ''), 'aria-selected': tab === t[0] ? 'true' : 'false',
+            onclick: function () { if (tab !== t[0]) { tab = t[0]; paint(); } } }, t[1]);
+        }));
+    }
     function paint() {
+      // Rebuilding the page must not jump the scroll position.
+      var y = window.scrollY;
+      root.style.minHeight = root.offsetHeight + 'px';
       root.textContent = '';
       if (!enabled) { root.append(h('section', { class: 'acct-card' }, h('h2', { text: 'Accounts Are Coming Soon' }), h('p', { class: 'muted', text: 'For now, everything saves on this computer.' }))); return; }
-      if (user && resetting()) root.append(resetCard());
-      root.append(user ? accountCard() : signInCard(), plansCard());
+      root.append(tabs());
+      if (tab === 'plans') root.append(plansCard());
+      else {
+        if (user && resetting()) root.append(resetCard());
+        root.append(user ? accountCard() : signInCard());
+      }
+      root.style.minHeight = '';
+      if (window.scrollY !== y) window.scrollTo(0, y);
     }
     TT.account.onChange(paint);
+    TT.account.openPlans = function () { tab = 'plans'; paint(); };
+    if (TT.account.wantPlans) { tab = 'plans'; TT.account.wantPlans = false; }
     paint();
-    return { show: function () { loadPlan(); paint(); } };
+    return { show: function () { if (TT.account.wantPlans) { tab = 'plans'; TT.account.wantPlans = false; } loadPlan(); paint(); } };
   };
 
   // ---------- Top bar button ----------
