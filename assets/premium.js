@@ -34,6 +34,9 @@
     room: function (r) { return !r || r.mine || FREE_ROOMS[r.id] || has(); },
     // A small "Premium" tag with a lock, for cards and buttons.
     badge: function (cls) { return h('span', { class: 'pm-badge ' + (cls || ''), html: TT.icon('lock') + '<span>Premium</span>' }); },
+    // The site owner sees which things are Premium (unlocked), so the plan can be checked at a glance.
+    owner: function () { return !!(TT.account && TT.account.plan && TT.account.plan() === 'owner'); },
+    ownerBadge: function () { return h('span', { class: 'pm-badge pm-owner-badge', title: 'Premium (included with your account)', html: TT.icon('unlock') + '<span>Premium</span>' }); },
     // A button that does its job for Premium and opens the pop-up for everyone else.
     button: function (label, feature, fn, icon) {
       if (has()) return TT.button(label, { icon: icon, kind: 'small', onclick: fn });
@@ -166,7 +169,7 @@
   };
 
   // ---------- Tags on links and clicks on locked links ----------
-  function paintTags() { document.body.classList.toggle('pm-free', !has()); }
+  function paintTags() { document.body.classList.toggle('pm-free', !has()); document.body.classList.toggle('pm-owner', TT.premium.owner()); }
   document.addEventListener('click', function (e) {
     var a = e.target.closest && e.target.closest('a[href^="#"]');
     if (!a) return;

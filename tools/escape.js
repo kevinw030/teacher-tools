@@ -23,7 +23,7 @@
           var pic = h('span', { class: 'er-thumb' }); pic.innerHTML = TT.escapeArt(sceneOf(r), 'm' + i);
           var locked = !TT.premium.room(r);
           return h('button', { type: 'button', class: 'er-card' + (locked ? ' pm-locked' : ''), onclick: function () { if (locked) TT.premium.open('rooms'); else begin(r); } }, pic,
-            locked ? TT.premium.badge() : null,
+            locked ? TT.premium.badge() : TT.premium.owner() && !r.mine && r.id !== 'library' ? TT.premium.ownerBadge() : null,
             h('span', { class: 'er-card-text' }, h('b', { text: r.title }),
               h('small', { text: r.mine ? (best[r.id] ? 'My Room · Best Time ' + fmt(best[r.id]) : 'My Room · ' + r.locks.length + (r.locks.length === 1 ? ' Lock' : ' Locks')) : 'Grades 1 to 5 · ' + r.locks.length + ' Locks' })));
         })),

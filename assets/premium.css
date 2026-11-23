@@ -11,6 +11,7 @@
 .er-card { position: relative; }
 .er-card.pm-locked .er-thumb { filter: saturate(.55) brightness(.82); transition: filter .25s ease; }
 .er-card.pm-locked:hover .er-thumb, .er-card.pm-locked:focus-visible .er-thumb { filter: saturate(.85) brightness(.95); }
+.er-card > .pm-owner-badge { position: absolute; top: 12px; right: 12px; z-index: 2; opacity: .9; }
 .er-card.pm-locked > .pm-badge { position: absolute; top: 12px; right: 12px; z-index: 2; font-size: 13px; padding: 6px 11px 6px 8px; }
 .er-card.pm-locked:hover > .pm-badge { animation: pm-wiggle .5s ease; }
 @keyframes pm-wiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-6deg); } 60% { transform: rotate(5deg); } }
@@ -19,13 +20,15 @@
 .er-edit-row { margin-top: -4px; }
 
 /* Links to locked tools get a Premium tag (nav menu, home cards, phone sheet). */
-body.pm-free .nav-pop a[href="#seating"], body.pm-free .nav-pop a[href="#prompts"] { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+body.pm-free .nav-pop a[href="#seating"], body.pm-free .nav-pop a[href="#prompts"], body.pm-owner .nav-pop a[href="#seating"], body.pm-owner .nav-pop a[href="#prompts"] { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 body.pm-free .nav-pop a[href="#seating"]::after, body.pm-free .nav-pop a[href="#prompts"]::after,
 body.pm-free a.tool[href="#seating"]::after, body.pm-free a.tool[href="#prompts"]::after,
-body.pm-free .mob-item[href="#seating"]::after, body.pm-free .mob-item[href="#prompts"]::after {
+body.pm-free .mob-item[href="#seating"]::after, body.pm-free .mob-item[href="#prompts"]::after,
+body.pm-owner .nav-pop a[href="#seating"]::after, body.pm-owner .nav-pop a[href="#prompts"]::after,
+body.pm-owner a.tool[href="#seating"]::after, body.pm-owner a.tool[href="#prompts"]::after {
   content: "Premium"; font-family: var(--body); font-size: 11px; font-weight: 800; line-height: 1; color: #fff; padding: 4px 8px; border-radius: 999px; background: var(--pm-grad); white-space: nowrap;
 }
-body.pm-free a.tool[href="#seating"]::after, body.pm-free a.tool[href="#prompts"]::after { position: absolute; top: 16px; right: 16px; font-size: 12px; padding: 5px 10px; }
+body.pm-free a.tool[href="#seating"]::after, body.pm-free a.tool[href="#prompts"]::after, body.pm-owner a.tool[href="#seating"]::after, body.pm-owner a.tool[href="#prompts"]::after { position: absolute; top: 16px; right: 16px; font-size: 12px; padding: 5px 10px; }
 body.pm-free .mob-item[href="#seating"], body.pm-free .mob-item[href="#prompts"] { position: relative; }
 body.pm-free .mob-item[href="#seating"]::after, body.pm-free .mob-item[href="#prompts"]::after { position: absolute; top: 2px; right: 4px; font-size: 9.5px; padding: 3px 6px; }
 
