@@ -312,6 +312,31 @@
 
   TT.escapeScenes = SCENES;
   // The whole picture for a scene, ready to drop into the page.
+  // ------------------------------------------------------------------ The Locked Library, Kevin's own artwork
+  // The room is a picture (assets/escape/library.jpg, 1600 x 900). The spots below are lined up with it,
+  // and a warm glow appears on each thing once its lock is open.
+  (function () {
+    var spots = [
+      { name: 'The Tall Bookshelf', x: 50, y: 74, w: 372, h: 668 },
+      { name: 'The Dusty Book', x: 518, y: 506, w: 172, h: 92 },
+      { name: 'The Pinned Note', x: 812, y: 166, w: 192, h: 204 },
+      { name: 'The Door Keypad', x: 1146, y: 376, w: 62, h: 104 },
+      { name: 'The Grandfather Clock', x: 1008, y: 160, w: 132, h: 584 }
+    ];
+    SCENES.library.spots = spots;
+    SCENES.library.exit = { name: 'The Library Doors', x: 1208, y: 118, w: 344, h: 620 };
+    SCENES.library.art = function (p) {
+      var out = '<defs>' + glow(p + 'g', '#FFD76A', 0.45) + glow(p + 'x', '#FFF3C4', 0.5) + '</defs>' +
+        '<image href="assets/escape/library.jpg" x="0" y="0" width="1600" height="900" preserveAspectRatio="xMidYMid slice"/>';
+      spots.forEach(function (s, i) {
+        out += G('on-' + i, E(s.x + s.w / 2, s.y + s.h / 2, s.w * 0.62, s.h * 0.58, 'url(#' + p + 'g)', 'opacity=".5" style="mix-blend-mode:screen"'));
+      });
+      var d = SCENES.library.exit;
+      return out + G('x-open', E(d.x + d.w / 2, d.y + d.h / 2, d.w * 0.75, d.h * 0.62, 'url(#' + p + 'x)', 'style="mix-blend-mode:screen"') +
+        R(d.x + d.w / 2 - 5, d.y + 40, 10, d.h - 40, '#FFF6D0', 5, 'opacity=".95"'));
+    };
+  })();
+
   TT.escapeArt = function (id, prefix) {
     var s = SCENES[id] || SCENES.classroom;
     return '<svg class="ea" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">' + s.art(prefix || ('ea' + id)) + '</svg>';
