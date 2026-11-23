@@ -26,7 +26,12 @@ Do step 2 after step 1, so the old address doesn't forward to a domain that isn'
 3. Open **Authentication > URL Configuration**:
    - Site URL: `https://edsidekick.com`
    - Redirect URLs: add `https://edsidekick.com/**`, `https://www.edsidekick.com/**` and `https://kevinw030.github.io/teacher-tools/**`
-4. Skip email templates for now. Teachers sign in by tapping the link in the email (on the same computer). Supabase only lets you edit templates after custom email is set up (see "Custom Email" below).
+4. Open **Authentication > Sign In / Providers > Email**:
+   - Leave **Enable Email provider** on.
+   - Turn **Confirm email** off for now, so new accounts can log in right away. (Supabase's built-in email only sends a few emails an hour.
+     Turn it back on after setting up Custom Email below.)
+   - Set **Minimum password length** to `8` and press **Save**.
+   People sign up with first name, email and password, or with Google. "Forgot password?" emails a reset link (also limited to a few an hour until Custom Email is set up).
 5. Done: the project URL and publishable key are already in `assets/account-config.js` (project `nipdxclfxmnbfrzubmrw`).
 6. Open the site, choose **Sign In**, and sign in with your email.
 7. Back in **SQL Editor**, run this with your email, so your account has everything free:
@@ -67,10 +72,8 @@ Supabase's built-in email sends only a few sign-in emails an hour and won't let 
 4. In Supabase: **Authentication > Emails > SMTP Settings**, turn on custom SMTP:
    - Sender email `hello@edsidekick.com`, sender name `ED Sidekick`
    - Host `smtp.resend.com`, port `465`, username `resend`, password: the API key
-5. Now the templates unlock. In **Magic Link** and **Confirm signup**, add `<p>Or type this code: <b>{{ .Token }}</b></p>`
-   and change the wording to ED Sidekick if you like.
-6. Set `emailCode: true` in `assets/account-config.js` (or tell Claude). Teachers can then also type the code,
-   which helps when they read email on their phone but sign in on the classroom computer.
+5. Now the templates unlock. Change the wording of **Confirm signup** and **Reset Password** to ED Sidekick if you like.
+6. Turn **Confirm email** back on (Authentication > Sign In / Providers > Email).
 
 ## Part 2: Payments (Stripe)
 
@@ -79,6 +82,9 @@ Supabase's built-in email sends only a few sign-in emails an hour and won't let 
 3. **Payment Links**: make one link for each price. Under After Payment, choose "Don't show confirmation page" and
    redirect to `https://edsidekick.com/#account`.
    Put the links in `premiumMonthlyLink` and `premiumYearlyLink`.
+   For **Early Access**, add two more prices to the same product, $2.99 monthly and $21.75 yearly (25% off), make a Payment Link
+   for each, and put them in `earlyMonthlyLink` and `earlyYearlyLink`. The Early Access column hides itself on January 1, 2027
+   (`earlyUntil`); people who already joined keep their discounted price in Stripe.
 4. **Settings > Billing > Customer portal**: turn it on and copy its link into `manageLink`, so members can cancel or switch.
 5. In Supabase, **Edge Functions > Deploy a new function > Via Editor**, name it `stripe-webhook`, paste
    `supabase/functions/stripe-webhook/index.ts`, and turn **off** "Verify JWT" (Stripe signs its messages instead).
@@ -95,7 +101,7 @@ Supabase's built-in email sends only a few sign-in emails an hour and won't let 
 - **Guests** (not signed in) save on that computer only, like before, with Free plan limits.
 - **Signed in**: everything saves to the account a few seconds after each change, and loads on any computer.
   If something changed on another computer while the site is open, a note offers to load it.
-- **No student logins, ever.** Accounts are for teachers only. Students will join with a class code instead (see `docs/STUDENT-ACCESS.md`).
+- **Anyone 13 or older can make an account** (first name, email, password, or Google). People who join an activity with a class code never make an account and nothing about them is saved (see `docs/STUDENT-ACCESS.md`).
 - **Student names save to the teacher's account** (Kevin's choice): class lists, class jobs, seating charts, exit tickets and the pet's helper
   follow the teacher to any computer (`classSync: 'always'` in `assets/account-config.js`). Only the teacher can read them.
   `'never'` keeps them on each computer instead, and `'choose'` gives each teacher an on/off switch.

@@ -16,6 +16,13 @@ window.TT_ACCOUNT_CONFIG = {
   // From Stripe: Payment Links for the Premium plan. Leave empty until payments are ready.
   premiumMonthlyLink: '',
   premiumYearlyLink: '',
+  // Early Access: Premium at a discount for people who join before earlyUntil (the column hides itself after).
+  // From Stripe: Payment Links for the discounted prices.
+  earlyMonthlyLink: '',
+  earlyYearlyLink: '',
+  earlyDiscount: 0.25,
+  earlyUntil: '2027-01-01',
+
   // From Stripe: the customer portal link, so members can change or cancel their plan.
   manageLink: '',
 
