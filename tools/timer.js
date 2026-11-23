@@ -17,9 +17,12 @@
       '<svg viewBox="0 0 120 120" aria-hidden="true">' +
       '<circle cx="60" cy="60" r="' + R + '" class="ring-bg"/>' +
       '<circle cx="60" cy="60" r="' + R + '" class="ring-fg" stroke-dasharray="' + C + '" stroke-dashoffset="0"/></svg>';
-    var digits = h('div', { class: 'timer-digits', role: 'timer', 'aria-live': 'off' });
+    var digits = h('div', { class: 'timer-digits', role: 'timer', 'aria-live': 'off', tabindex: '0', title: 'Click to Type a Time' });
+    var editor = h('input', { class: 'timer-digits timer-edit', type: 'text', inputmode: 'numeric', autocomplete: 'off', 'aria-label': 'Type a time, like 7 or 2:30', maxlength: '8' });
+    editor.hidden = true;
+    var editing = false;
     var status = h('div', { class: 'timer-status' });
-    ring.append(h('div', { class: 'timer-center' }, digits, status));
+    ring.append(h('div', { class: 'timer-center' }, digits, editor, status));
     var fg = ring.querySelector('.ring-fg');
 
     var startBtn = TT.button('Start', { icon: 'play', kind: 'primary big', onclick: toggle });
@@ -55,7 +58,7 @@
       root.classList.toggle('running', running);
       root.classList.toggle('done', done);
       root.classList.toggle('warning', running && remaining <= 10 && remaining > 0);
-      status.textContent = done ? 'Time’s up!' : running ? 'Counting Down' : (remaining < total ? 'Paused' : 'Ready');
+      if (!editing) status.textContent = done ? 'Time’s up!' : running ? 'Counting Down' : (remaining < total ? 'Paused' : 'Ready');
       startBtn.innerHTML = TT.icon(running ? 'pause' : 'play') + '<span>' + (running ? 'Pause' : (remaining < total && !done ? 'Resume' : 'Start')) + '</span>';
     }
     function loop() {
@@ -82,6 +85,48 @@
       else set(remaining + d > 0 ? Math.round(remaining) + d : 60);
       persist();
     }
+    // Click (or tap) the time to type any time: "7" = 7 minutes, "2:30", "1:15:00", or "230" = 2:30.
+    function parseTime(v) {
+      v = String(v).trim().replace(/[.\s]/g, ':');
+      if (!v) return 0;
+      if (v.indexOf(':') >= 0) {
+        var parts = v.split(':').map(function (p) { return parseInt(p, 10) || 0; });
+        var secs = 0; parts.forEach(function (p) { secs = secs * 60 + p; });
+        return secs;
+      }
+      v = v.replace(/\D/g, '');
+      if (!v) return 0;
+      if (v.length <= 2) return parseInt(v, 10) * 60;           // plain minutes
+      var sec = parseInt(v.slice(-2), 10), rest = v.slice(0, -2);  // microwave style: 230 = 2:30
+      var min = parseInt(rest.slice(-2), 10) || 0, hrs = parseInt(rest.slice(0, -2), 10) || 0;
+      return hrs * 3600 + min * 60 + sec;
+    }
+    function openEditor() {
+      if (editing) return;
+      if (running) toggle();                 // pause while typing
+      editing = true;
+      editor.value = fmt(done ? total : remaining);
+      digits.hidden = true; editor.hidden = false;
+      status.textContent = 'Press Enter';
+      editor.focus(); editor.select();
+    }
+    function closeEditor(apply) {
+      if (!editing) return;
+      editing = false;
+      var secs = apply ? parseTime(editor.value) : 0;
+      editor.hidden = true; digits.hidden = false;
+      if (secs > 0) set(secs); else paint();
+    }
+    digits.addEventListener('click', openEditor);
+    digits.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openEditor(); } });
+    editor.addEventListener('keydown', function (e) {
+      e.stopPropagation();
+      if (e.key === 'Enter') { e.preventDefault(); closeEditor(true); }
+      else if (e.key === 'Escape') { e.preventDefault(); closeEditor(false); }
+    });
+    editor.addEventListener('blur', function () { closeEditor(true); });
+    editor.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+
     function persist() { if (opts.onChange) opts.onChange({ total: total, sound: soundOn }); }
     paint();
 

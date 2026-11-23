@@ -218,6 +218,10 @@ input::placeholder, textarea::placeholder { color: var(--muted); }
 .timer.done .ring-fg { stroke: var(--coral); }
 .timer-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2cqi; }
 .timer-digits { font-family: var(--display); font-weight: 700; font-size: 22cqi; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.timer-digits:not(.timer-edit) { cursor: text; border-radius: 12px; padding: 0 2cqi; transition: background .15s ease, box-shadow .15s ease; }
+.timer-digits:not(.timer-edit):hover, .timer-digits:not(.timer-edit):focus-visible { background: color-mix(in srgb, currentColor 8%, transparent); box-shadow: inset 0 -3px 0 color-mix(in srgb, currentColor 25%, transparent); outline: none; }
+.timer .timer-center input.timer-edit { font-family: var(--display); font-weight: 700; font-size: 22cqi; line-height: 1; height: auto; min-height: 0; letter-spacing: -.03em; font-variant-numeric: tabular-nums; width: 76cqi; text-align: center; color: inherit; background: color-mix(in srgb, currentColor 8%, transparent); border: 0; border-radius: 12px; padding: 0; margin: 0; box-shadow: inset 0 -4px 0 var(--green, #0FA974) !important; outline: none; caret-color: var(--green, #0FA974); }
+.timer-edit[hidden], .timer-digits[hidden] { display: none; }
 .timer-status { font-size: max(12px, 4.5cqi); font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
 .timer.done .timer-digits, .timer.done .timer-status { color: var(--coral); }
 .timer.done .timer-ring { animation: pulse 1s ease-in-out 3; }
