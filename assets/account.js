@@ -59,14 +59,23 @@
     user: function () { return user; },
     signedIn: function () { return !!user; },
     email: function () { return user ? user.email : meta.email || ''; },
-    plan: function () { return !enabled ? 'open' : user || meta.userId ? (meta.plan || 'free') : 'guest'; },
+    // plan() is what the site shows. The owner can preview the site as Free or Premium (viewAs);
+    // realPlan() is always the plan saved in the account, and the database checks that one, not this.
+    plan: function () { var p = realPlan(); return p === 'owner' && (meta.viewAs === 'free' || meta.viewAs === 'premium') ? meta.viewAs : p; },
+    realPlan: function () { return realPlan(); },
+    viewAs: function () { return realPlan() === 'owner' ? meta.viewAs || '' : ''; },
+    setViewAs: function (p) { meta.viewAs = p === 'free' || p === 'premium' ? p : ''; saveMeta(); location.reload(); },
+    client: function () { return sb; },
     isPremium: function () { var p = TT.account.plan(); return p === 'premium' || p === 'owner' || p === 'open'; },
     status: function () { return status; },
     onChange: function (fn) { listeners.push(fn); },
     classSync: classSync,
     setClassSync: function (on) { TT.settings.syncClasses = !!on; TT.saveSettings(); changed('tt:classes'); emit(); }
   };
+  function realPlan() { return !enabled ? 'open' : user || meta.userId ? (meta.plan || 'free') : 'guest'; }
   TT.limit = function (name) { return PLANS[TT.account.plan()][name]; };
+  // For trimming saved things: always the real plan, so previewing Free never deletes the owner's work.
+  TT.storeLimit = function (name) { return PLANS[realPlan()][name]; };
 
   // Prices from account-config.js, shared by the pricing tab and the Premium pop-up.
   TT.account.prices = function () {
@@ -543,6 +552,10 @@
         TT.account.paying() ? h('p', { class: 'sync-status s-syncing', role: 'status', text: 'Thank you! Your Premium plan is turning on. This only takes a few seconds.' }) : null,
         TT.account.justPaid && plan !== 'free' ? h('p', { class: 'sync-status s-saved', role: 'status', text: 'Welcome to Premium! Everything is unlocked.' }) : null,
         picking ? avatarPicker() : null,
+        realPlan() === 'owner' ? h('div', { class: 'acct-owner' },
+          h('div', null, h('h3', { text: 'Owner Dashboard' }),
+            h('p', { class: 'muted', text: meta.viewAs ? 'You are previewing the site as ' + (meta.viewAs === 'free' ? 'Free' : 'Premium') + '. Your account is still the owner account.' : 'Traffic, members, income and the plan preview switch.' })),
+          h('a', { class: 'btn primary small', href: '#owner' }, 'Open Dashboard')) : null,
         showSaved ? h('p', { class: 'sync-status s-saved', text: 'Your new password is saved.' }) : null,
         h('p', { class: 'sync-status s-' + status, text: STATUS[status] || '' }),
         sync,
@@ -744,7 +757,7 @@
       item(I.user, 'My Account', function () { TT.account.wantPlans = false; location.hash = '#account'; }),
       item(I.plans, 'Plans and Pricing', goPlans),
       item(TT.icon('gear'), 'Settings', function () { location.hash = '#settings'; }),
-      plan === 'owner' && document.getElementById('view-owner') ? item(I.dash, 'Owner Dashboard', function () { location.hash = '#owner'; }) : null,
+      realPlan() === 'owner' && document.getElementById('view-owner') ? item(I.dash, 'Owner Dashboard', function () { location.hash = '#owner'; }) : null,
       h('div', { class: 'acct-menu-sep' }),
       item(I.out, 'Sign Out', TT.account.signOut, 'danger'));
     return m;

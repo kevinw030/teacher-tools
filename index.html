@@ -21,6 +21,7 @@
 <link rel="stylesheet" href="assets/mobile.css?v=20261123f">
 <link rel="stylesheet" href="assets/legal.css?v=20261123f">
 <link rel="stylesheet" href="assets/premium.css?v=20261123f">
+<link rel="stylesheet" href="assets/owner.css?v=od1123">
 </head>
 <body>
 
@@ -351,6 +352,14 @@
   <footer class="site-foot"><span>© 2026 ED Sidekick</span><a href="privacy/">Privacy Policy</a><a href="terms/">Terms of Service</a></footer>
 </main>
 
+<!-- OWNER DASHBOARD (numbers only load for the owner account; the database checks it) -->
+<main class="page c-emerald" id="view-owner" data-view="owner" hidden>
+  <header class="tool-head">
+    <div><span class="eyebrow">Owner Only</span><h1>Owner Dashboard</h1><p>How ED Sidekick is doing: visits, members and income.</p></div>
+  </header>
+  <div id="ownerMount"></div>
+</main>
+
 <!-- SOUND LEVEL -->
 <main class="page c-sky" id="view-sound-level" data-view="sound-level" hidden>
   <header class="tool-head">
@@ -442,8 +451,9 @@
 
 <script src="assets/core.js?v=20261123f"></script>
 <script src="assets/account-config.js?v=20261123f"></script>
-<script src="assets/account.js?v=tc1123pay"></script>
-<script src="assets/premium.js?v=20261123f"></script>
+<script src="assets/account.js?v=tc1123pay2"></script>
+<script src="assets/track.js?v=od1123"></script>
+<script src="assets/premium.js?v=od1123b"></script>
 <script src="tools/timer.js?v=20261123f"></script>
 <script src="tools/picker.js?v=20261123f"></script>
 <script src="tools/groups.js?v=20261123f"></script>
@@ -470,16 +480,17 @@
 <script src="tools/escape-grades.js?v=20261123f"></script>
 <script src="tools/escape-pool.js?v=20261123f"></script>
 <script src="tools/escape-reward.js?v=20261123f"></script>
-<script src="tools/escape.js?v=20261123f"></script>
+<script src="tools/escape.js?v=od1123b"></script>
 <script src="tools/trail.js?v=20261123f"></script>
 <script src="tools/races.js?v=20261123f"></script>
 <script src="tools/custom.js?v=20261123f"></script>
-<script src="tools/tickets.js?v=20261123f"></script>
+<script src="tools/tickets.js?v=od1123b"></script>
 <script src="tools/seating-art.js?v=20261123f"></script>
 <script src="tools/seating.js?v=20261123f"></script>
 <script src="tools/extras.js?v=20261123f"></script>
 <script src="tools/learn.js?v=20261123f"></script>
-<script src="assets/app.js?v=20261123f"></script>
+<script src="tools/owner.js?v=od1123"></script>
+<script src="assets/app.js?v=od1123b"></script>
 <script src="tools/fit.js?v=20261123f"></script>
 <script src="tools/home.js?v=20261123f"></script>
 <script src="tools/mobile.js?v=20261123f"></script>

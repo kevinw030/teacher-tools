@@ -75,6 +75,16 @@ Supabase's built-in email sends only a few sign-in emails an hour and won't let 
 5. Now the templates unlock. Change the wording of **Confirm signup** and **Reset Password** to ED Sidekick if you like.
 6. Turn **Confirm email** back on (Authentication > Sign In / Providers > Email).
 
+## Part 1b: Owner Dashboard (one paste)
+
+The Owner Dashboard (edsidekick.com/#owner, or the green Dashboard button in the top bar) shows visits, the most-used tools and games, every account, members, Premium sign-ups and income. Only accounts with plan = 'owner' can see any of it: the database checks this itself, so the public page code can't reveal anything.
+
+1. Supabase > **SQL Editor** > **New query**.
+2. Paste everything from `supabase/owner-dashboard.sql` and click **Run**. (Safe to run again later.)
+3. Open the dashboard on the site. Visits count from this moment on.
+
+Part 2's webhook step includes the two extra events (`invoice.paid`, `charge.refunded`) that fill in Income.
+
 ## Part 2: Payments (Stripe, about 30 minutes)
 
 Everything on the site is already built. You make four Payment Links and one webhook in Stripe, and Claude pastes the links in.
@@ -123,7 +133,8 @@ Send it to Claude too, or paste it into `manageLink`. Premium members then see *
    Stripe proves who it is with a signature instead.
 3. In Stripe: **Developers > Webhooks > Add endpoint** (newer dashboards: **Workbench > Webhooks > Add destination**, then "Webhook endpoint").
    - Endpoint URL: `https://nipdxclfxmnbfrzubmrw.supabase.co/functions/v1/stripe-webhook`
-   - Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
+   - Events (5): `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`,
+     plus `invoice.paid` and `charge.refunded` for the Owner Dashboard's Income numbers
    - Create it, then press **Reveal** under **Signing secret** and copy it (it starts with `whsec_`).
 4. In Supabase: **Edge Functions > Secrets > Add new secret**. Name `STRIPE_WEBHOOK_SECRET`, value: the signing secret. Save.
    (No Stripe secret key is needed. The function only listens; it never charges anyone.)

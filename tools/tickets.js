@@ -148,7 +148,7 @@
       root.append(h('div', { class: 'xt-stage results' }, h('span', { class: 'eyebrow', text: dateText(t.date) + ' · ' + t.answers.length + (t.answers.length === 1 ? ' Answer' : ' Answers') }), h('h2', { class: 'xt-q', text: t.q })),
         results(t, false),
         h('div', { class: 'row' },
-          live ? TT.button('Save and Close', { kind: 'primary big', onclick: function () { state.saved.unshift(t); state.saved = state.saved.slice(0, TT.limit ? TT.limit('tickets') : 50); state.cur = null; save(); view = 'setup'; paint(); } }) : null,
+          live ? TT.button('Save and Close', { kind: 'primary big', onclick: function () { state.saved.unshift(t); state.saved = state.saved.slice(0, TT.storeLimit ? TT.storeLimit('tickets') : TT.limit ? TT.limit('tickets') : 50); state.cur = null; save(); view = 'setup'; paint(); } }) : null,
           live ? TT.button('Keep Collecting', { kind: 'big', onclick: function () { t.done = false; save(); view = 'collect'; paint(); } }) : null,
           live ? TT.button('Throw Away', { icon: 'trash', kind: 'big', onclick: function () { state.cur = null; save(); view = 'setup'; paint(); } }) : null,
           !live ? TT.button('Back to Tickets', { icon: 'back', kind: 'big', onclick: function () { viewing = null; view = 'setup'; paint(); } }) : null));

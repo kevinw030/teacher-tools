@@ -65,6 +65,7 @@
       root.append(stage, bar);
       paint();
       if (!r.mine && !grade) return askGrade(r0);
+      if (TT.track) TT.track('escape-room', (r0.mine ? 'my-room' : r0.id) + (grade ? '|g' + grade : ''));
       var bt = bestFor(TT.load('escape-best', {}));
       card([h('span', { class: 'er-eyebrow', text: grade ? 'Escape Room · ' + GRADES[grade] : 'Escape Room' }), h('h2', { text: r.title }), h('p', { text: r.intro }),
         bt ? h('p', { class: 'er-how', text: 'Best time' + (grade ? ' for ' + GRADES[grade].toLowerCase() : '') + ': ' + fmt(bt) }) : null,
