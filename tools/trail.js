@@ -6,7 +6,6 @@
   var TT = window.TT, h = TT.h;
   var N = 48, COLS = 8, ART = '/assets/race/';
   var MOVES = ['march in place', 'do jumping jacks', 'hop on one foot', 'do arm circles', 'touch your toes', 'do star jumps', 'clap over your head', 'tap your knees'];
-  var PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
   function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
 
   function makeLayout() {
@@ -41,7 +40,7 @@
     if (!set.sel.length) set.sel = P.def.slice();
     var teamsBar = h('div', { class: 'scorebar' });
     var st = h('p', { class: 'game-status', 'aria-live': 'polite' });
-    var die = h('span', { class: 'tr-die', 'aria-hidden': 'true' });
+    var die = TT.dice ? TT.dice() : null;
     var rollBtn = TT.button('Roll the Die', { kind: 'primary big', onclick: roll });
     var board = h('div', { class: 'tr-board', role: 'img', 'aria-label': 'Race track with ' + N + ' spaces' });
     var card = h('div', { class: 'tr-card', hidden: true, role: 'dialog', 'aria-live': 'assertive' });
@@ -60,7 +59,7 @@
     });
     function paintTables() { tables.querySelectorAll('.tr-table').forEach(function (b) { var on = set.sel.indexOf(vals[+b.getAttribute('data-n')]) >= 0; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); }); }
     el.append(h('div', { class: 'game trail' + (cfg.cls ? ' ' + cfg.cls : '') }, teamsBar, st,
-      h('div', { class: 'row center' }, die, rollBtn),
+      h('div', { class: 'row center tr-rollrow' }, die && die.el, rollBtn),
       wrap,
       h('div', { class: 'tr-legend' }, Object.keys(KINDS).map(function (k) { return h('span', null, art(KINDS[k][0]), h('b', { text: KINDS[k][1] }), ' ' + KINDS[k][2]); })),
       h('div', { class: 'tr-setup' }, h('b', { class: 'tr-setup-h' }, cfg.signArt ? art(cfg.signArt, 'tr-sign') : null, P.label), tables),
@@ -79,10 +78,7 @@
       recent.push(f.key); if (recent.length > 14) recent.shift();
       return f;
     }
-    function paintDie(v) {
-      die.textContent = '';
-      for (var k = 0; k < 9; k++) die.append(h('i', { class: PIPS[v].indexOf(k) >= 0 ? 'on' : '' }));
-    }
+    function paintDie(v) { if (die) die.show(v); }
     function paint() {
       teamsBar.textContent = '';
       state.pos.forEach(function (p, t) {
@@ -192,13 +188,13 @@
     function roll() {
       if (busy || state.over) return;
       busy = true; rollBtn.disabled = true;
-      var t = state.turn, i = 0;
-      (function shake() {
-        lastRoll = 1 + Math.floor(Math.random() * 6); paintDie(lastRoll); TT.tick();
-        if (++i < 9) { setTimeout(shake, 60 + i * 8); return; }
+      var t = state.turn;
+      lastRoll = 1 + Math.floor(Math.random() * 6);
+      st.textContent = name(t) + ' is rolling…';
+      die.roll(lastRoll, function () {
         st.textContent = name(t) + ' rolled a ' + lastRoll + '!';
-        setTimeout(function () { walk(t, lastRoll, function () { finishOr(t, function () { land(t); }); }); }, 450);
-      })();
+        setTimeout(function () { walk(t, lastRoll, function () { finishOr(t, function () { land(t); }); }); }, 380);
+      });
     }
     function land(t) {
       var k = state.layout[state.pos[t]];
