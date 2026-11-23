@@ -1227,3 +1227,21 @@ button.cb-peg.big:hover { transform: scale(1.1); }
   .acct-row .acct-switch { margin-top: 8px; }
   .acct-tab { padding: 8px 16px; font-size: 15px; }
 }
+
+/* Account icon */
+.nav-avatar.has-img { background-size: cover; background-position: center; color: transparent; }
+.nav-avatar.has-emoji { font-size: 19px; }
+.nav-avatar.big.has-emoji { font-size: 32px; }
+.avatar-wrap { position: relative; flex: none; }
+.avatar-btn { border: 0; padding: 0; background: none; cursor: pointer; border-radius: 999px; position: relative; display: block; }
+.avatar-btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.avatar-edit { position: absolute; right: -4px; bottom: -4px; width: 24px; height: 24px; border-radius: 999px; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-sm); color: var(--ink); }
+.avatar-edit svg { width: 13px; height: 13px; }
+.avatar-picker { margin: 18px 0 6px; padding: 18px; border-radius: 18px; background: var(--surface-2); border: 1px solid var(--line); }
+.avatar-picker-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.avatar-picker-head h3 { margin: 0; font-size: 17px; }
+.avatar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 10px; }
+.avatar-opt { aspect-ratio: 1; border: 0; border-radius: 999px; font-size: 26px; cursor: pointer; display: grid; place-items: center; box-shadow: var(--shadow-sm); transition: transform .12s; }
+.avatar-opt:hover { transform: scale(1.07); }
+.avatar-opt.on { box-shadow: 0 0 0 3px var(--surface-2), 0 0 0 5px var(--violet); }
+.avatar-actions { margin: 14px 0 6px; flex-wrap: wrap; gap: 8px; }
