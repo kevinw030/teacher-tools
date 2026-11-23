@@ -58,11 +58,20 @@
 
   // Math facts: every fact with both numbers from min to max. Cards show answers, the caller shows a fact.
   B.OPS = { add: '+', sub: '−', mul: '×', div: '÷' };
-  B.fromFacts = function (ops, min, max) {
+  // need: how many different answers a card needs. When the chosen numbers don't give that many
+  // (like 0 to 10 subtraction, only 11 answers), the first number keeps going a little higher until
+  // there are enough, so every card can still be different. list.stretched tells how far it went.
+  B.fromFacts = function (ops, min, max, need) {
+    var list = facts(ops, min, max, max), top = max;
+    while (need && list.length < need && top < max + 40) { top++; list = facts(ops, min, max, top); }
+    if (top > max) list.stretched = top;
+    return list;
+  };
+  function facts(ops, min, max, top) {
     var by = {};
     function add(ans, call) { (by[ans] = by[ans] || []).push(call); }
     ops.forEach(function (op) {
-      for (var a = min; a <= max; a++) for (var b = min; b <= max; b++) {
+      for (var a = min; a <= top; a++) for (var b = min; b <= max; b++) {
         if (op === 'add') add(a + b, a + ' + ' + b);
         if (op === 'sub') add(a, (a + b) + ' − ' + b);
         if (op === 'mul') add(a * b, a + ' × ' + b);
@@ -71,7 +80,7 @@
     });
     return Object.keys(by).map(Number).sort(function (x, y) { return x - y; })
       .map(function (n) { return { card: String(n), calls: by[n] }; });
-  };
+  }
   // Say a fact the way a teacher would: "7 times 8".
   B.spoken = function (s) {
     return String(s).replace(/×/g, ' times ').replace(/÷/g, ' divided by ').replace(/−/g, ' minus ').replace(/\+/g, ' plus ').replace(/\s+/g, ' ').trim();

@@ -106,10 +106,10 @@
       connect();
     } },
       h('h1', { text: 'Join Your Class' }),
-      h('p', { class: 'join-lead', text: 'Type the code on your teacher’s screen.' }),
-      h('label', { for: 'code', class: 'join-lab', text: 'Class Code' }), code,
+      h('label', { for: 'code', class: 'join-lab join-num' }, h('span', { class: 'join-n', 'aria-hidden': 'true', text: '1' }), 'Type the code on your teacher’s screen'), code,
       h('p', { id: 'codeHelp', class: 'join-help', text: 'No account or password needed.' }),
-      h('label', { for: 'nick', class: 'join-lab' }, 'Your First Name or a Nickname ', h('span', { class: 'join-opt', text: '(optional)' })), name,
+      h('label', { for: 'nick', class: 'join-lab join-num' }, h('span', { class: 'join-n', 'aria-hidden': 'true', text: '2' }), 'Type your first name ', h('span', { class: 'join-opt', text: '(or skip it)' })), name,
+      h('p', { class: 'join-lab join-num join-last' }, h('span', { class: 'join-n', 'aria-hidden': 'true', text: '3' }), 'Press Join!'),
       err, nameTip, go,
       h('p', { class: 'join-privacy', text: 'Nothing you type here is saved. Your name only shows on your teacher’s screen during the game.' }));
     root.append(h('div', { class: 'join-stage' }, mas ? h('div', { class: 'join-mascot', 'aria-hidden': 'true' }, mas) : null, form));
@@ -211,28 +211,13 @@
     root.className = 'join-main is-lobby';
     cardKey = '';
     var meBox = h('div', { class: 'lb-me-wrap' });
-    var jumping = false;
     function drawMe() {
       meBox.textContent = '';
-      var p = Lobby.player({ id: me.id, name: me.name, av: me.av }, { me: false, onTap: function (x, el) {
-        // Tap your animal: it jumps and sparkles here, and bounces on everyone else's screen too.
-        // One jump at a time: taps are ignored until the full spin has landed.
-        if (jumping) return;
-        jumping = true; el.classList.add('cooling');
-        Lobby.poke(el, true);
-        if (conn) conn.send('poke', { id: me.id });
-        if (room) room.poke(me.id);
-        setTimeout(function () {
-          jumping = false; el.classList.remove('cooling');
-          taps++; tapCount.textContent = taps === 1 ? '1 jump!' : taps + ' jumps!';
-          tapCount.classList.remove('bump'); void tapCount.offsetWidth; tapCount.classList.add('bump');
-        }, Lobby.JUMP_MS);
-      } });
+      var p = Lobby.player({ id: me.id, name: me.name, av: me.av }, {});
       p.classList.add('lb-me');
-      p.setAttribute('aria-label', 'Your animal. Tap to make it jump');
-      meBox.append(p, h('span', { class: 'lb-tap-hint', 'aria-hidden': 'true', text: 'Tap me!' }));
+      p.setAttribute('aria-label', 'You are the ' + Lobby.avatar(me.av).n + ', ' + me.name);
+      meBox.append(p);
     }
-    var taps = 0, tapCount = h('span', { class: 'lb-taps', 'aria-live': 'polite' });
     drawMe();
     redrawMe = drawMe;
     room = Lobby.room({ meId: me.id, empty: 'You’re the first one here!' });
@@ -242,15 +227,46 @@
       h('p', { class: 'join-call-n', text: state ? state.title : '' }),
       h('h1', { text: 'You’re In!' }),
       meBox,
-      tapCount,
       h('div', { class: 'lb-waiting' },
         h('div', { class: 'join-dots', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')),
         h('p', { class: 'lb-waiting-text', text: 'Waiting for Teacher to Start' }),
-        h('p', { class: 'join-help', text: 'Tap your animal to make it jump. Your classmates see it bounce too!' })),
+        h('p', { class: 'join-help', text: 'Your teacher will start the game soon. Draw a picture while you wait!' })),
+      doodle(),
       pickBox,
       h('section', { class: 'lb-others' }, h('h2', { text: 'Who’s Here' }), room.el)));
     if (!document.querySelector('.lb-floaties')) document.body.append(Lobby.floaties());
   }
+  // ---------- Draw while you wait: a calm little drawing pad (nothing is sent or saved) ----------
+  function doodle() {
+    var COLORS = [['#1F1B4D', 'Black'], ['#E5397A', 'Pink'], ['#F2643D', 'Orange'], ['#E8B400', 'Yellow'], ['#0FA974', 'Green'], ['#2563EB', 'Blue'], ['#7B4DEB', 'Purple']];
+    var color = COLORS[1][0], drawing = false, last = null;
+    var cv = h('canvas', { class: 'lb-pad', 'aria-label': 'Drawing pad. Draw with your finger or mouse.', role: 'img' });
+    var ctx = cv.getContext('2d');
+    function size() {
+      var r = cv.getBoundingClientRect(); if (!r.width) return;
+      var dpr = Math.min(window.devicePixelRatio || 1, 2), keep = null;
+      if (cv.width) { keep = document.createElement('canvas'); keep.width = cv.width; keep.height = cv.height; keep.getContext('2d').drawImage(cv, 0, 0); }
+      cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      if (keep) ctx.drawImage(keep, 0, 0, keep.width / dpr, keep.height / dpr);
+    }
+    function pt(e) { var r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+    cv.addEventListener('pointerdown', function (e) { if (!cv.width) size(); drawing = true; last = pt(e); try { cv.setPointerCapture(e.pointerId); } catch (x) {} line(last, { x: last.x + .1, y: last.y + .1 }); e.preventDefault(); });
+    cv.addEventListener('pointermove', function (e) { if (!drawing) return; var p = pt(e); line(last, p); last = p; e.preventDefault(); });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (ev) { cv.addEventListener(ev, function () { drawing = false; }); });
+    function line(a, b) { ctx.strokeStyle = color; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); }
+    var sw = h('div', { class: 'lb-pad-colors', role: 'radiogroup', 'aria-label': 'Pencil color' });
+    COLORS.forEach(function (c, i) {
+      var b = h('button', { type: 'button', class: 'lb-sw' + (i === 1 ? ' on' : ''), role: 'radio', 'aria-checked': i === 1 ? 'true' : 'false', 'aria-label': c[1], style: '--c:' + c[0],
+        onclick: function () { color = c[0]; sw.querySelectorAll('.lb-sw').forEach(function (x) { x.classList.toggle('on', x === b); x.setAttribute('aria-checked', x === b ? 'true' : 'false'); }); } });
+      sw.append(b);
+    });
+    var clear = h('button', { type: 'button', class: 'btn small lb-pad-clear', onclick: function () { ctx.clearRect(0, 0, cv.width, cv.height); } }, 'Start Over');
+    setTimeout(size, 50);
+    window.addEventListener('resize', function () { if (cv.isConnected) size(); });
+    return h('section', { class: 'lb-doodle' }, h('h2', { text: 'Draw While You Wait' }), cv, h('div', { class: 'lb-pad-bar' }, sw, clear));
+  }
+
   // ---------- Choose your animal: one animal per player, the teacher's screen decides ties ----------
   var avMap = {}, picker = null, pickNote = null, pickWrap = null, pending = null, pendTimer = null, redrawMe = null;
   function takenSet() { var t = {}; Object.keys(avMap).forEach(function (k) { if (k !== me.id) t[avMap[k]] = true; }); return t; }
@@ -258,7 +274,7 @@
   function paintPicker() {
     picker = Lobby.picker({ mine: me.av | 0, taken: takenSet(), pending: pending, onPick: choose });
     pickNote = h('p', { class: 'lb-pick-note', role: 'status' });
-    var open = !me.picked;
+    var open = false;
     var toggle = h('button', { type: 'button', class: 'btn small lb-change', 'aria-expanded': String(open), onclick: function () { show(pickWrap.hidden); } },
       h('span', { text: 'Choose Your Animal' }), h('span', { class: 'lb-chev', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>' }));
     pickWrap = h('div', { class: 'lb-pick-wrap' }, h('p', { class: 'join-help', text: 'Every player gets a different animal. Gray ones are taken.' }), pickNote, picker.el);
@@ -437,7 +453,10 @@
     // Is it on my card? Light up that square and say so.
     var grid = gridBox ? gridBox.querySelectorAll('.bc-cell') : [], at = cells ? cells.indexOf(L.i) : -1;
     Array.prototype.forEach.call(grid, function (c) { c.classList.remove('hot'); });
-    if (at >= 0 && !marks[at]) {
+    if (!state.guided) {
+      // Not guided: students find it themselves. Nothing on the card or in the call gives it away.
+      if (fresh) beep(740, 0.12, 'sine', 0.06);
+    } else if (at >= 0 && !marks[at]) {
       if (grid[at]) grid[at].classList.add('hot');
       callEl.classList.add('have');
       callEl.append(h('span', { class: 'join-have', text: '🎯 It’s on your card! Find it and tap it!' }));
