@@ -75,26 +75,72 @@ Supabase's built-in email sends only a few sign-in emails an hour and won't let 
 5. Now the templates unlock. Change the wording of **Confirm signup** and **Reset Password** to ED Sidekick if you like.
 6. Turn **Confirm email** back on (Authentication > Sign In / Providers > Email).
 
-## Part 2: Payments (Stripe)
+## Part 2: Payments (Stripe, about 30 minutes)
 
-1. Sign up at https://stripe.com and finish the account details (business info and the bank account for payouts).
-2. **Product catalog > Add product**: "Teacher Tools Premium" with two prices: $3.99 monthly and $29 yearly (recurring).
-3. **Payment Links**: make one link for each price. Under After Payment, choose "Don't show confirmation page" and
-   redirect to `https://edsidekick.com/#account`.
-   Put the links in `premiumMonthlyLink` and `premiumYearlyLink`.
-   For **Early Access**, add two more prices to the same product, $2.99 monthly and $21.75 yearly (25% off), make a Payment Link
-   for each, and put them in `earlyMonthlyLink` and `earlyYearlyLink`. The Early Access column hides itself on January 1, 2027
-   (`earlyUntil`); people who already joined keep their discounted price in Stripe.
-4. **Settings > Billing > Customer portal**: turn it on and copy its link into `manageLink`, so members can cancel or switch.
-5. In Supabase, **Edge Functions > Deploy a new function > Via Editor**, name it `stripe-webhook`, paste
-   `supabase/functions/stripe-webhook/index.ts`, and turn **off** "Verify JWT" (Stripe signs its messages instead).
-6. In Stripe, **Developers > Webhooks > Add endpoint**:
-   - URL: `https://YOUR-PROJECT.supabase.co/functions/v1/stripe-webhook`
+Everything on the site is already built. You make four Payment Links and one webhook in Stripe, and Claude pastes the links in.
+The Premium buttons say **Coming Soon** until then.
+
+**Never paste a Stripe secret key (`sk_...`) or signing secret (`whsec_...`) into a chat or into the site's files.**
+The signing secret goes in one place only: Supabase's Secrets page (step 5). Payment Links (`https://buy.stripe.com/...`) are safe to share.
+
+### 1. Make the account
+1. Sign up at https://stripe.com. For business type, **Individual / sole proprietor** is fine. Website: `https://edsidekick.com`.
+2. Finish the details Stripe asks for (your info and the bank account for payouts). You can do steps 2 to 6 in **Test mode**
+   (Stripe may call it a **Sandbox**) while it checks your details.
+
+### 2. Make the product and four prices
+**Product catalog > Add product**, name it `ED Sidekick Premium`, and add four **Recurring** prices:
+
+| Price | Amount | Billing |
+|---|---|---|
+| Premium Monthly | $3.99 | Monthly |
+| Premium Yearly | $29.00 | Yearly |
+| Early Access Monthly | $2.99 | Monthly |
+| Early Access Yearly | $21.75 | Yearly |
+
+(Early Access is 25% off. People who join before January 1, 2027 keep that price as long as they stay subscribed. The site hides the Early Access column on that date.)
+
+### 3. Make four Payment Links
+**Payment Links > New**, one for each price. On each one:
+- Pick the price (quantity 1, no "let customers adjust quantity").
+- Open **After payment**, choose **Don't show confirmation page**, and enter `https://edsidekick.com/?paid=1`
+  (this brings people back to My Account, where the site says "Your Premium plan is turning on").
+- Press **Create link** and copy the link.
+
+Send Claude the four links, labeled which is which, or paste them into `assets/account-config.js` as
+`premiumMonthlyLink`, `premiumYearlyLink`, `earlyMonthlyLink` and `earlyYearlyLink`.
+The site adds each person's account and email to the link by itself, so Stripe knows whose plan to turn on.
+
+### 4. Turn on the customer portal (so members can cancel)
+**Settings > Billing > Customer portal**: allow customers to cancel and to update payment methods, press **Save**, then
+**Activate link** under "Customer portal link" and copy it (`https://billing.stripe.com/p/login/...`).
+Send it to Claude too, or paste it into `manageLink`. Premium members then see **Manage My Plan**.
+
+### 5. Connect Stripe to Supabase (turns Premium on and off by itself)
+1. In Supabase: **Edge Functions > Deploy a new function > Via Editor**. Name it exactly `stripe-webhook`.
+   Delete the sample code, paste everything from `supabase/functions/stripe-webhook/index.ts`, and press **Deploy**.
+2. Open the function's **Details** (or Settings) and turn **Verify JWT** (also called "Enforce JWT verification") **off**, then save.
+   Stripe proves who it is with a signature instead.
+3. In Stripe: **Developers > Webhooks > Add endpoint** (newer dashboards: **Workbench > Webhooks > Add destination**, then "Webhook endpoint").
+   - Endpoint URL: `https://nipdxclfxmnbfrzubmrw.supabase.co/functions/v1/stripe-webhook`
    - Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
-   - Copy the **Signing secret**.
-7. In Supabase, **Edge Functions > Secrets**, add `STRIPE_SECRET_KEY` (Stripe: Developers > API keys > Secret key)
-   and `STRIPE_WEBHOOK_SECRET` (the signing secret from step 6).
-8. Test with Stripe's **Test mode** first (card 4242 4242 4242 4242), then switch to live.
+   - Create it, then press **Reveal** under **Signing secret** and copy it (it starts with `whsec_`).
+4. In Supabase: **Edge Functions > Secrets > Add new secret**. Name `STRIPE_WEBHOOK_SECRET`, value: the signing secret. Save.
+   (No Stripe secret key is needed. The function only listens; it never charges anyone.)
+
+### 6. Test it
+1. While still in Test mode, use the test links on the site: sign in with a spare account, press **Get Premium**,
+   and pay with card `4242 4242 4242 4242`, any future date, any 3 digits, any ZIP.
+2. You land back on My Account. Within a few seconds the badge changes to **Premium Plan**.
+3. Press **Manage My Plan**, cancel the plan, and check the badge goes back to **Free** (refresh the page).
+   If it doesn't change, look at Stripe's webhook page for a red failed delivery, and tell Claude what it says.
+
+### 7. Go live (same evening as testing)
+Test links on the live site would let anyone get Premium with the fake card, so switch right after testing:
+1. Turn off Test mode in Stripe. Products, Payment Links, the portal and the webhook are separate in live mode,
+   so repeat steps 2 to 5 there (quickest: on each test product, **Copy to live mode**).
+2. Put the new live links in the site (send them to Claude), and replace `STRIPE_WEBHOOK_SECRET` in Supabase with the live signing secret.
+3. Your own plan stays **Owner** the whole time. Stripe never changes an Owner account.
 
 ## How It Works
 
