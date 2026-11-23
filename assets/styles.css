@@ -1245,3 +1245,23 @@ button.cb-peg.big:hover { transform: scale(1.1); }
 .avatar-opt:hover { transform: scale(1.07); }
 .avatar-opt.on { box-shadow: 0 0 0 3px var(--surface-2), 0 0 0 5px var(--violet); }
 .avatar-actions { margin: 14px 0 6px; flex-wrap: wrap; gap: 8px; }
+
+/* Account menu under the profile icon */
+.acct-menu-wrap { position: relative; flex: none; display: inline-flex; }
+.acct-menu { position: absolute; top: calc(100% + 10px); right: 0; width: 260px; z-index: 80; padding: 8px; display: flex; flex-direction: column; gap: 2px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow-lg); animation: acctMenuIn .14s ease-out; }
+.acct-menu::before { content: ""; position: absolute; left: 0; right: 0; top: -12px; height: 12px; }
+@keyframes acctMenuIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.acct-menu-head { display: flex; gap: 12px; align-items: center; padding: 10px 10px 12px; border-bottom: 1px solid var(--line); margin-bottom: 6px; }
+.acct-menu-head .nav-avatar { width: 42px; height: 42px; flex: none; }
+.acct-menu-head b { display: block; font-size: 15.5px; color: var(--ink); }
+.acct-menu-head small { display: block; color: var(--muted); font-size: 12.5px; overflow-wrap: anywhere; margin-bottom: 4px; }
+.acct-menu-head .plan-badge { font-size: 11.5px; padding: 2px 8px; }
+.acct-menu-item { display: flex; align-items: center; gap: 12px; width: 100%; border: 0; background: none; font: inherit; font-size: 15px; font-weight: 600; color: var(--ink); text-align: left; padding: 10px 10px; border-radius: 12px; cursor: pointer; }
+.acct-menu-item:hover, .acct-menu-item:focus-visible { background: var(--surface-2); outline: none; }
+.acct-menu-ico { width: 20px; height: 20px; display: grid; place-items: center; color: var(--muted); }
+.acct-menu-ico svg { width: 19px; height: 19px; }
+.acct-menu-item.danger { color: var(--rose); } .acct-menu-item.danger .acct-menu-ico { color: var(--rose); }
+.acct-menu-sep { height: 1px; background: var(--line); margin: 6px 4px; }
+@media (max-width: 760px) { .acct-menu { position: fixed; top: 60px; right: 12px; left: auto; width: min(300px, calc(100vw - 24px)); } }
+.nav-gear[hidden], .nav-account[hidden] { display: none !important; }
