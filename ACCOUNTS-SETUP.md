@@ -106,8 +106,10 @@ Supabase's built-in email sends only a few sign-in emails an hour and won't let 
   follow the teacher to any computer (`classSync: 'always'` in `assets/account-config.js`). Only the teacher can read them.
   `'never'` keeps them on each computer instead, and `'choose'` gives each teacher an on/off switch.
 - **Signing out** clears that account's things from the computer (they stay safe in the account), which suits shared school computers.
-- **Plans**: Free = 1 board screen, 2 class lists, 25 of your own questions and rooms, no photo backgrounds.
-  Premium and Owner = 10 screens and the rest unlimited. Nothing is deleted when someone is over a limit; they just can't add more.
+- **Plans**: Free = 2 board screens, 2 class lists, 20 of your own trivia questions (Would You Rather unlimited), last 5 exit tickets, photo backgrounds, The Locked Library escape room.
+  Premium and Owner = 10 screens, unlimited lists and trivia, last 50 exit tickets, all 4 escape rooms, editing any room's questions, Seating Chart and Prompts.
+  Signed out = everything free works, but the board does not save. Limits live in `PLANS` and `TT.PLAN_FEATURES` at the top of `assets/account.js`; locks live in `assets/premium.js`.
+  Nothing is deleted when someone is over a limit; they just can't add more (exit tickets trim to the limit on the next save).
   The numbers live at the top of `assets/account.js`; prices and links in `assets/account-config.js`.
 - **Giving Premium by hand**: `update public.profiles set plan = 'premium' where email = '...';`
 

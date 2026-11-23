@@ -125,7 +125,8 @@
       navAdd.title = navAdd.disabled ? 'You can save up to ' + max + ' screens' : 'New Blank Screen';
       screenMsg.hidden = screens.list.length < max;
       screenMsg.textContent = '';
-      if (TT.account && TT.account.enabled && !TT.account.isPremium()) screenMsg.append(TT.upsell('The Free plan saves ' + max + (max === 1 ? ' screen' : ' screens') + '. Delete one to make room, or save up to 10 with Premium.'));
+      if (!canSave()) { screenMsg.hidden = false; screenMsg.append(signInNote('Sign in to save your board and keep up to ' + TT.PLANS.free.screens + ' screens free.')); }
+      else if (TT.account && TT.account.enabled && !TT.account.isPremium()) screenMsg.append(TT.upsell('The Free plan saves ' + max + (max === 1 ? ' screen' : ' screens') + '. Delete one to make room, or save up to 10 with Premium.'));
       else screenMsg.textContent = 'You can save up to ' + max + (max === 1 ? ' screen' : ' screens') + '. Delete one to make room.';
       screenMsg.classList.add('warn');
     }
@@ -154,7 +155,7 @@
       loadState(); save(); screenPanel.hidden = true;
     }
     function addScreen(copy) {
-      if (screens.list.length >= TT.config.maxScreens) { paintScreens(); return; }
+      if (screens.list.length >= TT.config.maxScreens) { if (TT.account && TT.account.signedIn() && !TT.premium.has()) TT.premium.open('screens'); paintScreens(); return; }
       save();
       var st = copy ? JSON.parse(JSON.stringify(state)) : { bg: state.bg || 'morning', widgets: [] };
       if (copy) st.widgets.forEach(function (w, i) { w.id = 'w' + Date.now().toString(36) + i; });
@@ -165,13 +166,15 @@
     }
     // A template becomes a new saved screen, so the screen you were on is never changed.
     function addTemplate(t) {
-      if (screens.list.length >= TT.config.maxScreens) { paintScreens(); return; }
+      var replace = !canSave();   // signed out: a template takes over the one working screen
+      if (!replace && screens.list.length >= TT.config.maxScreens) { if (TT.account && TT.account.signedIn() && !TT.premium.has()) TT.premium.open('screens'); paintScreens(); return; }
       save();
       var b = bounds(), st = t.build(b);
       st.ref = b;
       st.widgets.forEach(function (w, i) { w.id = 'w' + Date.now().toString(36) + i; w.x = Math.round(w.x); w.y = Math.round(w.y); w.w = Math.round(w.w); w.h = Math.round(w.h); if (!w.data) w.data = TYPES[w.type] && TYPES[w.type].init ? TYPES[w.type].init() : {}; });
       st.widgets = st.widgets.filter(function (w) { return TYPES[w.type]; });
       var sc = { id: 's' + Date.now().toString(36), name: screenName.value.trim() || t.name, state: st };
+      if (replace) screens.list = screens.list.filter(function (x) { return x.id !== screens.active; });
       screens.list.push(sc); screenName.value = '';
       unrenderAll(); screens.active = sc.id; state = st;
       loadState(); save(); screenPanel.hidden = true;
@@ -184,10 +187,20 @@
       loadState(); save(); screenPanel.hidden = true;
     }
 
+    // Signed out: a small chip says the board isn't being saved, and the first visit explains why.
+    var unsavedChip = h('a', { class: 'btn glass small unsaved-chip', href: '#account', title: 'Sign In to Save', onclick: function () { TT.account.wantSignIn = true; } },
+      h('span', { class: 'dot', 'aria-hidden': 'true' }), h('span', { text: 'Not Saved · Sign In' }));
+    function signInNote(text) {
+      return h('p', { class: 'upsell' }, h('span', { text: text + ' ' }), h('a', { href: '#account', text: 'Sign In', onclick: function () { TT.account.wantSignIn = true; } }));
+    }
+    function paintSaveState() { unsavedChip.hidden = canSave(); }
+    if (TT.account && TT.account.onChange) TT.account.onChange(function () { paintSaveState(); paintScreens(); });
+    paintSaveState();
+
     var fsBtn = TT.canFullscreen ? TT.button('Full Screen', { icon: 'expand', kind: 'glass', title: 'Full Screen', onclick: function () { TT.toggleFullscreen(); } }) : null;
     bgBtn.title = 'Background'; clearBtn.title = 'Clear the Board'; screenBtn.title = 'Saved Screens';
     var top = h('div', { class: 'board-top' },
-      h('div', { class: 'row' }, h('a', { class: 'btn glass', href: '#home', title: 'All Tools', html: TT.icon('back') + '<span>All Tools</span>' }), h('div', { class: 'bg-wrap' }, screenBtn, screenPanel), screenNav),
+      h('div', { class: 'row' }, h('a', { class: 'btn glass', href: '#home', title: 'All Tools', html: TT.icon('back') + '<span>All Tools</span>' }), h('div', { class: 'bg-wrap' }, screenBtn, screenPanel), screenNav, unsavedChip),
       h('div', { class: 'row' }, clearConfirm, clearBtn, h('div', { class: 'bg-wrap' }, bgBtn, bgPanel),
         fsBtn)
     );
@@ -226,7 +239,9 @@
       if (!screenPanel.hidden && !screenPanel.contains(e.target) && !screenBtn.contains(e.target)) screenPanel.hidden = true;
     });
 
-    function save() { activeScreen().state = state; TT.save('board-screens', screens); }
+    // Saving needs an account (Free or Premium). Signed out, the board still works but forgets your changes.
+    function canSave() { return !TT.limit || TT.limit('saveBoard') !== false; }
+    function save() { activeScreen().state = state; if (canSave()) TT.save('board-screens', screens); }
     function setBg(id) {
       state.bg = id; save();
       var css, dark = false;
@@ -727,6 +742,8 @@
 
     return {
       show: function () {
+        paintSaveState();
+        if (!canSave() && TT.boardIntro) TT.boardIntro();
         requestAnimationFrame(function () {
           drawInk(); fitDock();
           state.widgets.forEach(function (w) { clamp(w); var n = canvas.querySelector('[data-id="' + w.id + '"]'); if (n) place(n, w); });

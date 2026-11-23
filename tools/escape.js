@@ -21,11 +21,13 @@
       root.append(h('p', { class: 'game-status', text: 'Choose a room, then pick your grade. Look around, solve the clues and escape together.' }),
         h('div', { class: 'er-grid' }, TT.escapeRooms().map(function (r, i) {
           var pic = h('span', { class: 'er-thumb' }); pic.innerHTML = TT.escapeArt(sceneOf(r), 'm' + i);
-          return h('button', { type: 'button', class: 'er-card', onclick: function () { begin(r); } }, pic,
+          var locked = !TT.premium.room(r);
+          return h('button', { type: 'button', class: 'er-card' + (locked ? ' pm-locked' : ''), onclick: function () { if (locked) TT.premium.open('rooms'); else begin(r); } }, pic,
+            locked ? TT.premium.badge() : null,
             h('span', { class: 'er-card-text' }, h('b', { text: r.title }),
               h('small', { text: r.mine ? (best[r.id] ? 'My Room · Best Time ' + fmt(best[r.id]) : 'My Room · ' + r.locks.length + (r.locks.length === 1 ? ' Lock' : ' Locks')) : 'Grades 1 to 5 · ' + r.locks.length + ' Locks' })));
         })),
-        h('div', { class: 'row center' }, TT.button('Make Your Own Room', { icon: 'plus', kind: 'small', onclick: function () { TT.custom.open('rooms'); } })));
+        h('div', { class: 'row center' }, TT.soonButton('Make Your Own Room')));
     }
 
     // ---------- The room ----------
@@ -35,8 +37,13 @@
     function bestFor(best) { return best[bestKey()] || (grade === 4 && !base.mine ? best[base.id] : 0); }
     // g is the grade to play. Leave it out and the teacher is asked first (built-in rooms only).
     function begin(r0, g) {
+      if (!TT.premium.room(r0)) { TT.premium.open('rooms'); menu(); return; }
       base = r0; grade = r0.mine ? 0 : (g || 0);
-      var r = { id: r0.id, title: r0.title, intro: r0.intro, win: r0.win, mine: r0.mine, locks: grade ? TT.escapeLocks(r0, grade) : r0.locks };
+      var locks = grade ? TT.escapeLocks(r0, grade) : r0.locks;
+      // Premium teachers can swap in their own questions for any lock (saved per room and grade).
+      var edits = grade && TT.premium.has() ? (TT.load('room-edits', {})[r0.id + '-g' + grade] || []) : [];
+      locks = locks.map(function (L, i) { return edits[i] && edits[i].q ? edits[i] : L; });
+      var r = { id: r0.id, title: r0.title, intro: r0.intro, win: r0.win, mine: r0.mine, locks: locks, edited: edits.some(function (e) { return e && e.q; }) };
       room = r; scene = TT.escapeScenes[sceneOf(r)]; solved = r.locks.map(function () { return false; });
       hintsUsed = 0; escaped = false; playing = false; clearInterval(iv); root.textContent = '';
       var art = h('div', { class: 'er-art' }); art.innerHTML = TT.escapeArt(sceneOf(r), 'p');
@@ -61,10 +68,49 @@
       var bt = bestFor(TT.load('escape-best', {}));
       card([h('span', { class: 'er-eyebrow', text: grade ? 'Escape Room · ' + GRADES[grade] : 'Escape Room' }), h('h2', { text: r.title }), h('p', { text: r.intro }),
         bt ? h('p', { class: 'er-how', text: 'Best time' + (grade ? ' for ' + GRADES[grade].toLowerCase() : '') + ': ' + fmt(bt) }) : null,
-        h('p', { class: 'er-how', text: 'Tap the things that glow. Each one hides a puzzle and a key.' }),
+        h('p', { class: 'er-how', text: r.edited ? 'Using your own questions. Tap the things that glow to find them.' : 'Tap the things that glow. Each one hides a puzzle and a key.' }),
         h('div', { class: 'row center' }, TT.button('Turn On the Lights', { icon: 'play', kind: 'primary big', onclick: function () {
           closeCard(); playing = true; start = Date.now(); stage.classList.remove('dark'); tick(); iv = setInterval(tick, 500); paint();
-        } }), grade ? TT.button('Change Grade', { kind: 'big', onclick: function () { begin(r0); } }) : null, TT.button('Choose Another Room', { kind: 'big', onclick: menu }))]);
+        } }), grade ? TT.button('Change Grade', { kind: 'big', onclick: function () { begin(r0); } }) : null, TT.button('Choose Another Room', { kind: 'big', onclick: menu })),
+        grade ? h('div', { class: 'row center er-edit-row' }, TT.premium.button('Edit Questions', 'roomEdit', function () { editQuestions(r0, grade, r.locks); }, 'edit')) : null]);
+    }
+
+    // ---------- Edit a room's questions (Premium) ----------
+    // One question per glowing spot. Left blank, a spot keeps picking from the built-in questions.
+    function editQuestions(r0, g, current) {
+      clearInterval(iv); playing = false; root.textContent = '';
+      var all = TT.load('room-edits', {}), key = r0.id + '-g' + g, mine = all[key] || [];
+      var sc = TT.escapeScenes[sceneOf(r0)], msg = h('p', { class: 'form-msg', hidden: true, role: 'status' });
+      function field(label, input) { return h('label', { class: 'cq-field' }, h('span', { text: label }), input); }
+      var rows = current.slice(0, sc.spots.length).map(function (L, i) {
+        var E = mine[i] && mine[i].q ? mine[i] : null;
+        var q = h('textarea', { rows: 2, maxlength: 300, placeholder: L.q, 'aria-label': 'Question for ' + sc.spots[i].name });
+        var a = h('input', { type: 'text', maxlength: 80, placeholder: 'Like 48, forty-eight', autocomplete: 'off' });
+        var hint = h('input', { type: 'text', maxlength: 160, placeholder: 'Optional', autocomplete: 'off' });
+        if (E) { q.value = E.q; a.value = E.show || E.a.join(', '); hint.value = E.hint || ''; }
+        return { q: q, a: a, hint: hint, box: h('fieldset', { class: 'cq-lock' }, h('legend', { text: '🔑 ' + sc.spots[i].name }),
+          field('Question', q), h('div', { class: 'cq-grid two' }, field('Answer', a), field('Hint', hint))) };
+      });
+      function saveAll() {
+        var out = [], bad = -1;
+        rows.forEach(function (R, i) {
+          var q = R.q.value.trim(), a = R.a.value.trim();
+          if (q && a) out[i] = { q: q, a: a.split(',').map(TT.escapeNorm).filter(Boolean), show: a, hint: R.hint.value.trim() || 'Talk it over as a team.' };
+          else { out[i] = null; if ((q || a) && bad < 0) bad = i; }
+        });
+        if (bad >= 0) { msg.textContent = sc.spots[bad].name + ' needs both a question and an answer, or leave both empty.'; msg.hidden = false; (rows[bad].q.value.trim() ? rows[bad].a : rows[bad].q).focus(); return; }
+        if (out.some(Boolean)) all[key] = out; else delete all[key];
+        TT.save('room-edits', all); begin(r0, g);
+      }
+      root.append(h('div', { class: 'cq-form er-editor' },
+        h('span', { class: 'er-eyebrow', text: r0.title + ' · ' + GRADES[g] }),
+        h('h2', { text: 'Edit Questions' }),
+        h('p', { class: 'muted', text: 'Write your own question for any spot in the room. Leave a spot empty and it keeps picking from the built-in ' + GRADES[g].toLowerCase() + ' questions. Separate answers with commas to accept more than one.' }),
+        rows.map(function (R) { return R.box; }), msg,
+        h('div', { class: 'row' }, TT.button('Save Questions', { kind: 'primary', onclick: saveAll }),
+          TT.button('Clear My Questions', { onclick: function () { rows.forEach(function (R) { R.q.value = ''; R.a.value = ''; R.hint.value = ''; }); } }),
+          TT.button('Cancel', { onclick: function () { begin(r0, g); } }))));
+      rows[0].q.focus();
     }
     // The teacher picks the grade before anyone goes in, so every puzzle fits the class.
     function askGrade(r0) {

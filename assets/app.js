@@ -131,9 +131,9 @@
     jobs: function () { return TT.mountJobs($('jobsMount')); },
     points: function () { return TT.mountPoints($('pointsMount')); },
     'exit-tickets': function () { return TT.mountTickets($('ticketsMount')); },
-    seating: function () { return TT.mountSeating($('seatingMount')); },
+    seating: function () { return TT.premium.gate('seating', $('seatingMount'), TT.mountSeating); },
     'fact-fluency': function () { return TT.mountFluency($('fluencyMount')); },
-    prompts: function () { return TT.mountPrompts($('promptsMount')); }
+    prompts: function () { return TT.premium.gate('prompts', $('promptsMount'), TT.mountPrompts); }
   };
   Object.keys(gameMounters).forEach(function (k) { mounters[k] = gameMounters[k]; });
   var views = document.querySelectorAll('[data-view]:not(a)');

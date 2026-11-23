@@ -9,13 +9,41 @@
   var LIB = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js';
 
   // ---------- Plans ----------
+  // screens: saved board screens. classes: class lists. trivia: own trivia questions. tickets: past exit tickets kept.
+  // premium: tools and rooms that only Premium opens (see assets/premium.js). saveBoard: the board remembers your screens.
   var PLANS = {
-    open: { screens: 10, classes: Infinity, questions: Infinity, photo: true }, // accounts switched off
-    free: { screens: 1, classes: 2, questions: 25, photo: false },
-    premium: { screens: 10, classes: Infinity, questions: Infinity, photo: true }
+    open: { screens: 10, classes: Infinity, trivia: Infinity, tickets: 50, photo: true, premium: true, saveBoard: true }, // accounts switched off
+    free: { screens: 2, classes: 2, trivia: 20, tickets: 5, photo: true, premium: false, saveBoard: true },
+    premium: { screens: 10, classes: Infinity, trivia: Infinity, tickets: 50, photo: true, premium: true, saveBoard: true }
   };
   PLANS.owner = PLANS.premium;
-  PLANS.guest = PLANS.free;
+  // Not signed in: everything works, but the board keeps only the screen on show and forgets it when the page closes.
+  PLANS.guest = { screens: 1, classes: 2, trivia: 20, tickets: 5, photo: true, premium: false, saveBoard: false };
+  TT.PLANS = PLANS;
+
+  // What each plan includes. The pricing tab and the Premium pop-up both read these lists.
+  TT.PLAN_FEATURES = {
+    free: [
+      ['Every board widget, Daily tool and game'],
+      ['Saves to your account', 'Use it on any computer'],
+      [PLANS.free.screens + ' saved board screens'],
+      [PLANS.free.classes + ' class lists'],
+      ['Your own photo backgrounds'],
+      ['The Locked Library escape room', 'New questions for each grade every time you play'],
+      ['Your own Would You Rather questions', 'Plus ' + PLANS.free.trivia + ' of your own trivia questions'],
+      ['The last ' + PLANS.free.tickets + ' exit tickets']
+    ],
+    premium: [
+      [PLANS.premium.screens + ' saved board screens'],
+      ['Unlimited class lists'],
+      ['All 4 escape rooms', 'Space Station, Pirate Treasure and Museum too'],
+      ['Edit the questions in any room', 'Match a room to this week\'s lesson'],
+      ['Seating Chart', 'Build your room and seat your class'],
+      ['Prompts', 'Writing, discussion and This or That by grade'],
+      ['Unlimited trivia questions of your own'],
+      ['The last ' + PLANS.premium.tickets + ' exit tickets']
+    ]
+  };
 
   // ---------- Small saved notes about the account (not synced, not in backups) ----------
   var META_KEY = 'tt-account';
@@ -38,6 +66,18 @@
     setClassSync: function (on) { TT.settings.syncClasses = !!on; TT.saveSettings(); changed('tt:classes'); emit(); }
   };
   TT.limit = function (name) { return PLANS[TT.account.plan()][name]; };
+
+  // Prices from account-config.js, shared by the pricing tab and the Premium pop-up.
+  TT.account.prices = function () {
+    var mo = parseFloat(String(CFG.priceMonthly).replace(/[^0-9.]/g, '')) || 0;
+    var yr = parseFloat(String(CFG.priceYearly).replace(/[^0-9.]/g, '')) || 0;
+    var off = CFG.earlyDiscount || 0.25;
+    var until = new Date((CFG.earlyUntil || '2027-01-01') + 'T00:00:00');
+    return { mo: mo, yr: yr, off: off, earlyOpen: new Date() < until,
+      untilText: new Date(until.getTime() - 86400000).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }),
+      save: mo && yr ? Math.round((1 - yr / (mo * 12)) * 100) : 0 };
+  };
+  TT.money = function (n) { return '$' + (Math.round(n * 100) / 100).toFixed(n % 1 ? 2 : 0); };
   Object.defineProperty(TT.config, 'maxScreens', { get: function () { return TT.limit('screens'); }, configurable: true });
 
   // A short "See Plans" note for places that hit a free-plan limit.
@@ -437,21 +477,16 @@
         showSaved ? h('p', { class: 'sync-status s-saved', text: 'Your new password is saved.' }) : null,
         h('p', { class: 'sync-status s-' + status, text: STATUS[status] || '' }),
         sync,
+        TT.backupControls ? h('div', { class: 'acct-backup' }, h('h3', { text: 'Backup File' }),
+          h('p', { class: 'muted', text: 'Download everything to a file you keep, or bring a backup back in.' }), TT.backupControls()) : null,
         h('div', { class: 'row' }, outBtn, outConfirm));
     }
 
     var billing = 'month';
-    function money(n) { return '$' + (Math.round(n * 100) / 100).toFixed(n % 1 ? 2 : 0); }
+    var money = TT.money;
     function plansCard() {
       var plan = TT.account.plan(), prem = plan === 'premium' || plan === 'owner';
-      var F = PLANS.free, P = PLANS.premium;
-      var mo = parseFloat(String(CFG.priceMonthly).replace(/[^0-9.]/g, '')) || 0;
-      var yr = parseFloat(String(CFG.priceYearly).replace(/[^0-9.]/g, '')) || 0;
-      var off = CFG.earlyDiscount || 0.25;
-      var until = new Date((CFG.earlyUntil || '2027-01-01') + 'T00:00:00');
-      var earlyOpen = new Date() < until;
-      var untilText = new Date(until.getTime() - 86400000).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
-      var save = mo && yr ? Math.round((1 - yr / (mo * 12)) * 100) : 0;
+      var pr = TT.account.prices(), mo = pr.mo, yr = pr.yr, off = pr.off, earlyOpen = pr.earlyOpen, untilText = pr.untilText, save = pr.save;
       var yearly = billing === 'year';
 
       function startFree() { tab = 'account'; mode = 'signup'; msgText = ''; paint(); scrollToForm(); }
@@ -486,24 +521,15 @@
         h('p', { class: 'plan-desc', text: 'Everything you need to run your classroom board, free.' }),
         priceBlock('$0'),
         !user ? cta('Start for Free', '', { onclick: startFree }) : cta(prem ? 'Included' : 'Your Plan', '', { disabled: true }),
-        h('p', { class: 'plan-note', text: 'No card needed. Works without an account too, saving on that computer.' }),
-        list('Get started with:', [
-          ['Every tool and game'],
-          ['Saves to your account', 'Use it on any computer'],
-          [F.screens + ' saved board screen'],
-          [F.classes + ' class lists'],
-          [F.questions + ' of your own questions and rooms']])));
+        h('p', { class: 'plan-note', text: 'No card needed. A free account saves your boards and classes.' }),
+        list('Get started with:', TT.PLAN_FEATURES.free)));
       cols.push(h('div', { class: 'plan-col featured' },
         h('div', { class: 'plan-top' }, h('h3', { text: 'Premium' }), h('span', { class: 'plan-tag', text: 'Recommended' })),
-        h('p', { class: 'plan-desc', text: 'More room for every class, and your own photos on the board.' }),
+        h('p', { class: 'plan-desc', text: 'Every escape room, Seating Chart, Prompts and room for every class.' }),
         priceBlock(yearly ? money(yr) : money(mo)),
         paidCta(CFG.premiumMonthlyLink, CFG.premiumYearlyLink, 'Get Premium'),
         h('p', { class: 'plan-note', text: yearly ? 'Billed once a year. Cancel anytime.' : 'Billed monthly. Cancel anytime.' }),
-        list('Everything in Free, plus:', [
-          [P.screens + ' saved board screens'],
-          ['Unlimited class lists'],
-          ['Unlimited questions and escape rooms'],
-          ['Your own photo backgrounds']])));
+        list('Everything in Free, plus:', TT.PLAN_FEATURES.premium)));
       if (earlyOpen) cols.push(h('div', { class: 'plan-col early' },
         h('div', { class: 'plan-top' }, h('h3', { text: 'Early Access' }), h('span', { class: 'plan-tag early-tag', text: Math.round(off * 100) + '% Off' })),
         h('p', { class: 'plan-desc', text: 'Premium for early members who join before ' + untilText + '.' }),
@@ -519,7 +545,7 @@
         }));
       return h('section', { class: 'pricing' },
         h('div', { class: 'pricing-head' }, h('h2', { text: 'Start Free. Upgrade Anytime.' }),
-          h('p', { class: 'muted', text: 'Every tool and game is free. Premium gives you more room and your own photos.' }), toggle),
+          h('p', { class: 'muted', text: 'Every board widget, Daily tool and game is free. Premium opens every escape room, Seating Chart and Prompts.' }), toggle),
         h('div', { class: 'pricing-grid cols-' + cols.length }, cols));
     }
 
@@ -551,7 +577,7 @@
     TT.account.openPlans = function () { tab = 'plans'; paint(); };
     if (TT.account.wantPlans) { tab = 'plans'; TT.account.wantPlans = false; }
     paint();
-    return { show: function () { if (TT.account.wantPlans) { tab = 'plans'; TT.account.wantPlans = false; } loadPlan(); paint(); } };
+    return { show: function () { if (TT.account.wantPlans) { tab = 'plans'; TT.account.wantPlans = false; } if (TT.account.wantSignIn) { tab = 'account'; TT.account.wantSignIn = false; } loadPlan(); paint(); } };
   };
 
   // ---------- Top bar button ----------
