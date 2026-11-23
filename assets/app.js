@@ -8,8 +8,10 @@
   function paintDate() {
     var now = TT.clock(), hr = now.hour;
     $('homeDate').textContent = now.text;
-    var who = TT.settings.name ? ', ' + TT.settings.name : '';
-    $('greeting').textContent = (hr < 12 ? 'Good Morning' : hr < 17 ? 'Good Afternoon' : 'Good Evening') + who + '!';
+    var name = TT.settings.name || (TT.account && TT.account.firstName ? TT.account.firstName() : '');
+    var who = name ? ', ' + name : '';
+    // Late at night the window shows a night sky, so the greeting matches it.
+    $('greeting').textContent = hr < 5 ? 'Up Late' + who + '?' : (hr < 12 ? 'Good Morning' : hr < 17 ? 'Good Afternoon' : 'Good Evening') + who + '!';
     // The window shows the teacher's own time of day, and the sill shows the season.
     var season = TT.season ? TT.season() : null, key = TT.dayPhase(hr) + (hr < 12 ? 'a' : 'p') + (season ? season.id : '');
     if (key !== shownScene) { shownScene = key; $('homeWindow').innerHTML = TT.homeWindow(hr, season); }
@@ -26,6 +28,7 @@
     $('wyrDate').textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) + ' · Pick a side, then tell a partner why.';
   }
   TT.paintWelcome = function () { paintDate(); };
+  if (TT.account && TT.account.onChange) TT.account.onChange(function () { if (!$('view-home').hidden) paintDate(); });
   // The banner keeps today's question a secret until the class has spun for it.
   function paintToday() {
     var q = TT.wyr && TT.wyr.current();

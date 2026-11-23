@@ -85,7 +85,7 @@
     function paint() {
       var d = new Date(), hr = d.getHours();
       var who = TT.settings.className || 'class';
-      greet.textContent = (hr < 12 ? 'Good Morning, ' : hr < 17 ? 'Good Afternoon, ' : 'Good Evening, ') + who + '!';
+      greet.textContent = (hr < 5 ? 'Hello, ' : hr < 12 ? 'Good Morning, ' : hr < 17 ? 'Good Afternoon, ' : 'Good Evening, ') + who + '!';
       dateEl.textContent = 'Today is ' + d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
       var cur = state.weather && state.weather.day === TT.today() ? state.weather.v : null;
       var w = WEATHER.filter(function (x) { return x[0] === cur; })[0];
