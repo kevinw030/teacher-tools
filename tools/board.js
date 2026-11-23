@@ -138,6 +138,7 @@
       return b ? b.css : '#8EC5FF';
     }
     function unrenderAll() {
+      if (TT.closeLookPop) TT.closeLookPop();
       Object.keys(mounted).forEach(function (k) { if (mounted[k] && mounted[k].destroy) mounted[k].destroy(); });
       mounted = {}; canvas.querySelectorAll('.widget').forEach(function (n) { n.remove(); });
     }
@@ -310,12 +311,23 @@
       if (type === 'text') w.data = { text: 'Type your message here', size: 40, bold: true, color: 'ink' };
       if (type === 'traffic') w.data = { on: 'green' };
       if (t.init) w.data = t.init();
+      if (state.look) w.look = state.look;   // after "Use on All Widgets", new widgets match too
       clamp(w);
       state.widgets.push(w); save();
       renderWidget(w, true);
     }
 
+    // A new look shows through a text box only when the box uses its plain color.
+    function setLook(x, look) {
+      if (look) x.look = look; else delete x.look;
+      if (x.type === 'text' && x.data && x.data.box && x.data.box !== 'default') x.data.box = 'default';
+      var n = canvas.querySelector('[data-id="' + x.id + '"]');
+      if (n && TT.applyLook) TT.applyLook(n, x);
+      if (mounted[x.id] && mounted[x.id].restyle) mounted[x.id].restyle();
+    }
+
     function removeWidget(id) {
+      if (TT.closeLookPop) TT.closeLookPop();
       state.widgets = state.widgets.filter(function (w) { return w.id !== id; });
       var node = canvas.querySelector('[data-id="' + id + '"]');
       if (mounted[id] && mounted[id].destroy) mounted[id].destroy();
@@ -339,8 +351,13 @@
       var body = h('div', { class: 'w-body' });
       var closeBtn = h('button', { type: 'button', class: 'w-close', 'aria-label': 'Close ' + t.title, title: 'Close', html: TT.icon('close'), onclick: function () { removeWidget(w.id); } });
       var lockBtn = h('button', { type: 'button', class: 'w-close w-lock', onclick: function () { w.locked = !w.locked; paintLock(); save(); } });
-      var head = h('div', { class: 'w-head' }, h('span', { class: 'w-title', text: t.title }), h('span', { class: 'w-btns' }, lockBtn, closeBtn));
+      // Colors button (tools/board-looks.js): a palette for this widget, or for every widget at once.
+      var lookBtn = TT.lookButton ? TT.lookButton({ widget: w, title: t.title,
+        set: function (look) { setLook(w, look); save(); },
+        setAll: function (look) { state.look = look || undefined; state.widgets.forEach(function (x) { setLook(x, look); }); save(); } }) : null;
+      var head = h('div', { class: 'w-head' }, h('span', { class: 'w-title', text: t.title }), h('span', { class: 'w-btns' }, lookBtn, lockBtn, closeBtn));
       var node = h('div', { class: 'widget w-' + w.type + (fresh ? ' fresh' : ''), 'data-id': w.id }, head, body);
+      if (TT.applyLook) TT.applyLook(node, w);
       function paintLock() {
         node.classList.toggle('locked', !!w.locked);
         lockBtn.innerHTML = TT.icon(w.locked ? 'lock' : 'unlock');

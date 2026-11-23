@@ -1,0 +1,60 @@
+/* Classroom Board widget colors (tools/board-looks.js) */
+
+/* The site's own colors, kept so the text toolbar inside a colored widget still looks like the rest of the site */
+:root { --site-bg: var(--bg); --site-surface: var(--surface); --site-surface-2: var(--surface-2); --site-ink: var(--ink); --site-muted: var(--muted); --site-line: var(--line); }
+.widget[data-look] .text-toolbar { --bg: var(--site-bg); --surface: var(--site-surface); --surface-2: var(--site-surface-2); --ink: var(--site-ink); --muted: var(--site-muted); --line: var(--site-line); --emerald: #0FA974; --cobalt: #2563EB; }
+
+.widget[data-look] { transition: background-color .3s ease, color .3s ease; }
+.widget.look-glass { -webkit-backdrop-filter: blur(22px) saturate(1.6); backdrop-filter: blur(22px) saturate(1.6); box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 0 0 1px rgba(255,255,255,.55) inset, 0 24px 50px -20px rgba(40,24,8,.45); }
+.widget[data-look] .w-close:hover { background: var(--surface-2); color: var(--ink); }
+.widget[data-look] .cd-num { color: var(--w-accent); }
+.widget[data-look] .w-resize::after { border-color: var(--muted); }
+.widget.look-light-ink .btn:not(.primary), .widget.look-light-ink .wb:not(.primary), .widget.look-light-ink .preset { background: var(--surface-2); color: var(--ink); border-color: var(--line); }
+.widget.look-light-ink .spin-canvas { box-shadow: 0 0 0 4px rgba(255,255,255,.3); }
+
+/* Colors button in the widget's top bar */
+.w-look svg { width: 17px; height: 17px; }
+
+/* The pop-up */
+.look-pop {
+  position: fixed; z-index: 6000; width: 316px; max-width: calc(100vw - 24px);
+  display: flex; flex-direction: column; gap: 12px; padding: 14px;
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  -webkit-backdrop-filter: blur(22px) saturate(1.6); backdrop-filter: blur(22px) saturate(1.6);
+  border: 1px solid color-mix(in srgb, #fff 55%, transparent); border-radius: 20px;
+  box-shadow: 0 1px 0 rgba(255,255,255,.5) inset, 0 28px 60px -18px rgba(40,24,8,.5);
+  color: var(--ink); animation: look-in .45s var(--spring, cubic-bezier(.2,1.3,.4,1)) both;
+}
+@keyframes look-in { from { opacity: 0; transform: scale(.9) translateY(-4px); } to { opacity: 1; transform: none; } }
+.look-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.look-head b { font-family: var(--display); font-size: 16px; }
+.look-head span { font-size: 12px; font-weight: 700; color: var(--muted); }
+.look-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px 6px; }
+.look-tile { appearance: none; border: 0; background: none; padding: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--ink); font: inherit; }
+.look-tile small { font-size: 11px; font-weight: 700; line-height: 1.1; text-align: center; color: var(--muted); }
+.look-tile.on small { color: var(--ink); }
+.look-chip {
+  position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: 12px; display: grid; place-items: center;
+  background: var(--site-surface, #fff); color: var(--site-ink, #0E1120);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 12%, transparent), 0 4px 10px -6px rgba(14,17,32,.4);
+  transition: transform .45s var(--spring, ease), box-shadow .15s ease;
+}
+.look-chip b { font-family: var(--display); font-size: 17px; line-height: 1; }
+.look-chip i { position: absolute; right: 7px; bottom: 7px; width: 8px; height: 8px; border-radius: 50%; background: #0FA974; }
+.glass-tile .look-chip { background: linear-gradient(135deg, rgba(255,255,255,.85), rgba(255,255,255,.35)), linear-gradient(135deg, #FFB38A, #8EC5FF) !important; }
+.look-tile:hover .look-chip { transform: translateY(-2px) scale(1.05); }
+.look-tile.on .look-chip { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink); }
+.look-tile:focus-visible { outline: 0; } .look-tile:focus-visible .look-chip { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--focus, #2563EB); }
+.look-sec { display: flex; flex-direction: column; gap: 6px; }
+.look-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.look-mine { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.look-dot { appearance: none; width: 28px; height: 28px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 16%, transparent); transition: transform .4s var(--spring, ease); }
+.look-dot:hover { transform: scale(1.15); }
+.look-dot.on { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink); }
+.look-all { appearance: none; border: 0; cursor: pointer; font: 700 14px var(--body); padding: 11px 14px; border-radius: 12px; background: var(--ink); color: var(--bg); transition: transform .4s var(--spring, ease); }
+.look-all:hover { transform: translateY(-1px); }
+.look-all:active { transform: scale(.97); }
+
+/* The text toolbar, when it opens above the box, sits above the widget's top bar so the Colors, Lock and Close buttons stay clickable */
+.text-toolbar { pointer-events: none; } .text-toolbar .tb-panel { pointer-events: auto; }
+.widget.w-text.tb-up .text-toolbar { bottom: calc(100% + 36px); padding-bottom: 10px; }
