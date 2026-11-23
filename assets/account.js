@@ -24,24 +24,24 @@
   // What each plan includes. The pricing tab and the Premium pop-up both read these lists.
   TT.PLAN_FEATURES = {
     free: [
-      ['Every board widget, Daily tool and game'],
-      ['Saves to your account', 'Use it on any computer'],
-      [PLANS.free.screens + ' saved board screens'],
-      [PLANS.free.classes + ' class lists'],
-      ['Your own photo backgrounds'],
-      ['The Locked Library escape room', 'New questions for each grade every time you play'],
-      ['Your own Would You Rather questions', 'Plus ' + PLANS.free.trivia + ' of your own trivia questions'],
-      ['The last ' + PLANS.free.tickets + ' exit tickets']
+      ['Every Board Widget, Daily Tool and Game'],
+      ['Saves to Your Account', 'Use it on any computer'],
+      [PLANS.free.screens + ' Saved Board Screens'],
+      [PLANS.free.classes + ' Class Lists'],
+      ['Your Own Photo Backgrounds'],
+      ['The Locked Library Escape Room', 'New questions for each grade every time you play'],
+      ['Your Own Would You Rather Questions', 'Plus ' + PLANS.free.trivia + ' of your own trivia questions'],
+      ['The Last ' + PLANS.free.tickets + ' Exit Tickets']
     ],
     premium: [
-      [PLANS.premium.screens + ' saved board screens'],
-      ['Unlimited class lists'],
-      ['All 4 escape rooms', 'Space Station, Pirate Treasure and Museum too'],
-      ['Edit the questions in any room', 'Match a room to this week\'s lesson'],
+      [PLANS.premium.screens + ' Saved Board Screens'],
+      ['Unlimited Class Lists'],
+      ['All 4 Escape Rooms', 'Space Station, Pirate Treasure and Museum too'],
+      ['Edit the Questions in Any Room', 'Match a room to this week\'s lesson'],
       ['Seating Chart', 'Build your room and seat your class'],
       ['Prompts', 'Writing, discussion and This or That by grade'],
-      ['Unlimited trivia questions of your own'],
-      ['The last ' + PLANS.premium.tickets + ' exit tickets']
+      ['Unlimited Trivia Questions of Your Own'],
+      ['The Last ' + PLANS.premium.tickets + ' Exit Tickets']
     ]
   };
 
@@ -529,15 +529,15 @@
         priceBlock(yearly ? money(yr) : money(mo)),
         paidCta(CFG.premiumMonthlyLink, CFG.premiumYearlyLink, 'Get Premium'),
         h('p', { class: 'plan-note', text: yearly ? 'Billed once a year. Cancel anytime.' : 'Billed monthly. Cancel anytime.' }),
-        list('Everything in Free, plus:', TT.PLAN_FEATURES.premium)));
+        list('Everything in Free, Plus:', TT.PLAN_FEATURES.premium)));
       if (earlyOpen) cols.push(h('div', { class: 'plan-col early' },
         h('div', { class: 'plan-top' }, h('h3', { text: 'Early Access' }), h('span', { class: 'plan-tag early-tag', text: Math.round(off * 100) + '% Off' })),
         h('p', { class: 'plan-desc', text: 'Premium for early members who join before ' + untilText + '.' }),
         priceBlock(yearly ? money(yr * (1 - off)) : money(mo * (1 - off)), yearly ? money(yr) : money(mo)),
         paidCta(CFG.earlyMonthlyLink, CFG.earlyYearlyLink, 'Get Early Access'),
         h('p', { class: 'plan-note', text: 'Only until ' + untilText + '. Cancel anytime.' }),
-        list('Everything in Premium, plus:', [
-          [Math.round(off * 100) + '% off Premium', 'For members who join before ' + untilText]])));
+        list('Everything in Premium, Plus:', [
+          [Math.round(off * 100) + '% Off Premium', 'For members who join before ' + untilText]])));
 
       var toggle = h('div', { class: 'segmented bill-toggle', role: 'group', 'aria-label': 'Billing' },
         [['month', 'Monthly'], ['year', 'Yearly' + (save > 0 ? ' (Save ' + save + '%)' : '')]].map(function (o) {

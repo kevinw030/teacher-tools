@@ -178,7 +178,7 @@
       }
       input.addEventListener('keydown', function (e) { if (e.key === 'Enter') tryIt(); });
       panel = card([
-        h('div', { class: 'er-panel-top' }, keyIcon, h('span', { class: 'er-eyebrow', text: 'You look closely at' }), h('h2', { text: s.name })),
+        h('div', { class: 'er-panel-top' }, keyIcon, h('span', { class: 'er-eyebrow', text: 'You Look Closely At' }), h('h2', { text: s.name })),
         h('p', { class: 'er-q', text: L.q }), hintBox,
         h('div', { class: 'row center' }, input, TT.button('Unlock', { kind: 'primary big', onclick: tryIt })), msg,
         h('div', { class: 'row center' },

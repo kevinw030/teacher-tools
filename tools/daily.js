@@ -220,7 +220,7 @@
       var cur = -1;
       list.forEach(function (b, i) { var stop = i + 1 < list.length ? mins(list[i + 1].t) : (end != null ? end : 24 * 60); if (now >= mins(b.t) && now < stop) cur = i; });
       var hero = h('div', { class: 'sched-now' });
-      if (!list.length) hero.append(h('span', { class: 'eyebrow', text: 'No Schedule Yet' }), h('b', { text: 'Add your day' }));
+      if (!list.length) hero.append(h('span', { class: 'eyebrow', text: 'No Schedule Yet' }), h('b', { text: 'Add Your Day' }));
       else if (cur >= 0) {
         var stop = cur + 1 < list.length ? mins(list[cur + 1].t) : end, start = mins(list[cur].t);
         var left = stop != null ? stop - now : null;

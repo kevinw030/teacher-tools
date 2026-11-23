@@ -99,7 +99,7 @@
             h('span', { class: 'sc-piece-art', html: (TT.SEAT_ART || {})[k] || '' }), h('span', { text: TYPES[k].name }));
         }));
         var quick = h('div', { class: 'sc-add' }, h('b', { text: 'Quick Layouts' }), [['rows', 'Rows'], ['pairs', 'Pairs'], ['groups', 'Groups of 4'], ['ushape', 'U-Shape']].map(function (q) {
-          return h('button', { type: 'button', class: 'wb', title: 'Replace the room with this layout', onclick: function () {
+          return h('button', { type: 'button', class: 'wb', title: 'Replace the Room With This Layout', onclick: function () {
             var seated = keys.map(function (k) { return c.seats[k]; }).filter(Boolean);
             c.items = layout(q[0], names.length); c.seats = {}; sel = null;
             seatKeys(c).forEach(function (k, i) { if (seated[i]) c.seats[k] = seated[i]; }); save(); paint();

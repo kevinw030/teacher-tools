@@ -91,7 +91,7 @@
     vsBox.addEventListener('change', reset);
     el.append(h('div', { class: 'game' }, sb.el, st, grid,
       h('div', { class: 'row center' },
-        h('label', { class: 'check', for: 'tttCpu' }, vsBox, h('span', { text: 'Class vs. computer (computer plays O)' })),
+        h('label', { class: 'check', for: 'tttCpu' }, vsBox, h('span', { text: 'Class vs. Computer (Computer Plays O)' })),
         TT.button('New Game', { icon: 'reset', kind: 'primary', onclick: reset }))));
     var LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
     function winner(b) { for (var k = 0; k < 8; k++) { var l = LINES[k]; if (b[l[0]] >= 0 && b[l[0]] === b[l[1]] && b[l[1]] === b[l[2]]) return l; } return null; }
