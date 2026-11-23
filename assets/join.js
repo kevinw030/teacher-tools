@@ -186,16 +186,22 @@
     root.className = 'join-main is-lobby';
     cardKey = '';
     var meBox = h('div', { class: 'lb-me-wrap' });
-    var lastPoke = 0;
+    var jumping = false;
     function drawMe() {
       meBox.textContent = '';
       var p = Lobby.player({ id: me.id, name: me.name, av: me.av }, { me: false, onTap: function (x, el) {
         // Tap your animal: it jumps and sparkles here, and bounces on everyone else's screen too.
+        // One jump at a time: taps are ignored until the full spin has landed.
+        if (jumping) return;
+        jumping = true; el.classList.add('cooling');
         Lobby.poke(el, true);
-        if (Date.now() - lastPoke > 600 && conn) { lastPoke = Date.now(); conn.send('poke', { id: me.id }); }
+        if (conn) conn.send('poke', { id: me.id });
         if (room) room.poke(me.id);
-        taps++; tapCount.textContent = taps === 1 ? '1 jump!' : taps + ' jumps!';
-        tapCount.classList.remove('bump'); void tapCount.offsetWidth; tapCount.classList.add('bump');
+        setTimeout(function () {
+          jumping = false; el.classList.remove('cooling');
+          taps++; tapCount.textContent = taps === 1 ? '1 jump!' : taps + ' jumps!';
+          tapCount.classList.remove('bump'); void tapCount.offsetWidth; tapCount.classList.add('bump');
+        }, Lobby.JUMP_MS);
       } });
       p.classList.add('lb-me');
       p.setAttribute('aria-label', 'Your animal. Tap to make it jump');

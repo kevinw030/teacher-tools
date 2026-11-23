@@ -129,6 +129,7 @@
   };
 
   // A happy jump with a little burst of sparkles.
+  L.JUMP_MS = 800;   // matches the lb-jump animation in lobby.css
   var SPARKS = ['✨', '⭐', '💖', '🎉', '💫'];
   L.poke = function (node, loud) {
     if (!node) return;

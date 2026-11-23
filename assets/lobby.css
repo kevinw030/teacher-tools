@@ -104,6 +104,8 @@ button.lb-p:hover .lb-ava { transform: translateY(-4px) rotate(-6deg) scale(1.06
 @keyframes lb-spark { from { transform: translate(-50%, 0) scale(.3); opacity: 1; } to { transform: translate(calc(-50% + var(--dx)), var(--dy)) rotate(var(--r)) scale(1.1); opacity: 0; } }
 .lb-me-wrap { position: relative; display: flex; flex-direction: column; align-items: center; }
 .lb-in button.lb-p.lb-me { cursor: pointer; }
+.lb-in button.lb-p.lb-me.cooling { cursor: default; }
+.lb-in button.lb-p.lb-me.cooling:hover .lb-ava:not(.jump) { transform: none; }
 .lb-in button.lb-p.lb-me:hover .lb-ava { transform: translateY(-6px) scale(1.05); }
 .lb-tap-hint { position: absolute; top: -6px; right: -54px; padding: 5px 10px; border-radius: 12px 12px 12px 2px; background: #FFD15C; color: #3B2400; font: 800 13px var(--display);
   transform: rotate(6deg); animation: bgo-bob 2.2s ease-in-out infinite; white-space: nowrap; }
