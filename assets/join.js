@@ -182,6 +182,7 @@
     paintEnter();
   }
   function over() {
+    clearWin();
     clearTimeout(goneTimer);
     if (conn) conn.close(); conn = null;
     store('me', null); store('card', null);
@@ -202,7 +203,10 @@
   var players = [], room = null, counting = false, waitingPaint = false, countedIn = false;
 
   // ---------- The lobby: "You're In!" and everyone else who has joined ----------
+  // A new game, round or countdown clears any "You Did It!" screen still open from the last Bingo.
+  function clearWin() { document.querySelectorAll('.join-win').forEach(function (w) { w.remove(); }); }
   function paintLobby() {
+    clearWin();
     root.textContent = '';
     root.className = 'join-main is-lobby';
     cardKey = '';
@@ -303,6 +307,7 @@
   function onCountdown(m) {
     if (!m || counting) return;
     counting = true; countedIn = true;
+    clearWin();
     Lobby.countdown({ title: m.title || 'Get Ready!', done: function () {
       counting = false;
       if (waitingPaint && state) { waitingPaint = false; cardKey = ''; onState(state); }
@@ -361,6 +366,7 @@
     (s.winners || []).slice(before).forEach(function (n) { if (n !== me.name) friendWon(n); });
   }
   function paintPlay(deal) {
+    clearWin();
     var fl = document.querySelector('.lb-floaties'); if (fl) fl.remove();
     root.textContent = '';
     root.className = 'join-main is-play';
