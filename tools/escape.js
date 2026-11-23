@@ -10,27 +10,33 @@
   function box(node, s) { node.style.left = pct(s.x, 1600); node.style.top = pct(s.y, 900); node.style.width = pct(s.w, 1600); node.style.height = pct(s.h, 900); }
 
   TT.mountEscape = function (el) {
-    var room = null, scene = null, solved = [], start = 0, iv = 0, hintsUsed = 0, escaped = false, playing = false;
+    var room = null, base = null, grade = 0, scene = null, solved = [], start = 0, iv = 0, hintsUsed = 0, escaped = false, playing = false;
     var root = h('div', { class: 'game escape er' });
     el.append(root);
 
     // ---------- Choose a room ----------
     function menu() {
-      clearInterval(iv); root.textContent = ''; room = null; playing = false;
+      clearInterval(iv); root.textContent = ''; room = null; base = null; playing = false;
       var best = TT.load('escape-best', {});
-      root.append(h('p', { class: 'game-status', text: 'Choose a room. Look around, solve the clues and escape together.' }),
+      root.append(h('p', { class: 'game-status', text: 'Choose a room, then pick your grade. Look around, solve the clues and escape together.' }),
         h('div', { class: 'er-grid' }, TT.escapeRooms().map(function (r, i) {
           var pic = h('span', { class: 'er-thumb' }); pic.innerHTML = TT.escapeArt(sceneOf(r), 'm' + i);
           return h('button', { type: 'button', class: 'er-card', onclick: function () { begin(r); } }, pic,
             h('span', { class: 'er-card-text' }, h('b', { text: r.title }),
-              h('small', { text: best[r.id] ? 'Best Time ' + fmt(best[r.id]) : (r.mine ? 'My Room · ' : '') + r.locks.length + (r.locks.length === 1 ? ' Lock' : ' Locks') })));
+              h('small', { text: r.mine ? (best[r.id] ? 'My Room · Best Time ' + fmt(best[r.id]) : 'My Room · ' + r.locks.length + (r.locks.length === 1 ? ' Lock' : ' Locks')) : 'Grades 1 to 5 · ' + r.locks.length + ' Locks' })));
         })),
         h('div', { class: 'row center' }, TT.button('Make Your Own Room', { icon: 'plus', kind: 'small', onclick: function () { TT.custom.open('rooms'); } })));
     }
 
     // ---------- The room ----------
     var stage, overlay, bar, clock, status, spotBtns, exitBtn, keyRow;
-    function begin(r) {
+    var GRADES = { 1: '1st Grade', 2: '2nd Grade', 3: '3rd Grade', 4: '4th Grade', 5: '5th Grade' };
+    function bestKey() { return base.mine ? base.id : base.id + '-g' + grade; }
+    function bestFor(best) { return best[bestKey()] || (grade === 4 && !base.mine ? best[base.id] : 0); }
+    // g is the grade to play. Leave it out and the teacher is asked first (built-in rooms only).
+    function begin(r0, g) {
+      base = r0; grade = r0.mine ? 0 : (g || 0);
+      var r = { id: r0.id, title: r0.title, intro: r0.intro, win: r0.win, mine: r0.mine, locks: grade ? TT.escapeLocks(r0, grade) : r0.locks };
       room = r; scene = TT.escapeScenes[sceneOf(r)]; solved = r.locks.map(function () { return false; });
       hintsUsed = 0; escaped = false; playing = false; clearInterval(iv); root.textContent = '';
       var art = h('div', { class: 'er-art' }); art.innerHTML = TT.escapeArt(sceneOf(r), 'p');
@@ -51,11 +57,25 @@
       bar = h('div', { class: 'er-bar' }, keyRow, status, clock, TT.button('Leave Room', { kind: 'small', onclick: menu }));
       root.append(stage, bar);
       paint();
-      card([h('span', { class: 'er-eyebrow', text: 'Escape Room' }), h('h2', { text: r.title }), h('p', { text: r.intro }),
+      if (!r.mine && !grade) return askGrade(r0);
+      var bt = bestFor(TT.load('escape-best', {}));
+      card([h('span', { class: 'er-eyebrow', text: grade ? 'Escape Room · ' + GRADES[grade] : 'Escape Room' }), h('h2', { text: r.title }), h('p', { text: r.intro }),
+        bt ? h('p', { class: 'er-how', text: 'Best time' + (grade ? ' for ' + GRADES[grade].toLowerCase() : '') + ': ' + fmt(bt) }) : null,
         h('p', { class: 'er-how', text: 'Tap the things that glow. Each one hides a puzzle and a key.' }),
         h('div', { class: 'row center' }, TT.button('Turn On the Lights', { icon: 'play', kind: 'primary big', onclick: function () {
           closeCard(); playing = true; start = Date.now(); stage.classList.remove('dark'); tick(); iv = setInterval(tick, 500); paint();
-        } }), TT.button('Choose Another Room', { kind: 'big', onclick: menu }))]);
+        } }), grade ? TT.button('Change Grade', { kind: 'big', onclick: function () { begin(r0); } }) : null, TT.button('Choose Another Room', { kind: 'big', onclick: menu }))]);
+    }
+    // The teacher picks the grade before anyone goes in, so every puzzle fits the class.
+    function askGrade(r0) {
+      var last = TT.grade ? TT.grade() : 0;
+      card([h('span', { class: 'er-eyebrow', text: 'Escape Room' }), h('h2', { text: r0.title }),
+        h('p', { class: 'er-how', text: 'Teacher, which grade is playing? Every puzzle in the room will match that grade.' }),
+        h('div', { class: 'er-grades', role: 'group', 'aria-label': 'Grade level' }, [1, 2, 3, 4, 5].map(function (n) {
+          return h('button', { type: 'button', class: 'er-grade' + (n === last ? ' last' : ''), 'aria-label': GRADES[n], onclick: function () { if (TT.grade) TT.grade(n); begin(r0, n); } },
+            h('b', { text: String(n) }), h('span', { text: GRADES[n] }));
+        })),
+        h('div', { class: 'row center' }, TT.button('Choose Another Room', { kind: 'small', onclick: menu }))], 'grades');
     }
     function tick() { if (clock) clock.textContent = fmt(Math.floor((Date.now() - start) / 1000)); }
     function left() { return solved.filter(function (v) { return !v; }).length; }
@@ -137,18 +157,18 @@
       }
       escaped = true; clearInterval(iv); paint(); TT.chime();
       var secs = Math.floor((Date.now() - start) / 1000);
-      var best = TT.load('escape-best', {}), record = !best[room.id] || secs < best[room.id];
-      if (record) { best[room.id] = secs; TT.save('escape-best', best); }
+      var best = TT.load('escape-best', {}), old = bestFor(best), record = !old || secs < old;
+      if (record) { best[bestKey()] = secs; TT.save('escape-best', best); }
       status.textContent = 'You escaped!';
       setTimeout(function () {
         if (!room) return;
         if (TT.celebrate) TT.celebrate(stage, ['🗝️', '⭐', '🎉', '✨']);
-        card([h('span', { class: 'er-eyebrow', text: room.title }), h('h2', { text: 'You Escaped!' }), h('p', { text: room.win }),
+        card([h('span', { class: 'er-eyebrow', text: room.title + (grade ? ' · ' + GRADES[grade] : '') }), h('h2', { text: 'You Escaped!' }), h('p', { text: room.win }),
           h('div', { class: 'er-stats' },
             h('span', null, h('b', { text: fmt(secs) }), record ? 'New Best Time' : 'Your Time'),
             h('span', null, h('b', { text: String(hintsUsed) }), hintsUsed === 1 ? 'Hint Used' : 'Hints Used'),
             h('span', null, h('b', { text: String(room.locks.length) }), 'Keys Found')),
-          h('div', { class: 'row center' }, TT.button('Choose Another Room', { kind: 'primary big', onclick: menu }), TT.button('Play Again', { kind: 'big', onclick: function () { begin(room); } }))], 'win');
+          h('div', { class: 'row center' }, TT.button('Choose Another Room', { kind: 'primary big', onclick: menu }), TT.button('Play Again', { kind: 'big', onclick: function () { begin(base, grade); } }))], 'win');
       }, 1700);
     }
     menu();
