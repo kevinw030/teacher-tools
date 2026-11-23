@@ -1,0 +1,50 @@
+/* ---------- Race themes: Garden Rally (addition), Desert Rally (subtraction), Deep Sea Rally (division) ----------
+   Board frames and icons are Kevin's artwork in assets/race/garden, desert and sea. Game code: tools/trail.js + tools/races.js */
+.trail[class*="th-"] .tr-wrap { background-color: #02041a; background-position: center; background-size: 100% 100%; background-repeat: no-repeat; padding: 5.8% 7.2%; }
+.trail.th-garden .tr-wrap { background-image: url("race/garden/board-bg.jpg"); background-color: #020617; }
+.trail.th-desert .tr-wrap { background-image: url("race/desert/board-bg.jpg"); }
+.trail.th-sea .tr-wrap { background-image: url("race/sea/board-bg.jpg"); }
+
+.tr-setup-h { display: inline-flex; align-items: center; gap: 8px; }
+.tr-sign { width: 30px; height: 30px; object-fit: contain; }
+.tr-pair { height: 44px; width: auto; margin: -6px 2px; filter: drop-shadow(0 3px 4px rgba(14,17,32,.2)); }
+.tr-fact.long { font-size: clamp(36px, 6.4vw, 74px); }
+.tr-fact.xlong { font-size: clamp(30px, 5.2vw, 60px); }
+
+/* Tiles: --b base, --e edge, --t track dashes */
+.trail[class*="th-"] .tr-tile { background: var(--b); border-color: var(--e); }
+.trail[class*="th-"] .tr-tile.r::after, .trail[class*="th-"] .tr-tile.l::after { background: repeating-linear-gradient(90deg, var(--t) 0 4px, transparent 4px 8px); }
+.trail[class*="th-"] .tr-tile.d::after { background: repeating-linear-gradient(180deg, var(--t) 0 4px, transparent 4px 8px); }
+.trail[class*="th-"] .tr-tile.finish { --b: #F7F1DE; --e: #fff; }
+
+.th-garden { --t: #FFE27A; }
+.th-garden .tr-tile { --b: #0E2A20; --e: rgba(120, 240, 180, .3); }
+.th-garden .tr-tile.k-q { --b: #3A3307; --e: #FFD43B; }
+.th-garden .tr-tile.k-move { --b: #0F3A26; --e: #4BE89A; }
+.th-garden .tr-tile.k-boost { --b: #123A2C; --e: #8FF0C0; }
+.th-garden .tr-tile.k-slip { --b: #43380A; --e: #FFE066; }
+.th-garden .tr-tile.k-again { --b: #2E2E2A; --e: #FFF6DA; }
+.th-garden .tr-tile.k-swap { --b: #24360C; --e: #B5E655; }
+.th-garden .tr-tile.start { --b: #14401C; --e: #57D83A; }
+
+.th-desert { --t: #FFD9A0; }
+.th-desert .tr-tile { --b: #2A1712; --e: rgba(255, 140, 100, .3); }
+.th-desert .tr-tile.k-q { --b: #4A2A08; --e: #FFB23B; }
+.th-desert .tr-tile.k-move { --b: #4A1A14; --e: #FF6A4D; }
+.th-desert .tr-tile.k-boost { --b: #0B3A3A; --e: #2FD6C8; }
+.th-desert .tr-tile.k-slip { --b: #45380A; --e: #FFD43B; }
+.th-desert .tr-tile.k-again { --b: #3A2A20; --e: #FFE9CF; }
+.th-desert .tr-tile.k-swap { --b: #123844; --e: #47C9E0; }
+.th-desert .tr-tile.start { --b: #1E3A14; --e: #6BCB3A; }
+
+.th-sea { --t: #8FF5FF; }
+.th-sea .tr-tile { --b: #0B1640; --e: rgba(90, 220, 255, .28); }
+.th-sea .tr-tile.k-q { --b: #06364A; --e: #2EE6FF; }
+.th-sea .tr-tile.k-move { --b: #2A1660; --e: #A76BFF; }
+.th-sea .tr-tile.k-boost { --b: #33124F; --e: #D07BFF; }
+.th-sea .tr-tile.k-slip { --b: #45380A; --e: #FFD43B; }
+.th-sea .tr-tile.k-again { --b: #2C2A40; --e: #F1EEFF; }
+.th-sea .tr-tile.k-swap { --b: #3D1238; --e: #FF6FB5; }
+.th-sea .tr-tile.start { --b: #0E3A33; --e: #3BE0B0; }
+
+@media (max-width: 760px) { .trail[class*="th-"] .tr-wrap { padding: 6.5% 7%; } .tr-pair { display: none; } }
