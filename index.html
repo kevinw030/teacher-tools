@@ -56,6 +56,7 @@
       </div>
       <a href="#games" data-view="games">Games</a>
     </div>
+    <a class="nav-account" href="#account" data-view="account" hidden>Sign In</a>
     <a class="nav-gear" href="#settings" data-view="settings" aria-label="Settings" title="Settings"></a>
   </div>
 </nav>
@@ -334,6 +335,14 @@
   <section class="panel" id="settingsMount"></section>
 </main>
 
+<!-- ACCOUNT -->
+<main class="page c-violet" id="view-account" data-view="account" hidden>
+  <header class="tool-head">
+    <div><span class="eyebrow">Your account</span><h1>My Account</h1><p>Save everything to your account and use it on any computer.</p></div>
+  </header>
+  <div id="accountMount"></div>
+</main>
+
 <!-- SOUND LEVEL -->
 <main class="page c-sky" id="view-sound-level" data-view="sound-level" hidden>
   <header class="tool-head">
@@ -424,6 +433,8 @@
 </main>
 
 <script src="assets/core.js"></script>
+<script src="assets/account-config.js"></script>
+<script src="assets/account.js"></script>
 <script src="tools/timer.js"></script>
 <script src="tools/picker.js"></script>
 <script src="tools/groups.js"></script>

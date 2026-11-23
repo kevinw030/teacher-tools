@@ -39,7 +39,12 @@
     function row(title, desc, control) {
       return h('div', { class: 'set-row' }, h('div', null, h('h3', { text: title }), h('p', { class: 'muted', text: desc })), h('div', { class: 'set-control' }, control));
     }
+    var acct = TT.account && TT.account.enabled
+      ? row('My Account', TT.account.signedIn() ? 'Signed in as ' + TT.account.email() + '. Everything saves to your account.' : 'Sign in to save everything to your account and use it on any computer.',
+          h('a', { class: 'btn', href: '#account' }, TT.account.signedIn() ? 'Open My Account' : 'Sign In'))
+      : null;
     el.append(h('div', { class: 'settings' },
+      acct,
       row('Your Name', 'Shown in the greeting on the home page.', nameInput),
       row('Class Name', 'Shown on the Morning Meeting screen, like “Good morning, Room 12!”', classInput),
       row('Time Zone', 'Sets the greeting and the view out of the classroom window on the home page.', zonePick()),
