@@ -59,7 +59,7 @@
   var meta = (function () { try { return JSON.parse(localStorage.getItem(META_KEY)) || {}; } catch (e) { return {}; } })();
   function saveMeta() { try { localStorage.setItem(META_KEY, JSON.stringify(meta)); } catch (e) {} }
 
-  var sb = null, user = null, listeners = [], status = 'idle', pushTimer = null, changeSeq = 0, pushing = false, newerWaiting = false;
+  var sb = null, user = null, known = false, listeners = [], status = 'idle', pushTimer = null, changeSeq = 0, pushing = false, newerWaiting = false;
 
   TT.account = {
     enabled: enabled,
@@ -341,10 +341,12 @@
     } else done();
   };
   TT.account.ready = function () { return !!sb; };
+  // True once the site knows for sure whether someone is signed in (or the sign-in library could not load).
+  TT.account.known = function () { return known; };
 
   function setUser(u) {
     var was = user && user.id;
-    user = u || null;
+    user = u || null; known = true;
     if (user) { meta.email = user.email; meta.firstName = TT.account.firstName(); saveMeta(); }
     emit();
     if (user && user.id !== was) { loadPlan(); check(true); watchPaid(); }
@@ -358,7 +360,7 @@
         sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseKey, {
           auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
         });
-      } catch (e) { setStatus('offline'); return; }
+      } catch (e) { known = true; setStatus('offline'); return; }
       sb.auth.getSession().then(function (r) {
         if (/[?&](code|reset)=/.test(location.search)) history.replaceState(null, '', resetting() ? '/account' : location.pathname + location.hash);
         if (resetting()) window.dispatchEvent(new Event('tt:page'));
@@ -370,7 +372,7 @@
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED' || event === 'PASSWORD_RECOVERY') setUser(session ? session.user : null);
       });
     };
-    s.onerror = function () { setStatus('offline'); emit(); };
+    s.onerror = function () { known = true; setStatus('offline'); emit(); };
     document.head.append(s);
   }
 
@@ -492,7 +494,7 @@
           item('🆓', 'Free to Start', 'Every tool and game, no card needed.'),
           item('🔒', 'Just for You', 'Only you can see what you save.')),
         h('p', { class: 'acct-disclaimer', text: DISCLAIMER }),
-        h('p', { class: 'muted small', text: 'Not signing in is fine too. Everything still works and saves on this computer.' }));
+        h('p', { class: 'muted small', text: 'A free account opens every tool and game. Students never need one: they join with a class code.' }));
     }
 
     function resetCard() {
@@ -686,8 +688,11 @@
     TT.account.onChange(paint);
     TT.account.openPlans = function () { tab = 'plans'; paint(); };
     if (TT.account.wantPlans) { tab = 'plans'; TT.account.wantPlans = false; }
+    // The sign-in gate (assets/signin-gate.js) can ask for the Log In or Create an Account form.
+    function wanted() { var m = TT.account.wantMode; if (m === 'login' || m === 'signup') { tab = 'account'; mode = m; msgText = ''; } TT.account.wantMode = null; }
+    wanted();
     paint();
-    return { show: function () { if (TT.account.wantPlans) { tab = 'plans'; TT.account.wantPlans = false; } if (TT.account.wantSignIn) { tab = 'account'; TT.account.wantSignIn = false; } loadPlan(); paint(); } };
+    return { show: function () { if (TT.account.wantPlans) { tab = 'plans'; TT.account.wantPlans = false; } if (TT.account.wantSignIn) { tab = 'account'; TT.account.wantSignIn = false; } wanted(); loadPlan(); paint(); } };
   };
 
   // ---------- Account icon ----------

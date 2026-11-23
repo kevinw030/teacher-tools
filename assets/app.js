@@ -168,7 +168,10 @@
     if (!titles[name]) name = 'home';
     // Tidy the address: /games/ or /games.html become /games, and unknown pages go home.
     if (location.pathname !== TT.pageUrl(name)) history.replaceState(null, '', TT.pageUrl(name) + location.search + location.hash);
-    views.forEach(function (v) { v.hidden = v.getAttribute('data-view') !== name; });
+    // Signed-out visitors see the sign-in card instead of any tool or game (assets/signin-gate.js).
+    var gated = !!(TT.signinGate && TT.signinGate.blocks(name));
+    views.forEach(function (v) { v.hidden = gated || v.getAttribute('data-view') !== name; });
+    if (TT.signinGate) TT.signinGate.show(gated ? name : null, titles[name]);
     document.querySelectorAll('.nav a[data-view]').forEach(function (a) {
       var on = a.getAttribute('data-view') === name || (a.getAttribute('data-view') === 'games' && !!gameTitles[name]);
       a.classList.toggle('active', on);
@@ -181,9 +184,9 @@
     if (last && last !== name && mounted[last] && mounted[last].hide) mounted[last].hide();
     if (last && last !== name && gameClosers[last] && mounted[last]) { gameClosers[last](); delete mounted[last]; }
     last = name;
-    document.body.classList.toggle('board-mode', name === 'board');
-    if (!mounted[name] && mounters[name]) mounted[name] = mounters[name]() || {};
-    if (mounted[name] && mounted[name].show) mounted[name].show();
+    document.body.classList.toggle('board-mode', name === 'board' && !gated);
+    if (!gated && !mounted[name] && mounters[name]) mounted[name] = mounters[name]() || {};
+    if (!gated && mounted[name] && mounted[name].show) mounted[name].show();
     if (name === 'home') { paintDate(); paintToday(); if (petMini) petMini.refresh(); }
     document.title = name === 'home' ? 'ED Sidekick' : titles[name] + ' · ED Sidekick';
     window.scrollTo(0, 0);

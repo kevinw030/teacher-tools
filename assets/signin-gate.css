@@ -1,0 +1,69 @@
+/* Sign-in gate (assets/signin-gate.js): the card shown instead of a tool or game when nobody is signed in,
+   and the short note on the home page. Same paper canvas, Gabarito headings and spring motion as the rest of the site. */
+.sg-page { align-items: center; }
+.sg-wrap { width: 100%; max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: var(--s3, 12px); }
+.sg-card { background: var(--surface); border: 1px solid var(--line); border-radius: 28px; box-shadow: var(--shadow); }
+
+.sg-teacher { display: grid; grid-template-columns: 200px 1fr; gap: var(--s5, 24px); align-items: center; padding: clamp(20px, 4vw, 40px);
+  animation: sg-rise .7s var(--spring, cubic-bezier(.34, 1.56, .64, 1)) both; }
+.sg-mascot { display: grid; place-items: center; min-height: 180px; border-radius: 24px; background: color-mix(in srgb, var(--cobalt, #2F6BFF) 12%, var(--surface)); }
+.sg-mascot > * { width: 150px; max-width: 100%; }
+.sg-body { display: flex; flex-direction: column; gap: var(--s2, 8px); align-items: flex-start; }
+.sg-eyebrow { font-family: var(--display); font-weight: 800; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--coral, #F2643D); }
+.sg-title { margin: 0; font-size: clamp(28px, 3.6vw, 42px); font-weight: 800; line-height: 1.05; letter-spacing: -.025em; }
+.sg-text { margin: 0; font-size: 17px; line-height: 1.5; color: var(--muted); max-width: 52ch; }
+.sg-actions { display: flex; flex-wrap: wrap; gap: var(--s2, 8px); margin-top: var(--s3, 12px); }
+.sg-have { margin: var(--s1, 4px) 0 0; font-size: 16px; }
+.sg-login { font-weight: 800; font-size: 16px; color: var(--cobalt, #2F6BFF); }
+.sg-fine { margin: var(--s1, 4px) 0 0; font-size: 14px; color: var(--muted); }
+
+.sg-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 22px; border-radius: 16px;
+  font: 700 17px/1 var(--display); border: 2px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; text-decoration: none;
+  transition: transform .45s var(--spring, cubic-bezier(.34, 1.56, .64, 1)), box-shadow .2s ease, border-color .2s ease; }
+.sg-btn svg { width: 20px; height: 20px; flex: none; }
+.sg-btn:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--ink) 25%, var(--line)); }
+.sg-btn:active { transform: scale(.97); transition-duration: .1s; }
+.sg-btn:focus-visible { outline: 3px solid var(--cobalt, #2F6BFF); outline-offset: 3px; }
+.sg-main { background: var(--coral, #F2643D); border-color: var(--coral, #F2643D); color: #fff; }
+.sg-main:hover { border-color: var(--coral, #F2643D); box-shadow: 0 10px 22px -10px var(--coral, #F2643D); }
+.sg-btn.small { min-height: 44px; padding: 0 16px; font-size: 15px; border-radius: 14px; }
+
+/* The student card: big, bright and one tap, for kids who found the site. */
+.sg-student { display: flex; align-items: center; gap: var(--s4, 16px); padding: 16px clamp(16px, 3vw, 28px); color: inherit; text-decoration: none;
+  background: color-mix(in srgb, var(--emerald, #1FA37A) 14%, var(--surface)); border-color: color-mix(in srgb, var(--emerald, #1FA37A) 35%, var(--line));
+  animation: sg-rise .7s .08s var(--spring, cubic-bezier(.34, 1.56, .64, 1)) both;
+  transition: transform .45s var(--spring, cubic-bezier(.34, 1.56, .64, 1)); }
+.sg-student:hover { transform: translateY(-3px); }
+.sg-student:focus-visible { outline: 3px solid var(--emerald, #1FA37A); outline-offset: 3px; }
+.sg-kid-icon img { width: 64px; height: 64px; display: block; }
+.sg-kid-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.sg-kid-title { font: 800 22px/1.1 var(--display); }
+.sg-kid-sub { font-size: 16px; color: var(--muted); }
+.sg-kid-go { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 14px; background: var(--emerald, #1FA37A); color: #fff; font: 800 17px/1 var(--display); white-space: nowrap; }
+.sg-kid-go svg { width: 20px; height: 20px; }
+.sg-home { align-self: center; margin-top: var(--s2, 8px); font-weight: 700; color: var(--muted); }
+
+/* Home page note for visitors who aren't signed in. */
+.sg-note { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--s3, 12px);
+  padding: 14px 18px; border-radius: 22px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+.sg-note-text { display: flex; flex-direction: column; gap: 2px; }
+.sg-note-text strong { font: 800 18px/1.2 var(--display); }
+.sg-note-text span { color: var(--muted); font-size: 15px; }
+.sg-note-actions { display: flex; flex-wrap: wrap; gap: var(--s2, 8px); }
+.sg-kid { background: color-mix(in srgb, var(--emerald, #1FA37A) 14%, var(--surface)); border-color: color-mix(in srgb, var(--emerald, #1FA37A) 35%, var(--line)); }
+
+@keyframes sg-rise { from { opacity: 0; transform: translateY(18px) scale(.98); } }
+@media (prefers-reduced-motion: reduce) { .sg-teacher, .sg-student { animation: none; } }
+
+@media (max-width: 640px) {
+  .sg-teacher { grid-template-columns: 1fr; text-align: center; }
+  .sg-mascot { min-height: 130px; }
+  .sg-mascot > * { width: 110px; }
+  .sg-body { align-items: center; }
+  .sg-actions { flex-direction: column; width: 100%; }
+  .sg-actions .sg-btn { width: 100%; }
+  .sg-student { flex-wrap: wrap; justify-content: center; text-align: center; }
+  .sg-kid-text { flex-basis: 100%; }
+  .sg-kid-go { width: 100%; justify-content: center; }
+  .sg-note-actions, .sg-note-actions .sg-btn { width: 100%; }
+}
