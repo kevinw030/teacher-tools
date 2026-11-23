@@ -6,6 +6,10 @@ window.TT_ACCOUNT_CONFIG = {
   supabaseUrl: 'https://nipdxclfxmnbfrzubmrw.supabase.co',
   supabaseKey: 'sb_publishable_w2dYfWHQZioh3fXWZt1SfA_XQEzomTk',
 
+  // true once the sign-in email includes a typed code ({{ .Token }}), which needs custom email (SMTP)
+  // in Supabase. While false, teachers sign in by tapping the link in the email.
+  emailCode: false,
+
   // Show "Continue with Google" (turn on after setting up Google sign-in in Supabase).
   google: false,
 

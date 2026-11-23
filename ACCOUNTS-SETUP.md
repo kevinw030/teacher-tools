@@ -26,9 +26,7 @@ Do step 2 after step 1, so the old address doesn't forward to a domain that isn'
 3. Open **Authentication > URL Configuration**:
    - Site URL: `https://edsidekick.com`
    - Redirect URLs: add `https://edsidekick.com/**`, `https://www.edsidekick.com/**` and `https://kevinw030.github.io/teacher-tools/**`
-4. Open **Authentication > Email Templates**. In both **Magic Link** and **Confirm Signup**, add this line to the message
-   so the email includes a code teachers can type on another device:
-   `<p>Or type this code: <b>{{ .Token }}</b></p>`
+4. Skip email templates for now. Teachers sign in by tapping the link in the email (on the same computer). Supabase only lets you edit templates after custom email is set up (see "Custom Email" below).
 5. Done: the project URL and publishable key are already in `assets/account-config.js` (project `nipdxclfxmnbfrzubmrw`).
 6. Open the site, choose **Sign In**, and sign in with your email.
 7. Back in **SQL Editor**, run this with your email, so your account has everything free:
@@ -59,9 +57,20 @@ This adds a "Continue with Google" button above the email sign-in, so teachers c
 8. Set `google: true` in `assets/account-config.js`, or tell Claude and it will do it.
 
 If a school's Google Workspace blocks outside apps, those teachers can still use the email code.
-### Before sharing with other teachers
-Supabase's built-in email only sends a few sign-in emails an hour. Before inviting others, connect a free email
-sender (for example Resend, 3,000 emails a month free) under **Project Settings > Authentication > SMTP Settings**.
+### Custom Email (before sharing with other teachers)
+Supabase's built-in email sends only a few sign-in emails an hour and won't let you edit the templates. Connect your own sender:
+
+1. Sign up at https://resend.com (free: 3,000 emails a month, 100 a day).
+2. **Domains > Add Domain**: `edsidekick.com`. Resend shows a few DNS records (TXT and MX). Add them in Namecheap under
+   **Advanced DNS**, then press **Verify** in Resend.
+3. **API Keys > Create API Key** (sending access) and copy it.
+4. In Supabase: **Authentication > Emails > SMTP Settings**, turn on custom SMTP:
+   - Sender email `hello@edsidekick.com`, sender name `ED Sidekick`
+   - Host `smtp.resend.com`, port `465`, username `resend`, password: the API key
+5. Now the templates unlock. In **Magic Link** and **Confirm signup**, add `<p>Or type this code: <b>{{ .Token }}</b></p>`
+   and change the wording to ED Sidekick if you like.
+6. Set `emailCode: true` in `assets/account-config.js` (or tell Claude). Teachers can then also type the code,
+   which helps when they read email on their phone but sign in on the classroom computer.
 
 ## Part 2: Payments (Stripe)
 

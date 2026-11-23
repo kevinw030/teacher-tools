@@ -272,9 +272,17 @@
             if (r.error) { msgText = 'That didn’t work: ' + r.error.message; } else { step = 'code'; msgText = ''; }
             paint();
           });
-        } }, input, TT.button(busy ? 'Sending…' : 'Email Me a Sign-In Code', { kind: 'primary big' }));
+        } }, input, TT.button(busy ? 'Sending…' : (CFG.emailCode ? 'Email Me a Sign-In Code' : 'Email Me a Sign-In Link'), { kind: 'primary big' }));
         form.querySelector('button').type = 'submit';
         card.append(form);
+      } else if (!CFG.emailCode) {
+        card.append(h('div', { class: 'acct-sent' },
+          h('h3', { text: 'Check Your Email' }),
+          h('p', { text: 'We sent a sign-in link to ' + email + '. Open the email on this computer and tap the link, and you’re in.' }),
+          h('p', { class: 'muted small', text: 'Don’t see it? Check your spam folder, or wait a minute and send another.' })),
+          h('div', { class: 'row' },
+            TT.button('Send Another Link', { kind: 'small', onclick: function () { step = 'email'; msgText = ''; paint(); } }),
+            TT.button('Use a Different Email', { kind: 'small', onclick: function () { step = 'email'; email = ''; msgText = ''; paint(); } })));
       } else {
         var code = h('input', { type: 'text', id: 'acctCode', inputmode: 'numeric', autocomplete: 'one-time-code', maxlength: 8, placeholder: '123456', 'aria-label': 'Sign-in code' });
         var f2 = h('form', { class: 'acct-form', novalidate: true, onsubmit: function (e) {
