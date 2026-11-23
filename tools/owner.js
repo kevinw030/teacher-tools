@@ -460,7 +460,8 @@
     if (!TT.account || !TT.account.realPlan || TT.account.realPlan() !== 'owner') return;
     var acct = document.querySelector('.nav-account');
     if (!acct || document.querySelector('.nav-owner')) return;
-    acct.parentNode.insertBefore(h('a', { class: 'nav-owner', href: '#owner', 'data-view': 'owner', text: 'Dashboard' }), acct);
+    var spot = acct.closest('.acct-menu-wrap') || acct;   // sit beside the account menu, not inside it
+    spot.parentNode.insertBefore(h('a', { class: 'nav-owner', href: '#owner', 'data-view': 'owner', text: 'Dashboard' }), spot);
   }
   function start() {
     pill(); navLink();
