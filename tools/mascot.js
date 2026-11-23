@@ -3,8 +3,8 @@
 // extras (blinking eyelids, sparkle lines, stars, a question mark) are layered on top so he feels alive.
 // Use: var m = TT.mascot(); box.append(m); m.mood('cheer', 1800);
 // Moods: idle, wave, point, think, cheer, cheer-left, cheer-right, party. A mood with a time goes back
-// to idle afterwards. While idle he runs a routine of short acts (see ACTS) with blinking in between,
-// never the same act twice in a row. m.play('hop') runs one act right away.
+// to idle afterwards. While idle he mostly stands, breathes and blinks; every 7 to 13 seconds he does one
+// short act (see ACTS), never the same act twice in a row. m.play('hop') runs one act right away.
 (function () {
   var TT = window.TT, h = TT.h;
   var POSES = ['stand', 'wave', 'point', 'cheer', 'think'];
@@ -21,9 +21,28 @@
     ask: '<svg viewBox="0 0 420 576"><g class="fx-ask"><circle cx="372" cy="150" r="44" fill="#fff"/><circle cx="330" cy="204" r="12" fill="#fff"/><text x="372" y="172" text-anchor="middle" font-size="62" font-weight="900" fill="#6B2FD6" font-family="Gabarito, sans-serif">?</text></g></svg>',
     note: '<svg viewBox="0 0 420 576"><g class="fx-note" fill="#FFC233"><path d="M360 96 v-56 l40 -12 v56" stroke="#FFC233" stroke-width="9" fill="none" stroke-linejoin="round"/><ellipse cx="348" cy="98" rx="15" ry="11"/><ellipse cx="388" cy="86" rx="15" ry="11"/></g></svg>'
   };
+  // A back view of him typing at a computer, drawn to match the artwork (there is no picture of this pose).
+  var WORK = '<svg class="mascot-pose m-work" viewBox="0 0 420 576" aria-hidden="true">' +
+    // desk and monitor (he faces them, so they sit behind him)
+    '<rect x="150" y="386" width="262" height="18" rx="7" fill="#C87A42" stroke="#470380" stroke-width="6"/><path d="M186 404 V548 M388 404 V548" stroke="#8E4E28" stroke-width="16" stroke-linecap="round"/>' +
+    '<path d="M316 352 h36 l8 34 h-52Z" fill="#B9A9E8" stroke="#470380" stroke-width="6" stroke-linejoin="round"/>' +
+    '<rect x="236" y="186" width="176" height="170" rx="16" fill="#E9E2FF" stroke="#470380" stroke-width="7"/><rect x="250" y="200" width="148" height="128" rx="8" fill="#1B1F5E"/>' +
+    '<g class="wk-glow"><rect x="250" y="200" width="148" height="128" rx="8" fill="#7CC8FF" opacity=".18"/></g>' +
+    '<g stroke-linecap="round" stroke-width="9" fill="none"><path class="wk-line l1" d="M264 222 h92" stroke="#7CE0C3"/><path class="wk-line l2" d="M264 246 h118" stroke="#FFC233"/><path class="wk-line l3" d="M264 270 h70" stroke="#FF8FB8"/><path class="wk-line l4" d="M264 294 h104" stroke="#9AD8FF"/></g>' +
+    '<rect x="238" y="368" width="126" height="16" rx="6" fill="#B9A9E8" stroke="#470380" stroke-width="5"/>' +
+    // feet, antenna, body from behind
+    '<ellipse cx="128" cy="548" rx="46" ry="19" fill="#4A0E8F"/><ellipse cx="218" cy="548" rx="46" ry="19" fill="#4A0E8F"/>' +
+    '<g class="wk-ant"><path d="M186 178 C182 120 200 92 240 84" fill="none" stroke="#470380" stroke-width="27" stroke-linecap="round"/><path d="M186 178 C182 120 200 92 240 84" fill="none" stroke="#9748ED" stroke-width="15" stroke-linecap="round"/><circle cx="262" cy="70" r="38" fill="#FFC107" stroke="#470380" stroke-width="7"/></g>' +
+    '<path d="M172 150 C254 150 292 250 292 352 C292 468 250 540 172 540 C96 540 54 468 54 352 C54 250 92 150 172 150Z" fill="#9748ED" stroke="#470380" stroke-width="8"/>' +
+    '<path d="M96 300 C84 380 96 460 132 506" fill="none" stroke="#8438DA" stroke-width="16" stroke-linecap="round" opacity=".7"/>' +
+    // a bit of cheek and his arms reaching to the keys
+    '<circle cx="286" cy="300" r="15" fill="#FF7BB5"/>' +
+    '<g class="wk-arm a1"><path d="M250 330 C286 322 300 346 304 366" fill="none" stroke="#470380" stroke-width="40" stroke-linecap="round"/><path d="M250 330 C286 322 300 346 304 366" fill="none" stroke="#9748ED" stroke-width="27" stroke-linecap="round"/></g>' +
+    '<g class="wk-arm a2"><path d="M226 372 C262 356 280 364 284 374" fill="none" stroke="#470380" stroke-width="40" stroke-linecap="round"/><path d="M226 372 C262 356 280 364 284 374" fill="none" stroke="#9748ED" stroke-width="27" stroke-linecap="round"/></g>' +
+    '<g class="wk-taps" stroke="#FFC233" stroke-width="8" stroke-linecap="round"><path d="M330 352 l10 -16"/><path d="M352 358 l18 -8"/></g></svg>';
   // The idle routine. [name, pose, how long it lasts, extra]
   var ACTS = [['wave', 'wave', 1900, 'sparks'], ['hop', 'stand', 1300, ''], ['look', 'point', 2000, ''], ['ponder', 'think', 2300, 'ask'],
-    ['yay', 'cheer', 1500, 'stars'], ['twirl', 'stand', 1100, ''], ['dance', 'stand', 1900, 'note'], ['peek', 'stand', 1500, '']];
+    ['yay', 'cheer', 1500, 'stars'], ['twirl', 'stand', 1100, ''], ['dance', 'stand', 1900, 'note'], ['peek', 'stand', 1500, ''], ['work', 'work', 6500, '']];
 
   TT.mascot = function (opts) {
     opts = opts || {};
@@ -31,6 +50,7 @@
       return h('img', { class: 'mascot-pose m-' + p, src: 'assets/mascot/' + p + '.webp', alt: '', draggable: 'false', decoding: 'async' });
     }));
     var lids = h('span', { class: 'mascot-lidbox' }); lids.innerHTML = LIDS; body.append(lids);
+    var work = h('span', { class: 'mascot-workbox' }); work.innerHTML = WORK; body.append(work);
     var fx = h('span', { class: 'mascot-fx' });
     var el = h('span', { class: 'mascot', 'aria-hidden': 'true' }, h('span', { class: 'mascot-shadow' }), body, fx);
     var back = 0, next = 0, last = '';
@@ -45,7 +65,7 @@
       clearTimeout(back);
       back = setTimeout(function () { if (el.getAttribute('data-act') === act[0]) set('idle'); queue(); }, act[2]);
     }
-    // While idle, do something new every couple of seconds so he never looks frozen.
+    // Mostly he just stands, breathes and blinks. Every so often he does one act from the list.
     function queue() {
       clearTimeout(next);
       if (opts.still === true) return;
@@ -54,7 +74,7 @@
         if (el.getAttribute('data-mood') !== 'idle' || el.getAttribute('data-act') || el.offsetParent === null) return queue();
         var pool = ACTS.filter(function (a) { return a[0] !== last; });
         run(pool[Math.floor(Math.random() * pool.length)]);
-      }, 1500 + Math.random() * 1700);
+      }, 7000 + Math.random() * 6000);
     }
     el.mood = function (mood, ms) {
       clearTimeout(back);

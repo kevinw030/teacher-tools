@@ -17,7 +17,7 @@
       homeMascot = TT.mascot({ mood: 'wave' }); $('homeMascot').append(homeMascot);
       setTimeout(function () { homeMascot.mood('idle'); }, 2200);
       // Tap him for a trick, and he reacts when you reach for a button.
-      var tricks = ['yay', 'twirl', 'hop', 'dance', 'peek'], t = 0;
+      var tricks = ['yay', 'twirl', 'hop', 'work', 'dance', 'peek'], t = 0;
       $('homeMascot').addEventListener('click', function () { homeMascot.play(tricks[t++ % tricks.length]); if (TT.tick) TT.tick(); });
       var open = document.querySelector('.wel-open'), go = $('todayGo');
       if (open) { open.addEventListener('pointerenter', function () { homeMascot.play('yay'); }); open.addEventListener('focus', function () { homeMascot.play('yay'); }); }
