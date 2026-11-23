@@ -11,17 +11,13 @@
 .w-rs-e, .w-rs-w { top: 26px; bottom: 26px; width: 15px; cursor: ew-resize; } .w-rs-e { right: -13px; } .w-rs-w { left: -13px; }
 .w-rs-n::after, .w-rs-s::after { left: 50%; margin-left: -18px; width: 36px; height: 8px; } .w-rs-n::after { top: 1px; } .w-rs-s::after { bottom: 1px; }
 .w-rs-e::after, .w-rs-w::after { top: 50%; margin-top: -18px; width: 8px; height: 36px; } .w-rs-e::after { right: 1px; } .w-rs-w::after { left: 1px; }
-.w-rs-ne, .w-rs-nw { width: 22px; height: 22px; top: -11px; } .w-rs-sw { width: 22px; height: 22px; bottom: -11px; } .w-rs-se { width: 32px; height: 32px; bottom: -16px; }
-.w-rs-ne { right: -11px; } .w-rs-nw, .w-rs-sw { left: -11px; } .w-rs-se { right: -16px; }
+.w-rs-ne, .w-rs-nw { width: 22px; height: 22px; top: -11px; } .w-rs-sw, .w-rs-se { width: 22px; height: 22px; bottom: -11px; }
+.w-rs-ne { right: -11px; } .w-rs-nw, .w-rs-sw { left: -11px; } .w-rs-se { right: -11px; }
 .w-rs-ne, .w-rs-sw { cursor: nesw-resize; } .w-rs-nw, .w-rs-se { cursor: nwse-resize; }
 .w-rs-ne::after, .w-rs-nw::after { width: 13px; height: 13px; top: 3px; } .w-rs-ne::after { right: 3px; } .w-rs-nw::after { left: 3px; }
-.w-rs-sw::after { width: 13px; height: 13px; left: 3px; bottom: 3px; }
+.w-rs-sw::after, .w-rs-se::after { width: 13px; height: 13px; bottom: 3px; } .w-rs-sw::after { left: 3px; } .w-rs-se::after { right: 3px; }
 .widget { overflow: visible; }
 .text-toolbar { padding-top: 18px; } .widget.tb-up .text-toolbar { padding-bottom: 18px; }
-/* The bottom right corner is the main one: always visible, with a clear diagonal arrow. */
-.w-rs-se::after { width: 24px; height: 24px; right: 3px; bottom: 3px; border-radius: 9px; opacity: .92; transform: none; border-color: var(--cobalt);
-  background: var(--cobalt) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 16l8-8M8 11v5h5M16 13V8h-5'/%3E%3C/svg%3E") center / 16px no-repeat; }
-.w-rs-se:hover::after { background-color: color-mix(in srgb, var(--cobalt) 80%, #000); }
 .widget.box-clear .w-resize { opacity: 0; } .widget.box-clear:hover .w-resize, .widget.box-clear:focus-within .w-resize { opacity: 1; }
 
 /* ----- Rich text message ----- */
