@@ -1,20 +1,13 @@
-// Multiplication Race: a whole-class board game. Teams roll, race around the track and answer
-// multiplication facts to get ahead. Artwork lives in assets/race/.
+// Race board games: a whole-class board game. Teams roll, race around the track and answer
+// math facts to get ahead. TT.race(cfg) builds one race; Multiplication Race is set up at the
+// bottom and the Addition, Subtraction and Division races live in tools/races.js.
+// Artwork lives in assets/race/ (each themed race has its own folder of Kevin's art).
 (function () {
   var TT = window.TT, h = TT.h;
   var N = 48, COLS = 8, ART = 'assets/race/';
-  var TEAMS = [['Blue Team', '#2F6BFF', 'pawn-blue'], ['Orange Team', '#FF7A1A', 'pawn-orange'], ['Green Team', '#22D07A', 'pawn-green'], ['Purple Team', '#9B4DFF', 'pawn-purple']];
-  var KINDS = {
-    q: ['question', 'Fact Check', 'Solve it to move ahead 2'],
-    move: ['move', 'Skip Count', 'Count and move, then go ahead 1'],
-    boost: ['rocket', 'Times Two', 'Double your roll'],
-    slip: ['banana', 'Banana Slip', 'Slide back 2'],
-    again: ['dice', 'Roll Again', 'Take another turn'],
-    swap: ['swap', 'Switch Places', 'Trade spots with the leader']
-  };
   var MOVES = ['march in place', 'do jumping jacks', 'hop on one foot', 'do arm circles', 'touch your toes', 'do star jumps', 'clap over your head', 'tap your knees'];
   var PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
-  function art(name, cls) { return h('img', { src: ART + name + '.png', alt: '', class: cls || '', draggable: 'false' }); }
+  function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
 
   function makeLayout() {
     var L = [], bag = [], spots = [], i;
@@ -34,10 +27,18 @@
     return L;
   }
 
-  function trail(el) {
-    var state = TT.load('trail', null), busy = false, lastRoll = 1, recent = [];
-    var set = TT.load('trail-set', null) || {};
-    if (!Array.isArray(set.tables) || !set.tables.length) set.tables = [2, 3, 4, 5, 6, 7, 8, 9, 10];
+  // cfg: key, setKey, cls, dir (themed art folder) and own (art names found there), teams, kinds,
+  // picker { label, options [[value, label]], def }, fact(sel) -> { text, ans, key },
+  // move(sel) -> card text, boost(roll) -> card text, cheer (win message)
+  function race(cfg) { return function (el) {
+    var TEAMS = cfg.teams, KINDS = cfg.kinds, P = cfg.picker;
+    function art(name, cls) { var d = cfg.own && cfg.own.indexOf(name) >= 0 ? ART + cfg.dir + '/' : ART; return h('img', { src: d + name + '.png', alt: '', class: cls || '', draggable: 'false' }); }
+    var state = TT.load(cfg.key, null), busy = false, lastRoll = 1, recent = [];
+    var set = TT.load(cfg.setKey, null) || {};
+    var vals = P.options.map(function (o) { return o[0]; });
+    if (!Array.isArray(set.sel)) set.sel = Array.isArray(set.tables) ? set.tables : [];
+    set.sel = set.sel.filter(function (v) { return vals.indexOf(v) >= 0; });
+    if (!set.sel.length) set.sel = P.def.slice();
     var teamsBar = h('div', { class: 'scorebar' });
     var st = h('p', { class: 'game-status', 'aria-live': 'polite' });
     var die = h('span', { class: 'tr-die', 'aria-hidden': 'true' });
@@ -49,23 +50,23 @@
     var counts = h('div', { class: 'segmented', role: 'group', 'aria-label': 'Number of teams' }, [2, 3, 4].map(function (n) {
       return h('button', { type: 'button', class: 'seg', 'data-n': n, onclick: function () { newGame(n); } }, n + ' Teams');
     }));
-    var tables = h('div', { class: 'tr-tables', role: 'group', 'aria-label': 'Times tables in play' });
-    for (var tb = 2; tb <= 12; tb++) (function (n) {
-      tables.append(h('button', { type: 'button', class: 'tr-table', 'data-n': n, title: n + ' times table', onclick: function () {
-        var i = set.tables.indexOf(n);
-        if (i >= 0) { if (set.tables.length > 1) set.tables.splice(i, 1); } else set.tables.push(n);
-        TT.save('trail-set', set); paintTables();
-      } }, '×' + n));
-    })(tb);
-    function paintTables() { tables.querySelectorAll('.tr-table').forEach(function (b) { var on = set.tables.indexOf(+b.getAttribute('data-n')) >= 0; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); }); }
-    el.append(h('div', { class: 'game trail' }, teamsBar, st,
+    var tables = h('div', { class: 'tr-tables', role: 'group', 'aria-label': P.label });
+    P.options.forEach(function (o, n) {
+      tables.append(h('button', { type: 'button', class: 'tr-table', 'data-n': n, title: o[2] || null, onclick: function () {
+        var i = set.sel.indexOf(o[0]);
+        if (i >= 0) { if (set.sel.length > 1) set.sel.splice(i, 1); } else set.sel.push(o[0]);
+        TT.save(cfg.setKey, set); paintTables();
+      } }, o[1]));
+    });
+    function paintTables() { tables.querySelectorAll('.tr-table').forEach(function (b) { var on = set.sel.indexOf(vals[+b.getAttribute('data-n')]) >= 0; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); }); }
+    el.append(h('div', { class: 'game trail' + (cfg.cls ? ' ' + cfg.cls : '') }, teamsBar, st,
       h('div', { class: 'row center' }, die, rollBtn),
       wrap,
       h('div', { class: 'tr-legend' }, Object.keys(KINDS).map(function (k) { return h('span', null, art(KINDS[k][0]), h('b', { text: KINDS[k][1] }), ' ' + KINDS[k][2]); })),
-      h('div', { class: 'tr-setup' }, h('b', { text: 'Times Tables in Play' }), tables),
-      h('div', { class: 'row center' }, counts, TT.button('New Game', { icon: 'reset', onclick: function () { newGame(state.n); } }))));
+      h('div', { class: 'tr-setup' }, h('b', { class: 'tr-setup-h' }, cfg.signArt ? art(cfg.signArt, 'tr-sign') : null, P.label), tables),
+      h('div', { class: 'row center' }, cfg.pairArt ? art(cfg.pairArt, 'tr-pair') : null, counts, TT.button('New Game', { icon: 'reset', onclick: function () { newGame(state.n); } }))));
 
-    function save() { TT.save('trail', state); }
+    function save() { TT.save(cfg.key, state); }
     function newGame(n) {
       state = { n: n, pos: [], turn: 0, over: false, layout: makeLayout() };
       for (var i = 0; i < n; i++) state.pos.push(0);
@@ -73,13 +74,10 @@
     }
     function name(t) { return TEAMS[t][0]; }
     function fact() {
-      var a, b, key, tries = 0;
-      do {
-        a = set.tables[Math.floor(Math.random() * set.tables.length)]; b = 2 + Math.floor(Math.random() * 11);
-        key = Math.min(a, b) + 'x' + Math.max(a, b);
-      } while (recent.indexOf(key) >= 0 && ++tries < 30);
-      recent.push(key); if (recent.length > 14) recent.shift();
-      return Math.random() < 0.5 ? [a, b] : [b, a];
+      var f, tries = 0;
+      do { f = cfg.fact(set.sel); } while (recent.indexOf(f.key) >= 0 && ++tries < 30);
+      recent.push(f.key); if (recent.length > 14) recent.shift();
+      return f;
     }
     function paintDie(v) {
       die.textContent = '';
@@ -125,8 +123,10 @@
       var ans = h('span', { class: 'tr-ans', text: '?' });
       var judge = h('div', { class: 'row center', hidden: true },
         artBtn('right', rightLabel, 'primary big', right), artBtn('wrong', 'Not This Time', 'big', wrong));
-      var reveal = TT.button('Show Answer', { kind: 'primary big', onclick: function () { ans.textContent = String(f[0] * f[1]); ans.classList.add('shown'); judge.hidden = false; reveal.hidden = true; TT.tick(); } });
-      show(icon, title, null, [reveal], h('div', { class: 'tr-extra' }, h('div', { class: 'tr-fact' }, f[0] + ' × ' + f[1] + ' = ', ans), judge));
+      var reveal = TT.button('Show Answer', { kind: 'primary big', onclick: function () { ans.textContent = String(f.ans); ans.classList.add('shown'); judge.hidden = false; reveal.hidden = true; TT.tick(); } });
+      // longer facts (two- and three-digit numbers) get a smaller font so they stay on one line
+      var len = (f.text + String(f.ans)).length;
+      show(icon, title, null, [reveal], h('div', { class: 'tr-extra' }, h('div', { class: 'tr-fact' + (len > 13 ? ' xlong' : len > 9 ? ' long' : '') }, f.text + ' = ', ans), judge));
     }
     // Where a pawn stands on a tile, measured inside the board frame.
     function spot(i) {
@@ -184,7 +184,7 @@
       if (state.pos[t] < N - 1) { next(); return; }
       ask(t, 'finish', 'Finish Line Fact for ' + name(t), function () {
         state.over = true; busy = false; save(); paint(); TT.chime(); if (TT.celebrate) TT.celebrate(wrap);
-        show('finish', name(t) + ' Wins!', 'What a race. Great multiplying, everyone!', [TT.button('Play Again', { kind: 'primary big', onclick: function () { newGame(state.n); } })]);
+        show('finish', name(t) + ' Wins!', cfg.cheer, [TT.button('Play Again', { kind: 'primary big', onclick: function () { newGame(state.n); } })]);
       }, function () { hide(); walk(t, -2, endTurn); }, 'Got It! Win the Race');
     }
     function endTurn() { hide(); state.turn = (state.turn + 1) % state.n; busy = false; save(); paint(); }
@@ -207,10 +207,9 @@
       if (k === 'q') {
         ask(t, K[0], 'Fact Check for ' + name(t), function () { thenMove(t, 2); }, endTurn, 'Got It! Move Ahead 2');
       } else if (k === 'move') {
-        var n = set.tables[Math.floor(Math.random() * set.tables.length)];
-        show(K[0], 'Skip Count!', 'Everyone count by ' + n + 's up to ' + n * 10 + ' while you ' + MOVES[Math.floor(Math.random() * MOVES.length)] + '.', [TT.button('Done! Move Ahead 1', { kind: 'primary big', onclick: function () { thenMove(t, 1); } })]);
+        show(K[0], K[1] + '!', cfg.move(set.sel) + ' while you ' + pick(MOVES) + '.', [TT.button('Done! Move Ahead 1', { kind: 'primary big', onclick: function () { thenMove(t, 1); } })]);
       } else if (k === 'boost') {
-        show(K[0], 'Times Two!', name(t) + ' rolled a ' + lastRoll + '. ' + lastRoll + ' × 2 = ' + lastRoll * 2 + ', so zoom ahead ' + lastRoll + ' more.', [TT.button('Blast Off', { kind: 'primary big', onclick: function () { thenMove(t, lastRoll); } })]);
+        show(K[0], K[1] + '!', name(t) + ' rolled a ' + lastRoll + '. ' + cfg.boost(lastRoll) + ', so zoom ahead ' + lastRoll + ' more.', [TT.button('Blast Off', { kind: 'primary big', onclick: function () { thenMove(t, lastRoll); } })]);
       } else if (k === 'slip') {
         show(K[0], 'Banana Slip!', 'Whoops. ' + name(t) + ' slides back 2 spaces.', [TT.button('Slide Back', { kind: 'primary big', onclick: function () { thenMove(t, -2); } })]);
       } else if (k === 'again') {
@@ -227,7 +226,32 @@
 
     var ok = state && state.layout && state.layout.length === N && Array.isArray(state.pos) && state.pos.length === state.n && state.n >= 2 && state.n <= 4;
     if (ok) { if (state.pos.some(function (p) { return p >= N - 1; }) && !state.over) state.pos = state.pos.map(function (p) { return Math.min(p, N - 3); }); paint(); } else newGame(2);
-  }
+  }; }
+  TT.race = race;
+  TT.raceMoves = MOVES;
+
+  var tables = [];
+  for (var tb = 2; tb <= 12; tb++) tables.push([tb, '×' + tb, tb + ' times table']);
+  var trail = race({
+    key: 'trail', setKey: 'trail-set',
+    teams: [['Blue Team', '#2F6BFF', 'pawn-blue'], ['Orange Team', '#FF7A1A', 'pawn-orange'], ['Green Team', '#22D07A', 'pawn-green'], ['Purple Team', '#9B4DFF', 'pawn-purple']],
+    kinds: {
+      q: ['question', 'Fact Check', 'Solve it to move ahead 2'],
+      move: ['move', 'Skip Count', 'Count and move, then go ahead 1'],
+      boost: ['rocket', 'Times Two', 'Double your roll'],
+      slip: ['banana', 'Banana Slip', 'Slide back 2'],
+      again: ['dice', 'Roll Again', 'Take another turn'],
+      swap: ['swap', 'Switch Places', 'Trade spots with the leader']
+    },
+    picker: { label: 'Times Tables in Play', options: tables, def: [2, 3, 4, 5, 6, 7, 8, 9, 10] },
+    fact: function (sel) {
+      var a = pick(sel), b = 2 + Math.floor(Math.random() * 11), f = Math.random() < 0.5 ? [a, b] : [b, a];
+      return { text: f[0] + ' × ' + f[1], ans: a * b, key: Math.min(a, b) + 'x' + Math.max(a, b) };
+    },
+    move: function (sel) { var n = pick(sel); return 'Everyone count by ' + n + 's up to ' + n * 10; },
+    boost: function (r) { return r + ' × 2 = ' + r * 2; },
+    cheer: 'What a race. Great multiplying, everyone!'
+  });
 
   TT.games = (TT.games || []).concat([
     { id: 'trail-race', title: 'Multiplication Race', desc: 'A class board game. Teams roll, race around the track and solve multiplication facts to get ahead.', color: 'emerald', mount: trail, forget: ['trail'],
