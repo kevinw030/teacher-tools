@@ -53,7 +53,10 @@
   function start() {
     root = document.getElementById('join');
     if (!B.liveReady()) { paintEnter('Joining isn’t switched on for this site yet.'); return; }
-    if (me && me.code) { connect(); return; }
+    if (me && me.code) {
+      if (!me.auto && window.NameFilter && !NameFilter.ok(me.name)) { me.auto = true; me.name = funName(me.av); store('me', me); }
+      connect(); return;
+    }
     paintEnter();
   }
 
@@ -69,6 +72,13 @@
     var name = h('input', { id: 'nick', class: 'join-name-in', type: 'text', autocomplete: 'off', maxlength: 16, placeholder: 'Like Maya or Speedy Otter' });
     if (me && me.name && !me.auto) name.value = me.name;
     var err = h('p', { class: 'join-err', role: 'alert', text: msg || '' });
+    var nameTip = h('div', { class: 'join-name-tip', role: 'alert', hidden: true },
+      h('p', { class: 'join-name-tip-t', text: 'Let’s pick a different name!' }),
+      h('p', { text: 'Try your first name, or get a fun animal name instead.' }),
+      h('button', { type: 'button', class: 'btn small join-name-auto', onclick: function () { name.value = ''; nameTip.hidden = true; form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event('submit', { cancelable: true })); } }, 'Use an Animal Name'));
+    function badName() {
+      name.value = ''; nameTip.hidden = false; shake(nameTip); name.focus();
+    }
     var go = h('button', { type: 'submit', class: 'btn primary big join-go' }, h('span', { text: 'Join' }), h('span', { html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>' }));
     code.addEventListener('input', function () {
       var c = B.cleanCode(code.value);
@@ -82,6 +92,13 @@
       var c = B.cleanCode(code.value);
       if (c.length !== 6) { err.textContent = 'The code has 6 letters and numbers. Look at your teacher’s screen.'; code.focus(); shake(form); return; }
       var n = name.value.replace(/\s+/g, ' ').trim().slice(0, 16);
+      // Names have to be kid-friendly. A name that doesn't pass is never shown or repeated back.
+      if (n && window.NameFilter) {
+        var ck = NameFilter.check(n);
+        if (!ck.ok) { badName(); return; }
+        n = ck.name;
+      }
+      nameTip.hidden = true;
       var av = window.Lobby ? Lobby.pick() : 0;
       me = { code: c, id: B.randomId(), name: '', auto: !n, av: av, at: Date.now(), adj: ADJ[Math.floor(Math.random() * ADJ.length)] };
       me.name = n || funName(av);
@@ -93,7 +110,7 @@
       h('label', { for: 'code', class: 'join-lab', text: 'Class Code' }), code,
       h('p', { id: 'codeHelp', class: 'join-help', text: 'No account or password needed.' }),
       h('label', { for: 'nick', class: 'join-lab' }, 'Your First Name or a Nickname ', h('span', { class: 'join-opt', text: '(optional)' })), name,
-      err, go,
+      err, nameTip, go,
       h('p', { class: 'join-privacy', text: 'Nothing you type here is saved. Your name only shows on your teacher’s screen during the game.' }));
     root.append(h('div', { class: 'join-stage' }, mas ? h('div', { class: 'join-mascot', 'aria-hidden': 'true' }, mas) : null, form));
     setTimeout(function () { (preset.length === 6 ? name : code).focus(); }, 60);

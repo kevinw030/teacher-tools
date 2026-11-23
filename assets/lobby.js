@@ -60,10 +60,18 @@
   // Only the animals of players who are here (what the students' screens get).
   L.seated = function (map, here) { var out = {}; for (var k in map) if (here[k]) out[k] = map[k]; return out; };
 
+  // Every name shown on a screen is checked here too (assets/name-filter.js), so a name that slipped past
+  // a student's own page still never shows up. It becomes a friendly animal name instead.
+  L.safeName = function (name, av) {
+    var fallback = 'Friendly ' + L.avatar(av).n;
+    return window.NameFilter ? NameFilter.safe(name, fallback) : (String(name || '').slice(0, 16) || fallback);
+  };
+
   // One player: a round colored badge with their animal, and their name under it.
   L.player = function (p, opts) {
     opts = opts || {};
     var a = L.avatar(p.av), tag = opts.onTap ? 'button' : 'div';
+    p = Object.assign({}, p, { name: L.safeName(p.name, p.av) });
     var el = h(tag, { class: 'lb-p' + (opts.me ? ' me' : '') + (opts.small ? ' small' : ''), 'data-id': p.id, style: '--ac:' + a.c,
       'aria-label': (p.name || 'Player') + (opts.me ? ' (you)' : '') + (opts.onTap ? '. Tap to remove' : '') });
     if (tag === 'button') { el.type = 'button'; el.addEventListener('click', function () { opts.onTap(p, el); }); }

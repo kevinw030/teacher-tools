@@ -245,6 +245,7 @@
         onPeople: function (list) {
           people = list.filter(function (p) {
             if (p.host) return false;
+            p.name = Lobby.safeName(p.name, game && game.avs && game.avs[p.id] != null ? game.avs[p.id] : p.av);
             if (kickedId(p.id)) { conn.send('kick', { id: p.id, g: game.g }); return false; }
             return true;
           });
@@ -413,7 +414,8 @@
     }
     function onClaim(m) {
       if (!game || !m || m.g !== game.g || m.round !== game.round || typeof m.id !== 'string' || kickedId(m.id)) return;
-      var name = String(m.name || 'A player').slice(0, 20);
+      var who = people.filter(function (p) { return p.id === m.id; })[0];
+      var name = who ? who.name : Lobby.safeName(m.name, m.av);
       var cells = B.makeCard(game.items.length, game.size, game.free, m.id + ':' + game.g + ':' + game.round);
       var marks = cells.map(function (_, p) { return Array.isArray(m.marks) && m.marks.indexOf(p) >= 0; });
       var r = check(cells, marks), ok = !!r.line;

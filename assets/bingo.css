@@ -329,3 +329,11 @@ button.bc-cell:focus-visible { outline: 4px solid var(--focus); outline-offset: 
   .bc *, .bgo *, .join-main *, .bgo-win, .bgo-win *, .bgo-toast, .join-card { animation: none !important; transition: none !important; }
   .bc-cell.on .bc-dab { transform: none; }
 }
+
+/* A name that didn't pass the kid-friendly check (assets/name-filter.js) */
+.join-name-tip { margin: var(--s2) 0 0; padding: var(--s3) var(--s4); border-radius: 18px; text-align: left;
+  background: color-mix(in srgb, var(--amber) 16%, var(--surface)); border: 1px solid color-mix(in srgb, var(--amber) 40%, var(--line)); }
+.join-name-tip[hidden] { display: none; }
+.join-name-tip p { margin: 0 0 var(--s2); }
+.join-name-tip .join-name-tip-t { font: 900 18px var(--display); margin-bottom: 4px; }
+.join-name-tip.shake { animation: bc-shake .45s ease; }
