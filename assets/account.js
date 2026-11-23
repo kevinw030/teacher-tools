@@ -222,7 +222,8 @@
     return sb.auth.verifyOtp({ email: email, token: code, type: 'email' });
   };
   TT.account.google = function () {
-    return sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: base + '#account' } });
+    try { sessionStorage.setItem('tt-after-google', '1'); } catch (e) {}
+    return sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: base } });
   };
   TT.account.signOut = function () {
     function done() {
@@ -261,6 +262,7 @@
       sb.auth.getSession().then(function (r) {
         if (/[?&](code|reset)=/.test(location.search)) history.replaceState(null, '', base + (resetting() ? '#account' : location.hash));
         if (resetting()) window.dispatchEvent(new HashChangeEvent('hashchange'));
+        try { if (sessionStorage.getItem('tt-after-google')) { sessionStorage.removeItem('tt-after-google'); if (r.data && r.data.session) location.hash = '#account'; } } catch (e) {}
         setUser(r.data && r.data.session ? r.data.session.user : null);
       });
       sb.auth.onAuthStateChange(function (event, session) {
