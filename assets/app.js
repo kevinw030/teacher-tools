@@ -8,10 +8,9 @@
   function paintDate() {
     var now = TT.clock(), hr = now.hour;
     $('homeDate').textContent = now.text;
-    var name = TT.settings.name || (TT.account && TT.account.firstName ? TT.account.firstName() : '');
-    var who = name ? ', ' + name : '';
+    // No name in the greeting: the home page is often projected for students (Kevin, 2026-11-23).
     // Late at night the window shows a night sky, so the greeting matches it.
-    $('greeting').textContent = hr < 5 ? 'Up Late' + who + '?' : (hr < 12 ? 'Good Morning' : hr < 17 ? 'Good Afternoon' : 'Good Evening') + who + '!';
+    $('greeting').textContent = hr < 5 ? 'Up Late?' : (hr < 12 ? 'Good Morning' : hr < 17 ? 'Good Afternoon' : 'Good Evening') + '!';
     // The window shows the teacher's own time of day, and the sill shows the season.
     var season = TT.season ? TT.season() : null, key = TT.dayPhase(hr) + (hr < 12 ? 'a' : 'p') + (season ? season.id : '');
     if (key !== shownScene) { shownScene = key; $('homeWindow').innerHTML = TT.homeWindow(hr, season); }

@@ -14,9 +14,6 @@
       paint();
       return wrap;
     }
-    var nameInput = h('input', { type: 'text', id: 'setName', maxlength: 30, placeholder: 'Like Mr. Watts', 'aria-label': 'Your name' });
-    nameInput.value = s.name || '';
-    nameInput.addEventListener('input', function () { s.name = nameInput.value.trim(); TT.saveSettings(); });
     var classInput = h('input', { type: 'text', id: 'setClass', maxlength: 30, placeholder: 'Like Room 12 or 4th Grade Stars', 'aria-label': 'What you call your class' });
     classInput.value = s.className || '';
     classInput.addEventListener('input', function () { s.className = classInput.value.trim(); TT.saveSettings(); });
@@ -45,7 +42,6 @@
       : null;
     el.append(h('div', { class: 'settings' },
       acct,
-      row('Your Name', 'Shown in the greeting on the home page.', nameInput),
       row('Class Name', 'Shown on the Morning Meeting screen, like “Good morning, Room 12!”', classInput),
       row('Time Zone', 'Sets the greeting and the view out of the classroom window on the home page.', zonePick()),
       row('Theme', 'Light, dark, or match this computer.', seg([['auto', 'Match Computer'], ['light', 'Light'], ['dark', 'Dark']], 'theme', TT.applyTheme)),
