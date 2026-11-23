@@ -22,7 +22,7 @@
     box.classList.toggle('secret', !q);
     if (!TT.wyr || !TT.wyr.count()) { box.textContent = 'Add questions to get started.'; label.textContent = 'Open'; return; }
     if (!q) {
-      box.append(h('span', { class: 'q-mark', 'aria-hidden': 'true', text: '?' }), 'Today’s question is still a secret. Spin the wheel to find out!');
+      box.append(TT.mascot ? h('span', { class: 'q-mascot' }, TT.mascot({ mood: 'wave' })) : h('span', { class: 'q-mark', 'aria-hidden': 'true', text: '?' }), 'Today’s question is still a secret. Spin the wheel to find out!');
       label.textContent = 'Spin the Wheel';
       go.onclick = function () { TT.wyr.autoSpin = true; };
       return;

@@ -69,7 +69,7 @@
     // The teacher picks the grade before anyone goes in, so every puzzle fits the class.
     function askGrade(r0) {
       var last = TT.grade ? TT.grade() : 0;
-      card([h('span', { class: 'er-eyebrow', text: 'Escape Room' }), h('h2', { text: r0.title }),
+      card([h('span', { class: 'er-mascot' }, TT.mascot({ mood: 'point' })), h('span', { class: 'er-eyebrow', text: 'Escape Room' }), h('h2', { text: r0.title }),
         h('p', { class: 'er-how', text: 'Teacher, which grade is playing? Every puzzle in the room will match that grade.' }),
         h('div', { class: 'er-grades', role: 'group', 'aria-label': 'Grade level' }, [1, 2, 3, 4, 5].map(function (n) {
           return h('button', { type: 'button', class: 'er-grade' + (n === last ? ' last' : ''), 'aria-label': GRADES[n], onclick: function () { if (TT.grade) TT.grade(n); begin(r0, n); } },
@@ -175,7 +175,7 @@
       setTimeout(function () {
         if (!room) return;
         if (TT.celebrate) TT.celebrate(stage, ['🗝️', '⭐', '🎉', '✨']);
-        card([h('span', { class: 'er-eyebrow', text: room.title + (grade ? ' · ' + GRADES[grade] : '') }), h('h2', { text: 'You Escaped!' }), h('p', { text: room.win }),
+        card([h('span', { class: 'er-mascot' }, TT.mascot({ mood: 'cheer' })), h('span', { class: 'er-eyebrow', text: room.title + (grade ? ' · ' + GRADES[grade] : '') }), h('h2', { text: 'You Escaped!' }), h('p', { text: room.win }),
           h('div', { class: 'er-stats' },
             h('span', null, h('b', { text: fmt(secs) }), record ? 'New Best Time' : 'Your Time'),
             h('span', null, h('b', { text: String(hintsUsed) }), hintsUsed === 1 ? 'Hint Used' : 'Hints Used'),

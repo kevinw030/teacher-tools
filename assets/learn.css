@@ -196,3 +196,36 @@
 .feature-q .q-mark { flex: none; display: grid; place-items: center; width: 1.9em; height: 1.9em; border-radius: 32%; background: var(--coral); color: #fff; font-weight: 900; rotate: -8deg; animation: q-bob 2.4s ease-in-out infinite; }
 @keyframes q-bob { 50% { translate: 0 -4px; rotate: 6deg; } }
 @media (prefers-reduced-motion: reduce) { .feature-q .q-mark { animation: none; } }
+
+/* The mascot (tools/mascot.js). Size it by setting a width on .mascot or its parent. */
+.mascot { position: relative; display: block; width: 100%; aspect-ratio: 420 / 576; pointer-events: none; user-select: none; }
+.mascot-shadow { position: absolute; left: 22%; right: 22%; bottom: 0; height: 7%; border-radius: 50%; background: rgba(27,23,64,.2); animation: mas-shadow 2.6s ease-in-out infinite; }
+.mascot-body { position: absolute; inset: 0; transform-origin: 50% 96%; animation: mas-bob 2.6s ease-in-out infinite; }
+.mascot-body.pop .mascot-pose { animation: mas-pop .38s cubic-bezier(.3, 1.6, .5, 1); }
+.mascot-pose { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transform-origin: 50% 96%; }
+.mascot[data-pose="stand"] .m-stand, .mascot[data-pose="wave"] .m-wave, .mascot[data-pose="point"] .m-point, .mascot[data-pose="cheer"] .m-cheer, .mascot[data-pose="think"] .m-think { opacity: 1; }
+@keyframes mas-pop { 0% { transform: scale(1.08, .9); } 55% { transform: scale(.96, 1.05); } 100% { transform: scale(1); } }
+@keyframes mas-bob { 0%, 100% { transform: translateY(0) scale(1, 1); } 50% { transform: translateY(-3.5%) scale(.985, 1.02); } }
+@keyframes mas-shadow { 0%, 100% { transform: scaleX(1); opacity: 1; } 50% { transform: scaleX(.84); opacity: .7; } }
+.mascot[data-mood="wave"] .mascot-body { animation: mas-wave .55s ease-in-out infinite; }
+@keyframes mas-wave { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(5deg) translateY(-2%); } }
+.mascot[data-mood="point"] .mascot-body { animation: mas-point .7s ease-in-out infinite; }
+@keyframes mas-point { 0%, 100% { transform: translateX(0) rotate(0); } 50% { transform: translateX(4%) rotate(4deg); } }
+.mascot[data-mood="think"] .mascot-body { animation: mas-think 1.8s ease-in-out infinite; }
+@keyframes mas-think { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg) translateY(-1.5%); } }
+.mascot[data-mood^="cheer"] .mascot-body { animation: mas-hop .5s cubic-bezier(.3, 0, .4, 1) infinite; }
+.mascot[data-mood^="cheer"] .mascot-shadow, .mascot[data-mood="party"] .mascot-shadow { animation: mas-shadow-hop .5s ease-in-out infinite; }
+@keyframes mas-hop { 0%, 100% { transform: translateY(0) scale(1.06, .92); } 45% { transform: translateY(-16%) scale(.96, 1.06); } }
+@keyframes mas-shadow-hop { 0%, 100% { transform: scaleX(1); opacity: 1; } 45% { transform: scaleX(.6); opacity: .5; } }
+.mascot[data-mood="cheer-left"] .mascot-body { animation-name: mas-hop-l; } .mascot[data-mood="cheer-right"] .mascot-body { animation-name: mas-hop-r; }
+@keyframes mas-hop-l { 0%, 100% { transform: translate(0, 0) rotate(0) scale(1.06, .92); } 45% { transform: translate(-12%, -16%) rotate(-10deg) scale(.96, 1.06); } }
+@keyframes mas-hop-r { 0%, 100% { transform: translate(0, 0) rotate(0) scale(1.06, .92); } 45% { transform: translate(12%, -16%) rotate(10deg) scale(.96, 1.06); } }
+.mascot[data-mood="party"] .mascot-body { transform-origin: 50% 55%; animation: mas-party .9s cubic-bezier(.4, 0, .3, 1.2) infinite; }
+@keyframes mas-party { 0% { transform: translateY(0) rotate(0); } 40% { transform: translateY(-18%) rotate(180deg) scale(1.05); } 80%, 100% { transform: translateY(0) rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .mascot-body, .mascot-shadow, .mascot-pose { animation: none !important; } }
+/* where he lives */
+.wyr-buddy .mascot { width: 100%; }
+.wyr-buddy:hover .mascot-body { animation-duration: 1.2s; }
+.feature-q .q-mascot { flex: none; width: clamp(54px, 5.5vw, 78px); margin: -10px 0 -6px; }
+.er-card-panel .er-mascot { width: clamp(48px, 7.5%, 84px); margin: -8px 0 -8px; flex: none; }
+.er-card-panel.grades, .er-card-panel.win { position: relative; }
