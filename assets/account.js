@@ -471,7 +471,7 @@
         var on = cur.preset === p[0];
         return h('button', { type: 'button', role: 'radio', 'aria-checked': on ? 'true' : 'false', 'aria-label': p[0], title: p[0].charAt(0).toUpperCase() + p[0].slice(1),
           class: 'avatar-opt' + (on ? ' on' : ''), style: 'background:linear-gradient(135deg,' + p[2] + ',' + p[3] + ')',
-          onclick: function () { avatarMsg = ''; TT.account.setAvatar({ preset: p[0] }); } }, p[1]);
+          onclick: function () { avatarMsg = ''; TT.account.setAvatar({ preset: p[0] }); } }, avatarImg(p));
       }));
       var g = TT.account.googlePhoto();
       return h('div', { class: 'avatar-picker' },
@@ -629,6 +629,8 @@
     ['cat', '🐱', '#FFD1A8', '#FF8A5B'], ['dino', '🦖', '#A6F0C6', '#2FD199'], ['bee', '🐝', '#FFF0A0', '#FFC043'], ['planet', '🪐', '#C9B8FF', '#5B4BCB']
   ];
   TT.account.AVATARS = AVATARS;
+  // Kevin's sticker art, one picture per icon (assets/avatars/<id>.png).
+  function avatarImg(p) { return h('img', { class: 'avatar-art', src: 'assets/avatars/' + p[0] + '.png', alt: '', draggable: 'false' }); }
   TT.account.avatar = function () { return TT.load('avatar', null); };
   TT.account.setAvatar = function (a) { if (a) TT.save('avatar', a); else { try { localStorage.removeItem('tt:avatar'); } catch (e) {} changed('tt:avatar'); } emit(); };
   TT.account.googlePhoto = function () { return (user && user.user_metadata && (user.user_metadata.avatar_url || user.user_metadata.picture)) || ''; };
@@ -640,7 +642,7 @@
     var src = a && (a.img || (a.google && TT.account.googlePhoto()));
     if (src) { el.style.backgroundImage = 'url("' + src.replace(/"/g, '%22') + '")'; el.classList.add('has-img'); return el; }
     var p = a && a.preset && AVATARS.filter(function (x) { return x[0] === a.preset; })[0];
-    if (p) { el.style.background = 'linear-gradient(135deg,' + p[2] + ',' + p[3] + ')'; el.textContent = p[1]; el.classList.add('has-emoji'); return el; }
+    if (p) { el.style.background = 'linear-gradient(135deg,' + p[2] + ',' + p[3] + ')'; el.append(avatarImg(p)); el.classList.add('has-emoji'); return el; }
     el.textContent = name.charAt(0).toUpperCase();
     return el;
   }
