@@ -65,7 +65,7 @@ body.pm-free .mob-item[href="#seating"]::after, body.pm-free .mob-item[href="#pr
 .pm-pricecol { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 20px; background: var(--surface-2); border: 1px solid var(--line); }
 .pm-bill { align-self: stretch; display: flex; }
 .pm-bill .seg { flex: 1; white-space: nowrap; font-size: 13.5px; padding-left: 8px; padding-right: 8px; }
-.pm-price { display: flex; flex-direction: column; gap: 6px; }
+.pm-price, .pm-price-in { display: flex; flex-direction: column; gap: 6px; }
 .pm-early { align-self: flex-start; font-size: 12px; font-weight: 800; color: #3B2400; background: linear-gradient(135deg, #FFD15C, #FFAB3D); padding: 5px 10px; border-radius: 999px; }
 .pm-amount { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
 .pm-amount b { font-family: var(--display); font-size: 46px; letter-spacing: -.03em; line-height: 1; }

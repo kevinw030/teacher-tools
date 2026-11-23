@@ -17,6 +17,15 @@
     plan: ['ED Sidekick Premium', 'Every escape room, Seating Chart, Prompts and room for every class.']
   };
 
+  // Used only if an older copy of account.js is still in the browser's cache.
+  var FALLBACK_FEATURES = [['10 saved board screens'], ['Unlimited class lists'], ['All 4 escape rooms'], ['Edit the questions in any room'],
+    ['Seating Chart'], ['Prompts'], ['Unlimited trivia questions of your own'], ['The last 50 exit tickets']];
+  function fallbackPrices() {
+    var C = window.TT_ACCOUNT_CONFIG || {}, mo = parseFloat(String(C.priceMonthly || '3.99').replace(/[^0-9.]/g, '')), yr = parseFloat(String(C.priceYearly || '29').replace(/[^0-9.]/g, ''));
+    var until = new Date((C.earlyUntil || '2027-01-01') + 'T00:00:00');
+    return { mo: mo, yr: yr, off: C.earlyDiscount || 0.25, earlyOpen: new Date() < until, save: Math.round((1 - yr / (mo * 12)) * 100),
+      untilText: new Date(until.getTime() - 86400000).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }) };
+  }
   function has() { return TT.limit ? !!TT.limit('premium') : true; }
 
   TT.premium = {
@@ -59,8 +68,8 @@
     if (layer) layer.remove();
     lastFocus = document.activeElement;
     var copy = COPY[feature] || COPY.plan;
-    var pr = TT.account && TT.account.prices ? TT.account.prices() : { mo: 3.99, yr: 29, off: 0.25, earlyOpen: false, save: 0 };
-    var money = TT.money || function (n) { return '$' + n; };
+    var pr = TT.account && TT.account.prices ? TT.account.prices() : fallbackPrices();
+    var money = TT.money || function (n) { return '$' + (Math.round(n * 100) / 100).toFixed(n % 1 ? 2 : 0); };
     var signedIn = TT.account && TT.account.signedIn && TT.account.signedIn();
 
     var priceBox = h('div', { class: 'pm-price' });
@@ -68,10 +77,11 @@
     function paintPrice() {
       var yearly = billing === 'year', full = yearly ? pr.yr : pr.mo, now = pr.earlyOpen ? full * (1 - pr.off) : full;
       priceBox.textContent = '';
-      priceBox.append(
+      // Built with TT.h so a missing piece is skipped (a plain append would print "null").
+      priceBox.append(h('div', { class: 'pm-price-in' },
         pr.earlyOpen ? h('span', { class: 'pm-early', text: 'Early Access · ' + Math.round(pr.off * 100) + '% Off' }) : null,
         h('div', { class: 'pm-amount' }, pr.earlyOpen ? h('s', { text: money(full) }) : null, h('b', { text: money(now) }), h('span', { text: yearly ? ' / year' : ' / month' })),
-        h('small', { text: (pr.earlyOpen ? 'Early price for members who join by ' + pr.untilText + '. ' : '') + (yearly ? 'Billed once a year. Cancel anytime.' : 'Billed monthly. Cancel anytime.') }));
+        h('small', { text: (pr.earlyOpen ? 'Early price for members who join by ' + pr.untilText + '. ' : '') + (yearly ? 'Billed once a year. Cancel anytime.' : 'Billed monthly. Cancel anytime.') })));
       toggle.textContent = '';
       [['month', 'Monthly'], ['year', 'Yearly' + (pr.save > 0 ? ' · Save ' + pr.save + '%' : '')]].forEach(function (o) {
         toggle.append(h('button', { type: 'button', class: 'seg' + (billing === o[0] ? ' on' : ''), 'aria-pressed': billing === o[0] ? 'true' : 'false',
@@ -80,7 +90,7 @@
     }
     paintPrice();
 
-    var feats = (TT.PLAN_FEATURES && TT.PLAN_FEATURES.premium) || [];
+    var feats = (TT.PLAN_FEATURES && TT.PLAN_FEATURES.premium && TT.PLAN_FEATURES.premium.length) ? TT.PLAN_FEATURES.premium : FALLBACK_FEATURES;
     var list = h('ul', { class: 'pm-list' }, feats.map(function (t, i) {
       return h('li', { style: '--i:' + i }, h('span', { class: 'tick', 'aria-hidden': 'true', text: '✓' }), h('span', null, t[0], t[1] ? h('small', { text: t[1] }) : null));
     }));
