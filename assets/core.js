@@ -318,7 +318,7 @@
       var max = TT.limit ? TT.limit('classes') : Infinity;
       if (isNew && TT.roster.lists().length >= max) {
         paintSelect(); note.textContent = ''; note.classList.add('warn');
-        note.append(TT.upsell('The Free plan saves ' + max + ' class lists. Edit one of them, or go Premium for as many as you like.'));
+        note.append(TT.upsell('The Free plan saves ' + max + ' class lists. Edit one of them, or get Plus for as many as you like.'));
         return;
       }
       creating = isNew;

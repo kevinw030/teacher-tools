@@ -26,7 +26,7 @@ body.pm-free a.tool[href="/seating"]::after, body.pm-free a.tool[href="/prompts"
 body.pm-free .mob-item[href="/seating"]::after, body.pm-free .mob-item[href="/prompts"]::after,
 body.pm-owner .nav-pop a[href="/seating"]::after, body.pm-owner .nav-pop a[href="/prompts"]::after,
 body.pm-owner a.tool[href="/seating"]::after, body.pm-owner a.tool[href="/prompts"]::after {
-  content: "Premium"; font-family: var(--body); font-size: 11px; font-weight: 800; line-height: 1; color: #fff; padding: 4px 8px; border-radius: 999px; background: var(--pm-grad); white-space: nowrap;
+  content: "Plus"; font-family: var(--body); font-size: 11px; font-weight: 800; line-height: 1; color: #fff; padding: 4px 8px; border-radius: 999px; background: var(--pm-grad); white-space: nowrap;
 }
 body.pm-free a.tool[href="/seating"]::after, body.pm-free a.tool[href="/prompts"]::after, body.pm-owner a.tool[href="/seating"]::after, body.pm-owner a.tool[href="/prompts"]::after { position: absolute; top: 16px; right: 16px; font-size: 12px; padding: 5px 10px; }
 body.pm-free .mob-item[href="/seating"], body.pm-free .mob-item[href="/prompts"] { position: relative; }
@@ -137,6 +137,6 @@ body.pm-free .mob-item[href="/seating"]::after, body.pm-free .mob-item[href="/pr
 
 /* Trivia Showdown card on the Games page */
 body.pm-free a.tool[href="/trivia"]::after, body.pm-owner a.tool[href="/trivia"]::after {
-  content: "Premium"; position: absolute; top: 16px; right: 16px; font-family: var(--body); font-size: 12px; font-weight: 800; line-height: 1; color: #fff; padding: 5px 10px; border-radius: 999px; background: var(--pm-grad); white-space: nowrap;
+  content: "Plus"; position: absolute; top: 16px; right: 16px; font-family: var(--body); font-size: 12px; font-weight: 800; line-height: 1; color: #fff; padding: 5px 10px; border-radius: 999px; background: var(--pm-grad); white-space: nowrap;
 }
 body.pm-free a.tool[href="/trivia"] .tool-icon { filter: saturate(.6); }

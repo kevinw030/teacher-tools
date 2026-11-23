@@ -5,7 +5,7 @@
 (function () {
   var TT = window.TT, h = TT.h;
   var RANGES = [[1, 'Today'], [7, '7 Days'], [30, '30 Days'], [90, '90 Days'], [3650, 'All Time']];
-  var PLAN_NAME = { free: 'Free', premium: 'Premium', owner: 'Owner' };
+  var PLAN_NAME = { free: 'Free', premium: 'Plus', owner: 'Owner' };
   var PLAN_COLOR = { free: 'var(--cobalt)', premium: 'var(--coral)', owner: 'var(--emerald)' };
   var ROOMS = { library: 'The Locked Library', space: 'Stuck on the Space Station', pirate: 'The Pirate’s Treasure', museum: 'Night at the Museum', 'my-room': 'Teachers’ Own Rooms' };
   var FEATURES = { rooms: 'Escape Rooms', roomedit: 'Edit Room Questions', seating: 'Seating Chart', prompts: 'Prompts', screens: 'More Board Screens', classes: 'More Class Lists', trivia: 'More Trivia', plan: 'Plan Button' };
@@ -183,7 +183,7 @@
 
     function previewCard() {
       var now = TT.account.viewAs() || 'owner';
-      var opts = [['owner', 'Owner', 'Everything, with Premium tags shown'], ['free', 'Free', 'Exactly what Free members see'], ['premium', 'Premium', 'Exactly what Premium members see']];
+      var opts = [['owner', 'Owner', 'Everything, with Plus tags shown'], ['free', 'Free', 'Exactly what Free members see'], ['premium', 'Plus', 'Exactly what Plus members see']];
       return card('View the Site As', 'Switch how the site looks for you. This only changes your view on this computer. Your account stays the owner account and none of your work is touched.',
         h('div', { class: 'od-view' }, opts.map(function (o) {
           return h('button', { type: 'button', class: 'od-view-btn' + (now === o[0] ? ' on' : ''), 'aria-pressed': now === o[0] ? 'true' : 'false',
@@ -203,7 +203,7 @@
         tile('Page Views', num(data.views), (data.visitors ? (data.views / data.visitors).toFixed(1) : '0') + ' pages per visitor', 'var(--violet)'),
         tile('Accounts', num(users.length), num(fresh) + ' new · ' + label, 'var(--ink)'),
         tile('Free Members', num(count.free), pct(count.free, users.length) + ' of accounts', PLAN_COLOR.free),
-        tile('Premium Members', num(count.premium), pct(count.premium, users.length) + ' of accounts', PLAN_COLOR.premium),
+        tile('Plus Members', num(count.premium), pct(count.premium, users.length) + ' of accounts', PLAN_COLOR.premium),
         tile('Income', money(paid), paid ? label : 'No payments yet', 'var(--emerald)'));
     }
 
@@ -278,7 +278,7 @@
       var f = {};
       actions('premium-popup').forEach(function (a) { var k = String(a.detail || 'plan').replace(/-/g, ''); f[k] = (f[k] || 0) + a.n; });
       var rows = Object.keys(f).map(function (k) { return { label: FEATURES[k] || titleCase(k), value: f[k] }; }).sort(function (a, b) { return b.value - a.value; });
-      return card('Premium Interest', 'How often someone clicked a locked Premium feature, by feature. These are the features people want most.', bars(rows, 'var(--coral)', 'clicks'));
+      return card('Plus Interest', 'How often someone clicked a locked Plus feature, by feature. These are the features people want most.', bars(rows, 'var(--coral)', 'clicks'));
     }
 
     function membersCard() {
@@ -293,7 +293,7 @@
       var firstJoin = users.length ? users[users.length - 1].joined : null;
       var keys = dayList(range, range > 90 ? firstJoin : null);
       return card('Members', 'Everyone with an account.', h('div', { class: 'od-stack' },
-        split([{ label: 'Free', value: count.free, color: PLAN_COLOR.free }, { label: 'Premium', value: count.premium, color: PLAN_COLOR.premium }, { label: 'Owner', value: count.owner, color: PLAN_COLOR.owner }]),
+        split([{ label: 'Free', value: count.free, color: PLAN_COLOR.free }, { label: 'Plus', value: count.premium, color: PLAN_COLOR.premium }, { label: 'Owner', value: count.owner, color: PLAN_COLOR.owner }]),
         h('div', { class: 'od-mini' },
           mini('Active in the Last 7 Days', num(act7)),
           mini('Active in the Last 30 Days', num(act30)),
@@ -311,10 +311,10 @@
       var prem = users.filter(function (u) { return u.plan === 'premium'; }).sort(function (a, b) { return new Date(b.premium_since || 0) - new Date(a.premium_since || 0); });
       var first = (data.plan_changes || []).length ? data.plan_changes[0].at : null;
       var keys = dayList(range, range > 90 ? first : null);
-      return card('Premium Sign-Ups', 'People who moved up to Premium, and anyone who cancelled.', h('div', { class: 'od-stack' },
-        h('div', { class: 'od-mini' }, mini('Premium Now', num(prem.length)), mini('Joined Premium', num(joined)), mini('Cancelled', num(left))),
-        columns(series(keys, joins), PLAN_COLOR.premium, { labels: 8, empty: 'No Premium sign-ups in this range yet.' }),
-        prem.length ? h('h3', { text: 'Newest Premium Members' }) : null,
+      return card('Plus Sign-Ups', 'People who moved up to Plus, and anyone who cancelled.', h('div', { class: 'od-stack' },
+        h('div', { class: 'od-mini' }, mini('Plus Now', num(prem.length)), mini('Joined Plus', num(joined)), mini('Cancelled', num(left))),
+        columns(series(keys, joins), PLAN_COLOR.premium, { labels: 8, empty: 'No Plus sign-ups in this range yet.' }),
+        prem.length ? h('h3', { text: 'Newest Plus Members' }) : null,
         prem.length ? h('ul', { class: 'od-people' }, prem.slice(0, 6).map(function (u) {
           return h('li', null, h('span', { text: u.first_name || u.email }), h('span', { class: 'muted', text: u.premium_since ? 'Since ' + shortDate(u.premium_since) : 'Given by hand' }));
         })) : null));
@@ -323,18 +323,19 @@
     function incomeCard() {
       var pays = data.payments || [], C = (TT.account && TT.account.config) || {};
       var pr = TT.account.prices();
-      var early = function (n) { return '$' + (Math.floor(n * (1 - pr.off) * 100) / 100).toFixed(2); };
+      var early = function (n) { return '$' + pr.early(n).toFixed(2); };
+      var row = function (label, n) { return h('li', null, h('span', { text: label }), h('b', { text: '$' + n.toFixed(2) })); };
       var priceList = h('ul', { class: 'od-prices' },
-        h('li', null, h('span', { text: 'Premium Monthly' }), h('b', { text: '$' + pr.mo.toFixed(2) })),
-        h('li', null, h('span', { text: 'Premium Yearly' }), h('b', { text: '$' + pr.yr.toFixed(2) })),
-        pr.earlyOpen ? h('li', null, h('span', { text: 'Early Access Monthly (until ' + pr.untilText + ')' }), h('b', { text: early(pr.mo) })) : null,
-        pr.earlyOpen ? h('li', null, h('span', { text: 'Early Access Yearly (until ' + pr.untilText + ')' }), h('b', { text: early(pr.yr) })) : null);
+        row('Plus Monthly', pr.mo), row('Plus Yearly', pr.yr),
+        pr.earlyOpen ? h('li', null, h('span', { text: 'Plus Early Access Monthly (until ' + pr.untilText + ')' }), h('b', { text: early(pr.mo) })) : null,
+        pr.earlyOpen ? h('li', null, h('span', { text: 'Plus Early Access Yearly (until ' + pr.untilText + ')' }), h('b', { text: early(pr.yr) })) : null,
+        row('Premium Monthly' + (C.topOpen ? '' : ' (Coming Soon)'), pr.topMo), row('Premium Yearly' + (C.topOpen ? '' : ' (Coming Soon)'), pr.topYr));
       if (!pays.length) {
         var connected = !!(C.premiumMonthlyLink || C.premiumYearlyLink);
         return card('Income From Memberships', null, h('div', { class: 'od-stack' },
           h('div', { class: 'od-nopay' }, h('strong', { text: 'No Payments Yet' }),
             h('p', { text: connected ? 'Payments are set up, but nobody has paid yet. The first one will show here right away.' :
-              'Stripe isn’t connected yet, so plan buttons say “Coming Soon” and nobody can pay. Anyone on Premium right now was given it by hand. Once Stripe is set up, this shows income this month, in the chosen range and all time, monthly vs yearly members, and refunds.' })),
+              'Stripe isn’t connected yet, so plan buttons say “Coming Soon” and nobody can pay. Anyone on Plus right now was given it by hand. Once Stripe is set up, this shows income this month, in the chosen range and all time, monthly vs yearly members, and refunds.' })),
           h('h3', { text: 'Your Prices' }), priceList), 'od-wide');
       }
       var since = new Date(data.since), monthKey = dayKey(Date.now()).slice(0, 7);
@@ -368,7 +369,7 @@
       var box = h('div', { class: 'od-users' });
       var search = h('input', { type: 'search', class: 'od-search', placeholder: 'Search by name or email', 'aria-label': 'Search accounts', value: userQuery });
       var plan = h('select', { class: 'od-select', 'aria-label': 'Plan' },
-        [['all', 'All Plans'], ['free', 'Free'], ['premium', 'Premium'], ['owner', 'Owner']].map(function (o) { return h('option', { value: o[0], selected: userPlan === o[0] }, o[1]); }));
+        [['all', 'All Plans'], ['free', 'Free'], ['premium', 'Plus'], ['owner', 'Owner']].map(function (o) { return h('option', { value: o[0], selected: userPlan === o[0] }, o[1]); }));
       var sort = h('select', { class: 'od-select', 'aria-label': 'Sort' },
         [['new', 'Newest First'], ['old', 'Oldest First'], ['active', 'Last Active'], ['visits', 'Most Visits'], ['name', 'Name A to Z']].map(function (o) { return h('option', { value: o[0], selected: userSort === o[0] }, o[1]); }));
       var list = h('div', { class: 'od-user-list' }), countLine = h('p', { class: 'muted od-count' });
@@ -405,7 +406,7 @@
               fact('Joined', shortDate(u.joined)), fact('Last Active', ago(lastActive(u))),
               fact('Last Signed In', ago(u.last_sign_in)), fact('Last Saved Work', ago(u.last_saved)),
               fact('Pages Opened (Signed In)', num(u.visits)), fact('Devices', u.devices ? u.devices.split(',').map(titleCase).join(', ') : '–'),
-              fact('Premium Since', u.plan === 'premium' ? (u.premium_since ? shortDate(u.premium_since) : 'Given by hand') : '–'),
+              fact('Plus Since', u.plan === 'premium' ? (u.premium_since ? shortDate(u.premium_since) : 'Given by hand') : '–'),
               fact('Paid So Far', money(u.paid_cents))));
           list.append(item);
         });
@@ -420,7 +421,7 @@
     }
     function fact(k, v) { return h('div', null, h('dt', { text: k }), h('dd', { text: v })); }
     function csv(rows) {
-      var head = ['First Name', 'Email', 'Plan', 'Signed Up With', 'Joined', 'Last Active', 'Last Signed In', 'Last Saved', 'Pages Opened', 'Premium Since', 'Paid'];
+      var head = ['First Name', 'Email', 'Plan', 'Signed Up With', 'Joined', 'Last Active', 'Last Signed In', 'Last Saved', 'Pages Opened', 'Plus Since', 'Paid'];
       var lines = [head].concat(rows.map(function (u) {
         return [u.first_name, u.email, PLAN_NAME[u.plan] || u.plan, u.provider, u.joined, lastActive(u), u.last_sign_in, u.last_saved, u.visits, u.premium_since, (u.paid_cents / 100).toFixed(2)];
       })).map(function (r) { return r.map(function (v) { v = v == null ? '' : String(v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; }).join(','); });
@@ -452,7 +453,7 @@
     var v = TT.account.viewAs();
     if (!v) return;
     document.body.append(h('div', { class: 'od-pill', role: 'status' },
-      h('span', { text: 'Previewing as ' + (v === 'free' ? 'Free' : 'Premium') }),
+      h('span', { text: 'Previewing as ' + (v === 'free' ? 'Free' : 'Plus') }),
       h('button', { type: 'button', onclick: function () { TT.account.setViewAs(''); } }, 'Back to Owner View')));
   }
   // The owner opens the dashboard from the account menu (hover or tap the profile icon), built in assets/account.js.

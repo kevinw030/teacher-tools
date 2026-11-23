@@ -44,6 +44,13 @@
       ['Trivia Showdown', 'Quiz-show game for 1 to 4 teams, with your own questions too'],
       ['Customize Your Home Page', 'Your own categories, with tiles in your order'],
       ['The Last ' + PLANS.premium.tickets + ' Exit Tickets']
+    ],
+    // The Premium plan (Coming Soon): shown on the pricing tab only.
+    top: [
+      ['Live Quiz Games', 'Students join on their own devices with a class code'],
+      ['Fun Game Modes', 'Races, team games and more, all with your questions'],
+      ['Your Own Question Sets', 'Type them in or paste them from a spreadsheet'],
+      ['Game Reports', 'See which questions your class missed']
     ]
   };
 
@@ -79,15 +86,20 @@
   TT.storeLimit = function (name) { return PLANS[realPlan()][name]; };
 
   // Prices from account-config.js, shared by the pricing tab and the Premium pop-up.
+  // mo/yr are Plus; topMo/topYr are the Premium plan. early() is a price with the Early Access discount, to the cent.
   TT.account.prices = function () {
-    var mo = parseFloat(String(CFG.priceMonthly).replace(/[^0-9.]/g, '')) || 0;
-    var yr = parseFloat(String(CFG.priceYearly).replace(/[^0-9.]/g, '')) || 0;
-    var off = CFG.earlyDiscount || 0.25;
+    function num(v, d) { return parseFloat(String(v == null ? d : v).replace(/[^0-9.]/g, '')) || 0; }
+    var mo = num(CFG.priceMonthly, '3.99'), yr = num(CFG.priceYearly, '35.99');
+    var topMo = num(CFG.topPriceMonthly, '7.99'), topYr = num(CFG.topPriceYearly, '71.99');
+    var off = CFG.earlyDiscount || 0.35;
     var until = new Date((CFG.earlyUntil || '2027-01-01') + 'T00:00:00');
-    return { mo: mo, yr: yr, off: off, earlyOpen: new Date() < until,
+    return { mo: mo, yr: yr, topMo: topMo, topYr: topYr, off: off, earlyOpen: new Date() < until,
+      early: function (n) { return Math.floor(n * (1 - off) * 100 + 1e-6) / 100; },
       untilText: new Date(until.getTime() - 86400000).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }),
       save: mo && yr ? Math.round((1 - yr / (mo * 12)) * 100) : 0 };
   };
+  // What members see for each plan. Inside the code and database, Plus is still called 'premium'.
+  TT.planName = function (p) { return p === 'owner' ? 'Owner' : p === 'premium' ? 'Plus' : p === 'top' ? 'Premium' : 'Free'; };
   // "Everything in Free, Plus:" with the word Plus in gold.
   TT.planLead = function (text, cls) {
     var parts = String(text).split(/(Plus)/);
@@ -98,7 +110,7 @@
 
   // A short "See Plans" note for places that hit a free-plan limit.
   TT.upsell = function (text) {
-    return h('p', { class: 'upsell' }, h('span', { text: text + ' ' }), h('a', { href: '/account', text: TT.account.signedIn() ? 'Go Premium' : 'See Plans',
+    return h('p', { class: 'upsell' }, h('span', { text: text + ' ' }), h('a', { href: '/account', text: TT.account.signedIn() ? 'Get Plus' : 'See Plans',
       onclick: function () { TT.account.wantPlans = true; if (TT.page() === 'account' && TT.account.openPlans) TT.account.openPlans(); } }));
   };
 
@@ -524,7 +536,7 @@
     }
     function accountCard() {
       var plan = TT.account.plan();
-      var label = plan === 'owner' ? 'Owner' : plan === 'premium' ? 'Premium' : 'Free';
+      var label = TT.planName(plan);
       var sync = null;
       if (CFG.classSync === 'choose') {
         var on = classSync();
@@ -550,12 +562,12 @@
             h('span', { class: 'plan-badge p-' + plan, text: label + ' Plan' }),
             plan === 'free' && !TT.account.paying() ? h('button', { type: 'button', class: 'linkish plan-see', onclick: function () { tab = 'plans'; paint(); } }, 'See Plans') : null,
             plan === 'premium' && CFG.manageLink ? h('a', { class: 'linkish plan-see', href: manageUrl(), target: '_blank', rel: 'noopener' }, 'Manage My Plan') : null)),
-        TT.account.paying() ? h('p', { class: 'sync-status s-syncing', role: 'status', text: 'Thank you! Your Premium plan is turning on. This only takes a few seconds.' }) : null,
-        TT.account.justPaid && plan !== 'free' ? h('p', { class: 'sync-status s-saved', role: 'status', text: 'Welcome to Premium! Everything is unlocked.' }) : null,
+        TT.account.paying() ? h('p', { class: 'sync-status s-syncing', role: 'status', text: 'Thank you! Your Plus plan is turning on. This only takes a few seconds.' }) : null,
+        TT.account.justPaid && plan !== 'free' ? h('p', { class: 'sync-status s-saved', role: 'status', text: 'Welcome to Plus! Everything is unlocked.' }) : null,
         picking ? avatarPicker() : null,
         realPlan() === 'owner' ? h('div', { class: 'acct-owner' },
           h('div', null, h('h3', { text: 'Owner Dashboard' }),
-            h('p', { class: 'muted', text: meta.viewAs ? 'You are previewing the site as ' + (meta.viewAs === 'free' ? 'Free' : 'Premium') + '. Your account is still the owner account.' : 'Traffic, members, income and the plan preview switch.' })),
+            h('p', { class: 'muted', text: meta.viewAs ? 'You are previewing the site as ' + TT.planName(meta.viewAs) + '. Your account is still the owner account.' : 'Traffic, members, income and the plan preview switch.' })),
           h('a', { class: 'btn primary small', href: '/owner' }, 'Open Dashboard')) : null,
         showSaved ? h('p', { class: 'sync-status s-saved', text: 'Your new password is saved.' }) : null,
         h('p', { class: 'sync-status s-' + status, text: STATUS[status] || '' }),
@@ -569,7 +581,7 @@
     var money = TT.money;
     function plansCard() {
       var plan = TT.account.plan(), prem = plan === 'premium' || plan === 'owner';
-      var pr = TT.account.prices(), mo = pr.mo, yr = pr.yr, off = pr.off, earlyOpen = pr.earlyOpen, untilText = pr.untilText, save = pr.save;
+      var pr = TT.account.prices(), mo = pr.mo, yr = pr.yr, pct = Math.round(pr.off * 100), earlyOpen = pr.earlyOpen, untilText = pr.untilText, save = pr.save;
       var yearly = billing === 'year';
 
       function startFree() { tab = 'account'; mode = 'signup'; msgText = ''; paint(); scrollToForm(); }
@@ -606,21 +618,27 @@
         !user ? cta('Start for Free', '', { onclick: startFree }) : cta(prem ? 'Included' : 'Your Plan', '', { disabled: true }),
         h('p', { class: 'plan-note', text: 'No card needed. A free account saves your boards and classes.' }),
         list('Get started with:', TT.PLAN_FEATURES.free)));
+      // Plus: during Early Access the early price shows, with the regular price crossed out.
+      var plusFull = yearly ? yr : mo;
       cols.push(h('div', { class: 'plan-col featured' },
-        h('div', { class: 'plan-top' }, h('h3', { text: 'Premium' }), h('span', { class: 'plan-tag', text: 'Recommended' })),
+        h('div', { class: 'plan-top' }, h('h3', { text: 'Plus' }), h('span', { class: 'plan-tag', text: 'Recommended' })),
         h('p', { class: 'plan-desc', text: 'Every escape room, Trivia Showdown, Seating Chart, Prompts and room for every class.' }),
-        priceBlock(yearly ? money(yr) : money(mo)),
-        paidCta(CFG.premiumMonthlyLink, CFG.premiumYearlyLink, 'Get Premium'),
+        priceBlock(money(earlyOpen ? pr.early(plusFull) : plusFull), earlyOpen ? money(plusFull) : ''),
+        earlyOpen ? h('p', { class: 'plan-early' }, h('span', { class: 'plan-tag early-tag', text: 'Early Access · ' + pct + '% Off' }),
+          h('small', { text: 'For members who join by ' + untilText + '.' })) : null,
+        earlyOpen ? paidCta(CFG.earlyMonthlyLink, CFG.earlyYearlyLink, 'Get Plus') : paidCta(CFG.plusMonthlyLink || CFG.premiumMonthlyLink, CFG.plusYearlyLink || CFG.premiumYearlyLink, 'Get Plus'),
         h('p', { class: 'plan-note', text: yearly ? 'Billed once a year. Cancel anytime.' : 'Billed monthly. Cancel anytime.' }),
         list('Everything in Free, Plus:', TT.PLAN_FEATURES.premium)));
-      if (earlyOpen) cols.push(h('div', { class: 'plan-col early' },
-        h('div', { class: 'plan-top' }, h('h3', { text: 'Early Access' }), h('span', { class: 'plan-tag early-tag', text: Math.round(off * 100) + '% Off' })),
-        h('p', { class: 'plan-desc', text: 'Premium for early members who join before ' + untilText + '.' }),
-        priceBlock(yearly ? money(yr * (1 - off)) : money(mo * (1 - off)), yearly ? money(yr) : money(mo)),
-        paidCta(CFG.earlyMonthlyLink, CFG.earlyYearlyLink, 'Get Early Access'),
-        h('p', { class: 'plan-note', text: 'Only until ' + untilText + '. Cancel anytime.' }),
-        list('Everything in Premium, Plus:', [
-          [Math.round(off * 100) + '% Off Premium', 'For members who join before ' + untilText]])));
+      // Premium: the top plan. Coming Soon until CFG.topOpen is turned on.
+      var topFull = yearly ? pr.topYr : pr.topMo, topEarly = CFG.topOpen && earlyOpen;
+      cols.push(h('div', { class: 'plan-col top' + (CFG.topOpen ? '' : ' soon') },
+        h('div', { class: 'plan-top' }, h('h3', { text: 'Premium' }), CFG.topOpen ? null : h('span', { class: 'plan-tag soon-tag', text: 'Coming Soon' })),
+        h('p', { class: 'plan-desc', text: 'Everything in Plus, with live quiz games your class plays on their own devices.' }),
+        priceBlock(money(topEarly ? pr.early(topFull) : topFull), topEarly ? money(topFull) : ''),
+        CFG.topOpen ? (plan === 'top' ? cta('Your Plan', '', { disabled: true }) : topEarly ? paidCta(CFG.topEarlyMonthlyLink, CFG.topEarlyYearlyLink, 'Get Premium') : paidCta(CFG.topMonthlyLink, CFG.topYearlyLink, 'Get Premium'))
+          : cta('Coming Soon', '', { disabled: true }),
+        h('p', { class: 'plan-note', text: CFG.topOpen ? (yearly ? 'Billed once a year. Cancel anytime.' : 'Billed monthly. Cancel anytime.') : 'Not open yet. Plus members will be able to move up when it launches.' }),
+        list('Everything in Plus, and:', TT.PLAN_FEATURES.top)));
 
       var toggle = h('div', { class: 'segmented bill-toggle', role: 'group', 'aria-label': 'Billing' },
         [['month', 'Monthly'], ['year', 'Yearly' + (save > 0 ? ' (Save ' + save + '%)' : '')]].map(function (o) {
@@ -628,7 +646,7 @@
         }));
       return h('section', { class: 'pricing' },
         h('div', { class: 'pricing-head' }, h('h2', { text: 'Start Free. Upgrade Anytime.' }),
-          h('p', { class: 'muted', text: 'Every board widget, Daily tool and almost every game is free. Premium opens every escape room, Trivia Showdown, Seating Chart and Prompts.' }), toggle),
+          h('p', { class: 'muted', text: 'Every board widget, Daily tool and almost every game is free. Plus opens every escape room, Trivia Showdown, Seating Chart and Prompts.' }), toggle),
         h('div', { class: 'pricing-grid cols-' + cols.length }, cols));
     }
 
@@ -739,7 +757,7 @@
   function goPlans() { TT.account.wantPlans = true; if (TT.page() === 'account' && TT.account.openPlans) TT.account.openPlans(); else TT.go('account'); }
   function buildMenu() {
     var plan = TT.account.plan();
-    var label = plan === 'owner' ? 'Owner' : plan === 'premium' ? 'Premium' : 'Free';
+    var label = TT.planName(plan);
     function item(icon, text, onclick, cls) {
       return h('button', { type: 'button', role: 'menuitem', class: 'acct-menu-item' + (cls ? ' ' + cls : ''), onclick: function () { closeMenu(); onclick(); } },
         h('span', { class: 'acct-menu-ico', 'aria-hidden': 'true', html: icon }), h('span', { text: text }));

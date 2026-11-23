@@ -9,25 +9,25 @@
   var FREE_ROOMS = { library: 1 };
 
   var COPY = {
-    rooms: ['Unlock Every Escape Room', 'The Space Station, Pirate Treasure and Museum rooms come with Premium. The Locked Library is always free.'],
+    rooms: ['Unlock Every Escape Room', 'The Space Station, Pirate Treasure and Museum rooms come with Plus. The Locked Library is always free.'],
     roomEdit: ['Make Any Room Your Own', 'Write your own question for any spot in a room, so an escape room can review this week’s lesson.'],
-    seating: ['Seating Chart Is a Premium Tool', 'Build your room, then drag students to their seats or shuffle them. Each class list keeps its own chart.'],
-    prompts: ['Prompts Is a Premium Tool', 'Writing prompts, discussion starters and This or That questions for your grade, each with a helper.'],
-    screens: ['Save More Board Screens', 'Free accounts save 2 board screens. Premium saves as many as you like, one for every part of your day.'],
-    classes: ['Add More Class Lists', 'Free accounts keep 2 class lists. Premium keeps as many as you teach.'],
-    trivia: ['Trivia Showdown Is a Premium Game', 'A quiz-show board with categories and points for 1 to 4 teams, picked by grade. Write your own trivia questions for it too.'],
-    bingo: ['Class Bingo Is a Premium Game', 'Bingo cards made from your vocabulary words or math facts. Play on the board, print a class set, or let students join on their own devices with a class code.'],
+    seating: ['Seating Chart Is a Plus Tool', 'Build your room, then drag students to their seats or shuffle them. Each class list keeps its own chart.'],
+    prompts: ['Prompts Is a Plus Tool', 'Writing prompts, discussion starters and This or That questions for your grade, each with a helper.'],
+    screens: ['Save More Board Screens', 'Free accounts save 2 board screens. Plus saves as many as you like, one for every part of your day.'],
+    classes: ['Add More Class Lists', 'Free accounts keep 2 class lists. Plus keeps as many as you teach.'],
+    trivia: ['Trivia Showdown Is a Plus Game', 'A quiz-show board with categories and points for 1 to 4 teams, picked by grade. Write your own trivia questions for it too.'],
+    bingo: ['Class Bingo Is a Plus Game', 'Bingo cards made from your vocabulary words or math facts. Play on the board, print a class set, or let students join on their own devices with a class code.'],
     dashboard: ['Make Your Home Page Your Own', 'Make your own categories, then drag your tools and games into the order you use them. Your layout is saved to your account.'],
-    plan: ['ED Sidekick Premium', 'Every escape room, Trivia Showdown, Seating Chart, Prompts and room for every class.']
+    plan: ['ED Sidekick Plus', 'Every escape room, Trivia Showdown, Seating Chart, Prompts and room for every class.']
   };
 
   // Used only if an older copy of account.js is still in the browser's cache.
   var FALLBACK_FEATURES = [['Unlimited Saved Board Screens'], ['Unlimited Class Lists'], ['All 4 Escape Rooms'], ['Edit the Questions in Any Room'],
     ['Seating Chart'], ['Prompts'], ['Trivia Showdown'], ['The Last 50 Exit Tickets'], ['Customize Your Home Page']];
   function fallbackPrices() {
-    var C = window.TT_ACCOUNT_CONFIG || {}, mo = parseFloat(String(C.priceMonthly || '3.99').replace(/[^0-9.]/g, '')), yr = parseFloat(String(C.priceYearly || '29').replace(/[^0-9.]/g, ''));
+    var C = window.TT_ACCOUNT_CONFIG || {}, mo = parseFloat(String(C.priceMonthly || '3.99').replace(/[^0-9.]/g, '')), yr = parseFloat(String(C.priceYearly || '35.99').replace(/[^0-9.]/g, ''));
     var until = new Date((C.earlyUntil || '2027-01-01') + 'T00:00:00');
-    return { mo: mo, yr: yr, off: C.earlyDiscount || 0.25, earlyOpen: new Date() < until, save: Math.round((1 - yr / (mo * 12)) * 100),
+    return { mo: mo, yr: yr, off: C.earlyDiscount || 0.35, earlyOpen: new Date() < until, save: Math.round((1 - yr / (mo * 12)) * 100),
       untilText: new Date(until.getTime() - 86400000).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }) };
   }
   function has() { return TT.limit ? !!TT.limit('premium') : true; }
@@ -37,10 +37,10 @@
     view: function (name) { return !LOCKED_VIEWS[name] || has(); },
     room: function (r) { return !r || r.mine || FREE_ROOMS[r.id] || has(); },
     // A small "Premium" tag with a lock, for cards and buttons.
-    badge: function (cls) { return h('span', { class: 'pm-badge ' + (cls || ''), html: TT.icon('lock') + '<span>Premium</span>' }); },
+    badge: function (cls) { return h('span', { class: 'pm-badge ' + (cls || ''), html: TT.icon('lock') + '<span>Plus</span>' }); },
     // The site owner sees which things are Premium (unlocked), so the plan can be checked at a glance.
     owner: function () { return !!(TT.account && TT.account.plan && TT.account.plan() === 'owner'); },
-    ownerBadge: function () { return h('span', { class: 'pm-badge pm-owner-badge', title: 'Premium (Included With Your Account)', html: TT.icon('unlock') + '<span>Premium</span>' }); },
+    ownerBadge: function () { return h('span', { class: 'pm-badge pm-owner-badge', title: 'Plus (Included With Your Account)', html: TT.icon('unlock') + '<span>Plus</span>' }); },
     // A button that does its job for Premium and opens the pop-up for everyone else.
     button: function (label, feature, fn, icon) {
       if (has()) return TT.button(label, { icon: icon, kind: 'small', onclick: fn });
@@ -102,7 +102,7 @@
     var list = h('ul', { class: 'pm-list' }, feats.map(function (t, i) {
       return h('li', { style: '--i:' + i }, h('span', { class: 'tick', 'aria-hidden': 'true', text: '✓' }), h('span', null, t[0], t[1] ? h('small', { text: t[1] }) : null));
     }));
-    var go = TT.button('Get Premium', { kind: 'primary big pm-go', onclick: function () {
+    var go = TT.button('Get Plus', { kind: 'primary big pm-go', onclick: function () {
       close(); TT.account.wantPlans = true;
       if (TT.page() === 'account' && TT.account.openPlans) TT.account.openPlans(); else TT.go('account');
     } });
@@ -112,7 +112,7 @@
       h('button', { type: 'button', class: 'pm-x', 'aria-label': 'Close', html: TT.icon('close'), onclick: close }),
       h('div', { class: 'pm-top' },
         h('span', { class: 'pm-icon', html: TT.icon('lock') }),
-        h('div', null, h('span', { class: 'pm-eyebrow', text: 'ED Sidekick Premium' }), h('h2', { id: 'pmTitle', text: copy[0] }))),
+        h('div', null, h('span', { class: 'pm-eyebrow', text: 'ED Sidekick Plus' }), h('h2', { id: 'pmTitle', text: copy[0] }))),
       h('p', { class: 'pm-text', text: copy[1] }),
       h('div', { class: 'pm-mid' }, h('div', { class: 'pm-pricecol' }, toggle, priceBox),
         h('div', { class: 'pm-feats' }, (TT.planLead ? TT.planLead('Everything in Free, Plus:', 'pm-lead') : h('p', { class: 'pm-lead', text: 'Everything in Free, Plus:' })), list)),
@@ -164,7 +164,7 @@
       gateCard = h('div', { class: 'pm-gate' },
         h('span', { class: 'pm-icon', html: TT.icon('lock') }),
         h('h2', { text: copy[0] }), h('p', { class: 'muted', text: copy[1] }),
-        h('div', { class: 'row center' }, TT.button('See What Premium Includes', { kind: 'primary big', onclick: function () { open(name); } }),
+        h('div', { class: 'row center' }, TT.button('See What Plus Includes', { kind: 'primary big', onclick: function () { open(name); } }),
           h('a', { class: 'btn big', href: name === 'trivia' ? '/games' : '/', text: name === 'trivia' ? 'Back to All Games' : 'Back to All Tools' })));
       el.append(gateCard);
     }

@@ -13,22 +13,33 @@ window.TT_ACCOUNT_CONFIG = {
   // Show "Continue with Google" (turn on after setting up Google sign-in in Supabase).
   google: true,
 
-  // From Stripe: Payment Links for the Premium plan. Leave empty until payments are ready.
-  premiumMonthlyLink: '',
-  premiumYearlyLink: '',
-  // Early Access: Premium at a discount for people who join before earlyUntil (the column hides itself after).
-  // From Stripe: Payment Links for the discounted prices.
-  earlyMonthlyLink: '',
-  earlyYearlyLink: '',
-  earlyDiscount: 0.25,
+  // The paid plans. Members see two: Plus (inside the code and the database it is still called
+  // 'premium', so older accounts keep working) and Premium (the top plan, Coming Soon for now).
+  // Yearly = 25% off twelve months, rounded to .99. Early Access takes earlyDiscount off for people who
+  // join before earlyUntil (the early prices hide themselves after that date).
+
+  // Plus. From Stripe: Payment Links for the four Plus prices. Leave empty until payments are ready.
+  premiumMonthlyLink: '',  // Plus monthly, $3.99
+  premiumYearlyLink: '',   // Plus yearly, $35.99
+  earlyMonthlyLink: '',    // Plus Early Access monthly, $2.59
+  earlyYearlyLink: '',     // Plus Early Access yearly, $23.39
+  priceMonthly: '$3.99',
+  priceYearly: '$35.99',
+  earlyDiscount: 0.35,
   earlyUntil: '2027-01-01',
+
+  // Premium (top plan, live quiz games later). While topOpen is false its column says Coming Soon
+  // and nobody can buy it. Turning it on also needs the new plan in the database and the Stripe webhook. Links for when it launches: monthly, yearly, early monthly, early yearly.
+  topOpen: false,
+  topPriceMonthly: '$7.99',
+  topPriceYearly: '$71.99',
+  topMonthlyLink: '',
+  topYearlyLink: '',
+  topEarlyMonthlyLink: '',
+  topEarlyYearlyLink: '',
 
   // From Stripe: the customer portal link, so members can change or cancel their plan.
   manageLink: '',
-
-  // Prices shown on the plans card.
-  priceMonthly: '$3.99',
-  priceYearly: '$29',
 
   // Class lists, class jobs, seating charts and exit tickets can hold students' names.
   // 'never' keeps them on each computer only, 'choose' gives each teacher an on/off switch,

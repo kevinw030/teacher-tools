@@ -96,7 +96,7 @@
   function customizeButton() {
     var b = TT.premium ? TT.premium.button('Customize', 'dashboard', startEdit, 'grid') : TT.button('Customize', { icon: 'grid', kind: 'small', onclick: startEdit });
     b.classList.add('dash-custom');
-    b.title = premium() ? 'Make your own categories and move the tiles' : 'Customize your home page with Premium';
+    b.title = premium() ? 'Make your own categories and move the tiles' : 'Customize your home page with Plus';
     return b;
   }
   // Big tiles are the Daily Routines look, small tiles the Classroom Tools look (styles in assets/home.css).

@@ -29,7 +29,7 @@
       // Only trivia has a limit on the Free plan. Would You Rather questions are unlimited for everyone.
       var max = TT.limit ? TT.limit('trivia') : Infinity;
       if (data.trivia.length < max) return false;
-      m.textContent = ''; m.append(TT.upsell(max ? 'Your plan holds ' + max + ' of your own trivia questions.' : 'Trivia Showdown and your own trivia questions come with Premium.')); m.hidden = false;
+      m.textContent = ''; m.append(TT.upsell(max ? 'Your plan holds ' + max + ' of your own trivia questions.' : 'Trivia Showdown and your own trivia questions come with Plus.')); m.hidden = false;
       return true;
     }
     function msgEl() { return h('p', { class: 'form-msg', hidden: true, role: 'status' }); }
@@ -97,7 +97,7 @@
             removeBtn('Remove this question', function () { data.trivia.splice(p[1], 1); save(); paint(); })));
         });
       });
-      if (TT.limit && !TT.limit('trivia')) box.append(h('div', { class: 'row' }, TT.premium.button('Trivia Showdown Is a Premium Game', 'trivia', function () {})));
+      if (TT.limit && !TT.limit('trivia')) box.append(h('div', { class: 'row' }, TT.premium.button('Trivia Showdown Is a Plus Game', 'trivia', function () {})));
       box.append(h('p', { class: 'muted', text: 'Make your own categories for Trivia Showdown. A new category needs 4 questions to appear on the board. Press New Board in the game to use them.' }), form,
         h('h3', { class: 'cq-h', text: 'My Trivia Questions (' + data.trivia.length + ')' }), list);
     }
@@ -114,7 +114,7 @@
           removeBtn('Delete ' + r.title, function () { data.rooms.splice(i, 1); save(); paint(); })));
       });
       // Building whole new rooms is coming soon. Rooms made before keep working and can still be edited.
-      box.append(h('p', { class: 'muted', text: 'Soon you can build a whole room of your own. Until then, Premium lets you change the questions inside any escape room: open a room, pick a grade and press Edit Questions.' }),
+      box.append(h('p', { class: 'muted', text: 'Soon you can build a whole room of your own. Until then, Plus lets you change the questions inside any escape room: open a room, pick a grade and press Edit Questions.' }),
         h('div', { class: 'row' }, TT.soonButton('Make a New Room')),
         h('h3', { class: 'cq-h', text: 'My Rooms (' + data.rooms.length + ')' }), list);
     }

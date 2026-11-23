@@ -45,7 +45,7 @@
     var bgPanel = h('div', { class: 'bg-panel', hidden: true, role: 'dialog', 'aria-label': 'Choose a background' },
       h('div', { class: 'bg-own' },
         h('label', { class: 'btn small', for: 'bgPhoto', html: TT.icon('image') + '<span>Use My Own Photo</span>', onclick: function (e) {
-          if (TT.limit && !TT.limit('photo')) { e.preventDefault(); photoMsg.textContent = ''; photoMsg.append(TT.upsell('Your own photo backgrounds come with Premium.')); photoMsg.hidden = false; }
+          if (TT.limit && !TT.limit('photo')) { e.preventDefault(); photoMsg.textContent = ''; photoMsg.append(TT.upsell('Your own photo backgrounds come with Plus.')); photoMsg.hidden = false; }
         } }), fileInput,
         h('label', { class: 'btn small color-btn', for: 'bgColor' }, colorInput, h('span', { text: 'Any Color' }))),
       photoMsg,
@@ -126,7 +126,7 @@
       screenMsg.hidden = screens.list.length < max;
       screenMsg.textContent = '';
       if (!canSave()) { screenMsg.hidden = false; screenMsg.append(signInNote('Sign in to save your board and keep up to ' + TT.PLANS.free.screens + ' screens free.')); }
-      else if (TT.account && TT.account.enabled && !TT.account.isPremium()) screenMsg.append(TT.upsell('The Free plan saves ' + max + (max === 1 ? ' screen' : ' screens') + '. Delete one to make room, or save as many as you like with Premium.'));
+      else if (TT.account && TT.account.enabled && !TT.account.isPremium()) screenMsg.append(TT.upsell('The Free plan saves ' + max + (max === 1 ? ' screen' : ' screens') + '. Delete one to make room, or save as many as you like with Plus.'));
       else screenMsg.textContent = 'You can save up to ' + max + (max === 1 ? ' screen' : ' screens') + '. Delete one to make room.';
       screenMsg.classList.add('warn');
     }

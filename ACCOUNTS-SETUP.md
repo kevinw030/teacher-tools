@@ -87,8 +87,12 @@ Part 2's webhook step includes the two extra events (`invoice.paid`, `charge.ref
 
 ## Part 2: Payments (Stripe, about 30 minutes)
 
-Everything on the site is already built. You make four Payment Links and one webhook in Stripe, and Claude pastes the links in.
-The Premium buttons say **Coming Soon** until then.
+Everything on the site is already built. You make four Payment Links for **Plus** and one webhook in Stripe, and Claude pastes the links in.
+The plan buttons say **Coming Soon** until then.
+
+**Plan names:** members see **Free**, **Plus** and **Premium**. Plus is the paid plan that is live; inside the code and the
+database it is still called `premium`, so nothing in Supabase changes. **Premium** is the new top plan (live quiz games later):
+it shows as **Coming Soon** at $7.99 a month and can't be bought yet, so it needs nothing in Stripe tonight.
 
 **Never paste a Stripe secret key (`sk_...`) or signing secret (`whsec_...`) into a chat or into the site's files.**
 The signing secret goes in one place only: Supabase's Secrets page (step 5). Payment Links (`https://buy.stripe.com/...`) are safe to share.
@@ -98,35 +102,41 @@ The signing secret goes in one place only: Supabase's Secrets page (step 5). Pay
 2. Finish the details Stripe asks for (your info and the bank account for payouts). You can do steps 2 to 6 in **Test mode**
    (Stripe may call it a **Sandbox**) while it checks your details.
 
-### 2. Make the product and four prices
-**Product catalog > Add product**, name it `ED Sidekick Premium`, and add four **Recurring** prices:
+### 2. Make the Plus product and four prices
+**Product catalog > Add product**, name it `ED Sidekick Plus`, and add four **Recurring** prices:
 
 | Price | Amount | Billing |
 |---|---|---|
-| Premium Monthly | $3.99 | Monthly |
-| Premium Yearly | $29.00 | Yearly |
-| Early Access Monthly | $2.99 | Monthly |
-| Early Access Yearly | $21.75 | Yearly |
+| Plus Monthly | $3.99 | Monthly |
+| Plus Yearly | $35.99 | Yearly |
+| Plus Early Access Monthly | $2.59 | Monthly |
+| Plus Early Access Yearly | $23.39 | Yearly |
 
-(Early Access is 25% off. People who join before January 1, 2027 keep that price as long as they stay subscribed. The site hides the Early Access column on that date.)
+(Yearly is 25% off twelve months, rounded to $35.99. Early Access is 35% off, monthly or yearly, for people who join
+before January 1, 2027, and they keep that price as long as they stay subscribed. The site stops showing the Early Access
+price on that date.)
+
+**Premium (later, not tonight):** when the live quiz games are ready, make a second product, `ED Sidekick Premium`, with
+$7.99 monthly and $71.99 yearly (plus $5.19 and $46.79 early prices if Early Access is still on), four more Payment Links,
+and turn on plan switching in the customer portal. The webhook and one SQL line get updated then too. Claude will walk you through it.
 
 ### 3. Make four Payment Links
 **Payment Links > New**, one for each price. On each one:
 - Pick the price (quantity 1, no "let customers adjust quantity").
 - Open **After payment**, choose **Don't show confirmation page**, and enter `https://edsidekick.com/?paid=1`
-  (this brings people back to My Account, where the site says "Your Premium plan is turning on").
+  (this brings people back to My Account, where the site says "Your Plus plan is turning on").
 - Press **Create link** and copy the link.
 
 Send Claude the four links, labeled which is which, or paste them into `assets/account-config.js` as
-`premiumMonthlyLink`, `premiumYearlyLink`, `earlyMonthlyLink` and `earlyYearlyLink`.
+`premiumMonthlyLink` (Plus monthly), `premiumYearlyLink` (Plus yearly), `earlyMonthlyLink` and `earlyYearlyLink` (the Early Access ones).
 The site adds each person's account and email to the link by itself, so Stripe knows whose plan to turn on.
 
 ### 4. Turn on the customer portal (so members can cancel)
 **Settings > Billing > Customer portal**: allow customers to cancel and to update payment methods, press **Save**, then
 **Activate link** under "Customer portal link" and copy it (`https://billing.stripe.com/p/login/...`).
-Send it to Claude too, or paste it into `manageLink`. Premium members then see **Manage My Plan**.
+Send it to Claude too, or paste it into `manageLink`. Plus members then see **Manage My Plan**.
 
-### 5. Connect Stripe to Supabase (turns Premium on and off by itself)
+### 5. Connect Stripe to Supabase (turns Plus on and off by itself)
 1. In Supabase: **Edge Functions > Deploy a new function > Via Editor**. Name it exactly `stripe-webhook`.
    Delete the sample code, paste everything from `supabase/functions/stripe-webhook/index.ts`, and press **Deploy**.
 2. Open the function's **Details** (or Settings) and turn **Verify JWT** (also called "Enforce JWT verification") **off**, then save.
@@ -140,14 +150,14 @@ Send it to Claude too, or paste it into `manageLink`. Premium members then see *
    (No Stripe secret key is needed. The function only listens; it never charges anyone.)
 
 ### 6. Test it
-1. While still in Test mode, use the test links on the site: sign in with a spare account, press **Get Premium**,
+1. While still in Test mode, use the test links on the site: sign in with a spare account, press **Get Plus**,
    and pay with card `4242 4242 4242 4242`, any future date, any 3 digits, any ZIP.
-2. You land back on My Account. Within a few seconds the badge changes to **Premium Plan**.
+2. You land back on My Account. Within a few seconds the badge changes to **Plus Plan**.
 3. Press **Manage My Plan**, cancel the plan, and check the badge goes back to **Free** (refresh the page).
    If it doesn't change, look at Stripe's webhook page for a red failed delivery, and tell Claude what it says.
 
 ### 7. Go live (same evening as testing)
-Test links on the live site would let anyone get Premium with the fake card, so switch right after testing:
+Test links on the live site would let anyone get Plus with the fake card, so switch right after testing:
 1. Turn off Test mode in Stripe. Products, Payment Links, the portal and the webhook are separate in live mode,
    so repeat steps 2 to 5 there (quickest: on each test product, **Copy to live mode**).
 2. Put the new live links in the site (send them to Claude), and replace `STRIPE_WEBHOOK_SECRET` in Supabase with the live signing secret.
@@ -164,14 +174,14 @@ Test links on the live site would let anyone get Premium with the fake card, so 
   `'never'` keeps them on each computer instead, and `'choose'` gives each teacher an on/off switch.
 - **Signing out** clears that account's things from the computer (they stay safe in the account), which suits shared school computers.
 - **Plans**: Free = 2 board screens, 2 class lists, own Would You Rather questions (unlimited), last 5 exit tickets, photo backgrounds, The Locked Library escape room.
-  Premium and Owner = unlimited screens and lists, Trivia Showdown with own trivia questions, last 50 exit tickets, all 4 escape rooms, editing any room's questions, Seating Chart and Prompts.
+  Plus (`premium` in the code) and Owner = unlimited screens and lists, Trivia Showdown with own trivia questions, last 50 exit tickets, all 4 escape rooms, editing any room's questions, Seating Chart and Prompts.
   Signed out = everything free works, but the board does not save. Limits live in `PLANS` and `TT.PLAN_FEATURES` at the top of `assets/account.js`; locks live in `assets/premium.js`.
   Nothing is deleted when someone is over a limit; they just can't add more (exit tickets trim to the limit on the next save).
   The numbers live at the top of `assets/account.js`; prices and links in `assets/account-config.js`.
-- **Giving Premium by hand**: `update public.profiles set plan = 'premium' where email = '...';`
+- **Giving Plus by hand**: `update public.profiles set plan = 'premium' where email = '...';`
 
 ## Costs
 
 - Supabase: free up to 50,000 monthly users and 500 MB of saved data (roughly thousands of teachers). Pro is $25/month after that.
-- Stripe: no monthly fee. 2.9% + 30¢ per payment (about 42¢ of each $3.99 month, $1.14 of each $29 year).
+- Stripe: no monthly fee. 2.9% + 30¢ per payment (about 42¢ of each $3.99 month, $1.34 of each $35.99 year).
 - Email sender: free up to 3,000 emails a month.
