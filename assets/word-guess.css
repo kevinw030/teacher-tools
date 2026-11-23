@@ -108,5 +108,9 @@
   .wg-buddy { top: 8px; bottom: auto; left: 8px; width: 46px; }
   .wg-say { display: none; }
   .wg-top { padding-inline: 44px; }
+  /* Long words stay on one line: the tiles shrink to fit the phone's width. */
+  .wg-word { flex-wrap: nowrap; gap: 4px; width: 100%; }
+  .wg-tile { flex: 0 1 36px; width: auto; min-width: 0; border-radius: 9px; border-width: 2px; font-size: clamp(16px, 5.4vw, 22px); }
+  .wg-tile.shown, .wg-tile.missed { border-width: 2px; box-shadow: 0 3px 0 var(--ink); }
 }
 .page.fs .game.wg { max-width: 1200px; margin-inline: auto; }
