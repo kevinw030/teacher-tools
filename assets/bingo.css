@@ -1,0 +1,329 @@
+/* Class Bingo: the teacher's page (tools/bingo.js), the student join page (join.html) and printed cards.
+   Spacing uses the site scale (--s1..--s8). Motion is spring based and switches off for reduced motion. */
+
+/* ================= The card ================= */
+.bc { --gap: clamp(4px, 1.2cqi, 8px); container-type: inline-size; width: 100%; max-width: 560px; margin: 0 auto; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 26px; padding: clamp(10px, 3.4cqi, 20px); box-shadow: var(--shadow); color: var(--ink); }
+.bc-head { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--gap); margin-bottom: var(--gap); }
+.bc-head span { display: grid; place-items: center; aspect-ratio: 1.5; border-radius: 14px; background: var(--hc); color: #fff; font: 900 clamp(18px, 9cqi, 46px)/1 var(--display);
+  text-shadow: 0 2px 0 rgba(0,0,0,.14); box-shadow: inset 0 -4px 0 rgba(0,0,0,.14); }
+.bc-head .bc-word { grid-column: 1 / -1; aspect-ratio: auto; padding: 8px; background: linear-gradient(90deg, #F2643D, #E89A00 30%, #0FA974 55%, #0B9BD8 78%, #7B4DEB); font-size: clamp(20px, 8cqi, 40px); letter-spacing: .04em; }
+.bc-sub { text-align: center; font: 700 clamp(11px, 3cqi, 15px)/1.2 var(--body); color: var(--muted); margin: -2px 0 var(--gap); }
+.bc-grid { container-type: inline-size; display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: var(--gap); }
+.bc-cell { --cw: calc(100cqi / var(--n)); position: relative; aspect-ratio: 1; display: grid; place-items: center; padding: 4px; border-radius: clamp(8px, 2.2cqi, 16px);
+  background: color-mix(in srgb, var(--dc) 9%, var(--surface)); border: 2px solid color-mix(in srgb, var(--dc) 26%, var(--line)); color: var(--ink);
+  font: 800 calc(var(--cw) * var(--k, .2))/1.05 var(--display); text-align: center; overflow: hidden; overflow-wrap: normal; word-break: normal; letter-spacing: -.01em; }
+button.bc-cell { appearance: none; cursor: pointer; transition: transform .45s var(--spring), border-color .15s ease; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+button.bc-cell:hover { transform: scale(1.04); border-color: color-mix(in srgb, var(--dc) 55%, var(--line)); }
+button.bc-cell:active { transform: scale(.92); transition-duration: .08s; }
+button.bc-cell:focus-visible { outline: 4px solid var(--focus); outline-offset: 2px; }
+.bc-cell.hy { hyphens: auto; -webkit-hyphens: auto; overflow-wrap: anywhere; }
+.bc-txt { position: relative; z-index: 1; transition: color .2s ease; }
+.bc-dab { position: absolute; inset: 5%; border-radius: 32%; background: var(--dc); opacity: .88; transform: scale(0) rotate(-30deg); transition: transform .5s var(--spring);
+  box-shadow: inset 0 -5px 0 rgba(0,0,0,.16), inset 0 4px 0 rgba(255,255,255,.25); }
+.bc-cell.on .bc-dab { transform: scale(1) rotate(0); }
+.bc-cell.on .bc-txt { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.35); }
+.bc-cell.stamp .bc-dab { animation: bc-stamp .55s var(--spring); }
+@keyframes bc-stamp { 0% { transform: scale(1.5) rotate(25deg); opacity: 0; } 60% { opacity: .95; } }
+.bc-free { background: #FFF4D1; border-color: #F5C74D; color: #8A5A00; font-size: calc(var(--cw) * .17); flex-direction: column; }
+.bc-free .bc-dab { display: none; }
+.bc-free.on .bc-txt { color: #8A5A00; text-shadow: none; }
+.bc-star { display: block; font-size: calc(var(--cw) * .42); line-height: 1; color: #F2A900; margin-bottom: -.1em; }
+.bc-free { display: flex; align-items: center; justify-content: center; }
+.bc-star { animation: bc-twinkle 3.4s ease-in-out infinite; }
+@keyframes bc-twinkle { 50% { transform: rotate(14deg) scale(1.12); } }
+/* Called cells, for the teacher checking a printed card */
+.bc-cell.hit { border-color: var(--dc); border-style: solid; box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--dc) 35%, transparent); }
+.bc-cell.hit:not(.on) .bc-dab { transform: scale(1); opacity: .25; }
+/* Winning line glows one cell after another */
+.bc-cell.win { animation: bc-win 1.1s var(--spring) calc(var(--w, 0) * 90ms) 2 both; border-color: #F2A900; }
+@keyframes bc-win { 40% { transform: scale(1.14) rotate(-4deg); box-shadow: 0 0 0 5px #FFD15C, 0 10px 30px -6px rgba(242,169,0,.8); } }
+.bc-cell.wrong { animation: bc-shake .5s ease 2; border-color: #E5397A; }
+@keyframes bc-shake { 20%, 60% { transform: translateX(-5px) rotate(-3deg); } 40%, 80% { transform: translateX(5px) rotate(3deg); } }
+/* Dealing a new card: the letters bounce, the squares flip in one by one */
+.deal .bc-head span { animation: bc-drop .7s var(--spring) var(--d, 0ms) both; }
+.deal .bc-cell { animation: bc-deal .6s var(--spring) calc(var(--i) * 22ms + 200ms) both; }
+@keyframes bc-drop { from { transform: translateY(-40px) scale(.4); opacity: 0; } }
+@keyframes bc-deal { from { transform: scale(.3) rotateY(90deg); opacity: 0; } }
+
+/* ================= Teacher: setup ================= */
+.bgo { display: flex; flex-direction: column; gap: var(--s5); }
+.bgo-step { --c-soft: color-mix(in srgb, var(--c) 7%, var(--surface)); display: flex; flex-direction: column; gap: var(--s3); padding: clamp(var(--s4), 2.4vw, var(--s5));
+  border-radius: 24px; background: var(--c-soft); border: 1px solid color-mix(in srgb, var(--c) 18%, var(--line)); }
+.bgo-card-opts { align-self: start; }
+.bgo-step-head { display: flex; align-items: center; gap: var(--s3); }
+.bgo-step-head h2 { margin: 0; font-size: clamp(20px, 2vw, 26px); font-weight: 800; }
+.bgo-step-head p { margin: 0; color: var(--muted); }
+.bgo-num { flex: none; width: 40px; height: 40px; border-radius: 14px; display: grid; place-items: center; background: var(--c); color: #fff; font: 900 20px var(--display);
+  box-shadow: inset 0 -3px 0 rgba(0,0,0,.15); transform: rotate(-6deg); }
+.bgo-lab { font-weight: 700; font-size: 14px; color: var(--muted); }
+.bgo-lists { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.bgo-lists .chip { font-weight: 700; }
+.bgo-lists .chip.on { background: var(--c); border-color: var(--c); color: #fff; }
+.bgo-lists .chip.mine::before { content: "★ "; color: #F2A900; }
+.bgo-lists .chip.mine.on::before { color: #FFE38A; }
+.bgo-lists .chip.add { border-style: dashed; }
+.bgo-text { width: 100%; min-height: 200px; font: 500 16px/1.5 var(--body); resize: vertical; }
+.bgo-count { margin: 0; font-weight: 700; color: var(--muted); font-size: 14px; }
+.bgo-count.short { color: #C2185B; }
+.bgo-hint { margin: 0; color: var(--muted); }
+.bgo-call-what, .bgo-opt { display: flex; align-items: center; gap: var(--s3); flex-wrap: wrap; }
+.bgo-call-what:empty { display: none; }
+.bgo-save-row input { flex: 1 1 220px; }
+.bgo-ops { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s2); }
+.bgo-op { appearance: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: var(--s1); padding: var(--s3); border-radius: 18px; border: 2px solid var(--line);
+  background: var(--surface); color: var(--ink); font: 700 15px var(--body); transition: transform .45s var(--spring), border-color .15s, background .15s; }
+.bgo-op-sign { font: 900 34px/1 var(--display); color: var(--c); transition: transform .5s var(--spring); }
+.bgo-op:hover { transform: translateY(-3px); } .bgo-op:active { transform: scale(.94); }
+.bgo-op.on { background: var(--c); border-color: var(--c); color: #fff; } .bgo-op.on .bgo-op-sign { color: #fff; transform: rotate(-10deg) scale(1.1); }
+.bgo-stepper { display: inline-flex; align-items: center; gap: var(--s2); }
+.bgo-range { gap: var(--s5); }
+.bgo-card-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 320px); gap: var(--s5); align-items: center; }
+.bgo-card-opts { display: flex; flex-direction: column; gap: var(--s4); }
+.bgo-prev-col { display: flex; flex-direction: column; align-items: center; gap: var(--s2); }
+.bgo-preview { width: 100%; }
+.bgo-preview .bc { transform: rotate(2deg); animation: bgo-prev-in .7s var(--spring) both; }
+@keyframes bgo-prev-in { from { transform: rotate(-6deg) scale(.85); opacity: 0; } }
+.bgo-prev-empty { padding: var(--s6) var(--s4); border: 2px dashed var(--line); border-radius: 20px; text-align: center; color: var(--muted); }
+.bgo-play { display: flex; flex-direction: column; gap: var(--s3); }
+.bgo-warn { margin: 0; padding: var(--s3) var(--s4); border-radius: 14px; background: #FFE3EC; color: #8C1240; font-weight: 700; }
+.bgo-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); }
+.bgo-tile { position: relative; appearance: none; cursor: pointer; text-align: left; display: flex; align-items: center; gap: var(--s4); padding: var(--s5); border-radius: 22px;
+  border: 0; font: inherit; color: #fff; box-shadow: inset 0 -5px 0 rgba(0,0,0,.16), var(--shadow); transition: transform .5s var(--spring), box-shadow .2s; }
+.bgo-tile.t-live { background: #E5397A; } .bgo-tile.t-screen { background: #2563EB; }
+.bgo-tile:hover:not(:disabled) { transform: translateY(-4px) scale(1.015); }
+.bgo-tile:active:not(:disabled) { transform: scale(.97); transition-duration: .1s; }
+.bgo-tile:disabled { opacity: .45; cursor: not-allowed; filter: grayscale(.5); }
+.bgo-tile:focus-visible { outline: 4px solid var(--focus); outline-offset: 3px; }
+.bgo-tile-icon { flex: none; width: 56px; height: 56px; border-radius: 18px; display: grid; place-items: center; background: rgba(255,255,255,.2); transition: transform .5s var(--spring); }
+.bgo-tile-icon svg { width: 30px; height: 30px; }
+.bgo-tile:hover:not(:disabled) .bgo-tile-icon { transform: rotate(-10deg) scale(1.1); }
+.bgo-tile-text { display: flex; flex-direction: column; gap: var(--s1); min-width: 0; }
+.bgo-tile-text strong { font: 800 clamp(18px, 1.7vw, 22px)/1.15 var(--display); }
+.bgo-tile-text span { opacity: .92; font-size: 15px; line-height: 1.35; }
+.bgo-new { position: absolute; top: -10px; right: 14px; padding: 4px 10px; border-radius: 99px; background: #FFD15C; color: #3B2400; font: 800 13px var(--body); transform: rotate(4deg);
+  box-shadow: 0 3px 0 rgba(0,0,0,.15); animation: bgo-bob 2.6s ease-in-out infinite; }
+@keyframes bgo-bob { 50% { transform: rotate(-3deg) translateY(-3px); } }
+.bgo-print-row { display: flex; align-items: center; gap: var(--s4); flex-wrap: wrap; padding: var(--s4); border-radius: 22px; background: var(--surface); border: 1px solid var(--line); }
+.bgo-print-row .bgo-tile-icon { background: color-mix(in srgb, var(--emerald) 16%, var(--surface)); color: var(--emerald); }
+.bgo-print-row .bgo-tile-text { flex: 1 1 240px; }
+.bgo-print-row .bgo-tile-text span { color: var(--muted); }
+
+/* ================= Teacher: calling ================= */
+.bgo-game-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; }
+.bgo-game-title { display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; }
+.bgo-chip-title { padding: 6px 14px; border-radius: 99px; background: var(--c); color: #fff; font: 800 16px var(--display); }
+.bgo-progress, .bgo-rule { padding: 6px 12px; border-radius: 99px; background: var(--surface-2); font-weight: 700; font-size: 14px; color: var(--muted); }
+.bgo-main { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr); gap: var(--s5); align-items: start; }
+.bgo-left, .bgo-right { display: flex; flex-direction: column; gap: var(--s4); min-width: 0; }
+.bgo-stage { position: relative; display: flex; flex-direction: column; gap: var(--s4); padding: clamp(var(--s4), 2.4vw, var(--s6)); border-radius: 28px;
+  background: color-mix(in srgb, var(--rose) 8%, var(--surface)); border: 1px solid color-mix(in srgb, var(--rose) 20%, var(--line)); overflow: hidden; }
+.bgo-call { min-height: clamp(180px, 24vw, 300px); display: grid; place-items: center; text-align: center; }
+.bgo-call-card, .bgo-call-empty { display: flex; flex-direction: column; align-items: center; gap: var(--s2); width: 100%; }
+.bgo-call-kicker { margin: 0; font: 800 15px var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--rose); }
+.bgo-call-big { margin: 0; font: 900 clamp(40px, 7.4vw, 108px)/1.02 var(--display); letter-spacing: -.03em; text-wrap: balance; overflow-wrap: anywhere; }
+.bgo-call-card.is-clue .bgo-call-big { font-size: clamp(28px, 3.6vw, 54px); font-weight: 800; line-height: 1.15; }
+.bgo-call-card.is-clue .bgo-call-big.long { font-size: clamp(22px, 2.8vw, 40px); }
+.bgo-call-empty .bgo-call-big { color: color-mix(in srgb, var(--ink) 30%, transparent); font-size: clamp(34px, 5vw, 70px); }
+.bgo-call-card.pop { animation: bgo-pop .8s var(--spring) both; }
+@keyframes bgo-pop { 0% { transform: scale(.4) rotate(-8deg); opacity: 0; } 50% { opacity: 1; } }
+.bgo-reveal-row { display: flex; align-items: center; gap: var(--s3); min-height: 44px; }
+.bgo-answer { margin: 0; font: 900 clamp(26px, 3vw, 42px)/1 var(--display); color: var(--emerald); }
+.bgo-answer.shown { animation: bgo-pop .6s var(--spring) both; }
+.bgo-auto-bar { --p: 0; height: 6px; border-radius: 99px; background: color-mix(in srgb, var(--rose) 14%, transparent); position: relative; overflow: hidden; }
+.bgo-auto-bar::after { content: ""; position: absolute; inset: 0; transform-origin: left; transform: scaleX(var(--p)); background: var(--rose); border-radius: inherit; transition: transform .1s linear; }
+.bgo-controls { display: flex; align-items: center; justify-content: center; gap: var(--s3); flex-wrap: wrap; }
+.btn.primary.bgo-next { font-size: 22px; padding: 16px 30px; border-radius: 18px; background: var(--rose); border-color: var(--rose); color: #fff; box-shadow: inset 0 -5px 0 rgba(0,0,0,.18); }
+.btn.primary.bgo-next:hover:not(:disabled) { background: color-mix(in srgb, var(--rose) 88%, #000); }
+.bgo-next kbd { font: 700 12px var(--body); padding: 3px 7px; border-radius: 7px; background: rgba(255,255,255,.22); }
+.bgo-speak.on { background: var(--emerald); border-color: var(--emerald); color: #fff; }
+.bgo-auto { display: flex; align-items: center; gap: var(--s2); }
+.bgo-side { display: flex; flex-direction: column; gap: var(--s3); padding: var(--s4); border-radius: 22px; background: var(--surface); border: 1px solid var(--line); }
+.bgo-side h3 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: var(--s2); }
+.bgo-board { display: flex; flex-wrap: wrap; gap: 6px; max-height: 420px; overflow: auto; }
+.bgo-cell { position: relative; padding: 5px 10px; border-radius: 10px; background: var(--surface-2); color: var(--muted); font: 700 14px var(--body); transition: background .3s, color .3s; }
+.bgo-cell.on { background: var(--rose); color: #fff; }
+.bgo-cell i { font-style: normal; font-size: 10px; margin-right: 5px; padding: 1px 5px; border-radius: 6px; background: rgba(255,255,255,.28); vertical-align: 1px; }
+.bgo-cell.fresh { animation: bgo-fresh 1.2s var(--spring); box-shadow: 0 0 0 3px #FFD15C; }
+@keyframes bgo-fresh { 0% { transform: scale(1.6); } }
+.bgo-empty { margin: 0; color: var(--muted); font-size: 15px; }
+.bgo-people-count { margin: 0; font: 800 28px var(--display); }
+.bgo-status { font: 700 12px var(--body); padding: 3px 9px; border-radius: 99px; background: var(--surface-2); color: var(--muted); }
+.bgo-status.s-live { background: color-mix(in srgb, var(--emerald) 18%, var(--surface)); color: var(--emerald); }
+.bgo-status.s-live::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: currentColor; margin-right: 5px; animation: bgo-blink 1.6s ease-in-out infinite; }
+@keyframes bgo-blink { 50% { opacity: .25; } }
+.bgo-claims { display: flex; flex-direction: column; gap: var(--s2); }
+.bgo-claim { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: var(--s2); padding: var(--s2) var(--s3); border-radius: 14px; background: var(--surface-2); animation: bgo-pop .6s var(--spring) both; }
+.bgo-claim.ok { background: #FFF1C2; color: #5A3B00; }
+.bgo-claim span:last-child { font-size: 14px; color: inherit; opacity: .85; }
+.bgo-claim-mark { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); font-weight: 900; }
+.bgo-claim.ok .bgo-claim-mark { background: #F2A900; color: #fff; }
+.bgo-paper .bgo-card-no { width: 110px; font: 800 20px var(--display); text-align: center; }
+.bgo-check-out { display: flex; flex-direction: column; gap: var(--s3); }
+.bgo-check-out .bc { max-width: 320px; }
+.bgo-verdict { margin: 0; font: 800 20px var(--display); }
+.bgo-verdict.ok { color: #B57800; } .bgo-verdict.no { color: var(--muted); }
+
+/* Join card: the address and class code, big enough to read from the back of the room */
+.bgo-join { display: flex; align-items: center; gap: var(--s5); padding: clamp(var(--s4), 2.2vw, var(--s5)); border-radius: 28px; color: #fff;
+  background: #1F1B4D; box-shadow: var(--shadow-lg); }
+.bgo-join-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--s1); }
+.bgo-join-step { font: 800 13px var(--body); letter-spacing: .12em; text-transform: uppercase; color: #FFD15C; }
+.bgo-join-url { font: 800 clamp(24px, 3vw, 40px)/1.1 var(--display); margin-bottom: var(--s3); overflow-wrap: anywhere; }
+.bgo-code { display: flex; gap: clamp(4px, .6vw, 10px); flex-wrap: wrap; }
+.bgo-code { flex-wrap: nowrap; }
+.bgo-code-ch { display: grid; place-items: center; width: clamp(40px, 4.6vw, 76px); aspect-ratio: .82; border-radius: 16px; background: #fff; color: #1F1B4D;
+  font: 900 clamp(28px, 3.6vw, 58px)/1 var(--display); box-shadow: inset 0 -6px 0 rgba(31,27,77,.16); animation: bgo-code-in .8s var(--spring) calc(var(--i) * 80ms) both; }
+.bgo-code-ch:nth-child(3) { margin-right: clamp(8px, 1vw, 18px); }
+@keyframes bgo-code-in { from { transform: translateY(30px) rotate(-12deg) scale(.4); opacity: 0; } }
+.bgo-qr { flex: none; width: clamp(110px, 12vw, 170px); aspect-ratio: 1; background: #fff; border-radius: 18px; padding: 10px; }
+.bgo-qr svg { display: block; width: 100%; height: 100%; }
+.bgo-qr:empty { display: none; }
+
+/* After the first call the join card shrinks to a strip, so the caller has the room. */
+.bgo-join-wrap { display: flex; flex-direction: column; gap: var(--s2); }
+.bgo-join.compact { padding: var(--s3) var(--s4); gap: var(--s4); border-radius: 22px; }
+.bgo-join.compact .bgo-join-text { flex-direction: row; align-items: center; flex-wrap: wrap; gap: var(--s2) var(--s4); }
+.bgo-join.compact .bgo-join-url { font-size: clamp(18px, 1.8vw, 24px); margin: 0; }
+.bgo-join.compact .bgo-join-step { display: none; }
+.bgo-join.compact .bgo-code-ch { width: clamp(28px, 2.6vw, 40px); font-size: clamp(20px, 2vw, 30px); border-radius: 10px; box-shadow: inset 0 -3px 0 rgba(31,27,77,.16); animation: none; }
+.bgo-join.compact .bgo-qr { width: 64px; padding: 5px; border-radius: 10px; }
+.bgo-join-size { align-self: flex-end; }
+.bgo-join { transition: padding .5s var(--spring); }
+
+/* ================= Winner, toasts, confetti (both pages) ================= */
+.bgo-win { position: fixed; inset: 0; z-index: 900; display: grid; place-items: center; padding: var(--s4); background: rgba(14, 12, 40, .45);
+  -webkit-backdrop-filter: blur(10px) saturate(1.4); backdrop-filter: blur(10px) saturate(1.4); animation: bgo-fade .3s ease both; overflow: hidden; }
+.bgo-win.out { animation: bgo-fade .3s ease reverse both; }
+@keyframes bgo-fade { from { opacity: 0; } }
+.bgo-win-card { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: var(--s3); text-align: center; width: min(520px, 100%);
+  padding: var(--s6) var(--s5) var(--s5); border-radius: 32px; background: color-mix(in srgb, var(--surface) 88%, transparent); border: 1px solid rgba(255,255,255,.6);
+  box-shadow: var(--shadow-lg); animation: bgo-win-in .9s var(--spring) both; }
+@keyframes bgo-win-in { from { transform: scale(.5) translateY(60px) rotate(-6deg); opacity: 0; } }
+.bgo-win-mascot { width: 130px; margin-top: calc(var(--s7) * -1.8); }
+.bgo-win-kicker { margin: 0; font: 900 clamp(56px, 9vw, 96px)/1 var(--display); letter-spacing: -.02em;
+  background: linear-gradient(90deg, #F2643D, #E89A00, #0FA974, #0B9BD8, #E5397A); -webkit-background-clip: text; background-clip: text; color: transparent; animation: bgo-wobble 1.6s var(--spring) .3s both; }
+@keyframes bgo-wobble { 0% { transform: scale(.3) rotate(-10deg); } 60% { transform: scale(1.08) rotate(3deg); } }
+.bgo-win-card h2 { margin: 0; font-size: clamp(24px, 3vw, 36px); }
+.bgo-confetti { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.bgo-confetti i { position: absolute; top: -20px; left: var(--x); width: 12px; height: 18px; border-radius: 3px; background: var(--c); transform: scale(var(--s));
+  animation: bgo-fall 2.6s cubic-bezier(.2,.6,.4,1) var(--d) both; }
+.bgo-confetti i:nth-child(3n) { border-radius: 50%; width: 12px; height: 12px; }
+@keyframes bgo-fall { 0% { transform: translateY(-20px) rotate(0) scale(var(--s)); opacity: 1; } 100% { transform: translateY(105vh) rotate(var(--r)) scale(var(--s)); opacity: .9; } }
+.bgo-toast { position: fixed; left: 50%; bottom: max(24px, env(safe-area-inset-bottom)); z-index: 950; transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 12px 22px; border-radius: 99px;
+  background: #1F1B4D; color: #fff; font: 700 16px var(--body); box-shadow: var(--shadow-lg); animation: bgo-toast .6s var(--spring) both; text-align: center; }
+.bgo-toast.out { opacity: 0; transform: translateX(-50%) translateY(20px); transition: all .35s ease; }
+@keyframes bgo-toast { from { transform: translateX(-50%) translateY(40px) scale(.8); opacity: 0; } }
+
+/* Full screen: the caller gets even bigger */
+.page.fs .bgo-main { grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr); }
+
+@media (max-width: 900px) {
+  .bgo-main, .bgo-card-row { grid-template-columns: 1fr; }
+  .bgo-tiles { grid-template-columns: 1fr; }
+  .bgo-prev-col { max-width: 340px; margin: 0 auto; width: 100%; }
+}
+@media (max-width: 560px) {
+  .bgo-ops { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bgo-join { flex-direction: column; align-items: stretch; }
+  .bgo-qr { align-self: center; }
+  .bgo-controls .bgo-next { width: 100%; justify-content: center; }
+}
+
+/* ================= Printing ================= */
+.bgo-print { display: none; }
+/* Before printing, the cards are laid out off screen at their printed size so every word can be fitted. */
+.bgo-print.measuring { display: block; position: absolute; left: -10000px; top: 0; }
+.bgo-print .bc { --surface: #fff; --line: #bbb; --ink: #000; --muted: #444; box-shadow: none; border: 1.5px solid #888; width: 100mm; max-width: none; padding: 4mm;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact; break-inside: avoid; }
+.bgo-print .per-4 .bc { width: 88mm; }
+.bgo-print .bc-cell { padding: 2px; border-width: 1.5px; }
+@media print {
+  body.bgo-printing > *:not(.bgo-print) { display: none !important; }
+  body.bgo-printing { background: #fff !important; }
+  body.bgo-printing .bgo-print { display: block; color: #000; }
+  .bgo-page { break-after: page; page-break-after: always; display: grid; gap: 10mm; align-content: start; justify-items: center; padding: 4mm 0; }
+  .bgo-page.per-2 { grid-template-rows: repeat(2, auto); }
+  .bgo-page.per-4 { grid-template-columns: repeat(2, 1fr); }
+  .bgo-page:last-child { break-after: auto; page-break-after: auto; }
+  @page { margin: 10mm; }
+  .bgo-print .bc-cell { animation: none; background: #fff; border-color: #999; }
+  .bgo-calllist h2 { margin: 0; font: 800 20pt var(--display); }
+  .bgo-calllist ol { columns: 2; column-gap: 10mm; font: 12pt/1.6 var(--body); padding-left: 8mm; width: 100%; }
+  .bgo-calllist li { break-inside: avoid; }
+  .bgo-calllist .box { display: inline-block; width: 10pt; height: 10pt; border: 1.2pt solid #000; border-radius: 2pt; margin-right: 6pt; vertical-align: -1pt; }
+  .bgo-calllist { justify-items: start; }
+}
+
+/* ================= Student join page ================= */
+.join-body { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; overflow-x: hidden; position: relative; }
+/* Two big soft color shapes behind everything (plain shapes, nothing tiled) */
+.join-body::before, .join-body::after { content: ""; position: fixed; z-index: -1; border-radius: 50%; filter: blur(2px); pointer-events: none; }
+.join-body::before { width: 70vmax; height: 70vmax; left: -30vmax; top: -34vmax; background: color-mix(in srgb, var(--amber) 22%, var(--bg)); }
+.join-body::after { width: 60vmax; height: 60vmax; right: -26vmax; bottom: -30vmax; background: color-mix(in srgb, var(--rose) 16%, var(--bg)); }
+.join-top { display: flex; justify-content: center; padding: var(--s4) var(--s4) 0; }
+.join-top .brand { display: inline-flex; align-items: center; gap: var(--s2); text-decoration: none; }
+.join-main { flex: 1; width: 100%; max-width: 620px; margin: 0 auto; padding: var(--s4) var(--s3) var(--s7); display: flex; flex-direction: column; gap: var(--s3); }
+.join-main.is-enter, .join-main.is-wait, .join-main.is-over { justify-content: center; }
+.join-stage { position: relative; padding-top: 112px; }
+.join-mascot { position: absolute; top: -26px; right: 12px; width: 100px; z-index: 2; }
+.join-mascot.small { position: static; width: 96px; margin: -60px auto 0; }
+.join-card { position: relative; display: flex; flex-direction: column; gap: var(--s2); padding: var(--s6) var(--s5) var(--s5); border-radius: 32px;
+  background: color-mix(in srgb, var(--surface) 82%, transparent); -webkit-backdrop-filter: blur(20px) saturate(1.5); backdrop-filter: blur(20px) saturate(1.5);
+  border: 1px solid color-mix(in srgb, #fff 55%, var(--line)); box-shadow: var(--shadow-lg); animation: page-rise .8s var(--spring) both; }
+.join-card h1 { margin: 0; font-size: clamp(32px, 8vw, 44px); font-weight: 900; line-height: 1.05; }
+.join-lead { margin: 0 0 var(--s2); font-size: 18px; color: var(--muted); }
+.join-lab { margin-top: var(--s3); font: 800 16px var(--body); }
+.join-opt { font-weight: 500; color: var(--muted); }
+.join-code-in { width: 100%; font: 900 clamp(34px, 10vw, 52px)/1 var(--display) !important; letter-spacing: .14em; text-align: center; text-transform: uppercase; padding: 14px 10px !important;
+  border-radius: 20px !important; border: 3px solid var(--line) !important; background: var(--surface) !important; color: var(--ink); transition: border-color .2s, transform .4s var(--spring); }
+.join-code-in:focus { border-color: var(--rose) !important; box-shadow: 0 0 0 5px color-mix(in srgb, var(--rose) 22%, transparent) !important; outline: none; }
+.join-code-in.full { border-color: var(--emerald) !important; animation: join-ok .5s var(--spring); }
+@keyframes join-ok { 40% { transform: scale(1.04); } }
+.join-name-in { width: 100%; font: 700 20px var(--body) !important; padding: 14px 16px !important; border-radius: 16px !important; }
+.join-help { margin: 0; color: var(--muted); font-size: 15px; }
+.join-err { margin: var(--s1) 0 0; min-height: 1.4em; color: #C2185B; font-weight: 700; }
+.join-err:empty { min-height: 0; margin: 0; }
+.btn.primary.join-go { margin-top: var(--s3); justify-content: center; font-size: 22px; padding: 16px; border-radius: 18px; background: var(--rose); border-color: var(--rose); color: #fff; box-shadow: inset 0 -5px 0 rgba(0,0,0,.18); }
+.btn.primary.join-go:hover { background: color-mix(in srgb, var(--rose) 88%, #000); }
+.join-privacy { margin: var(--s3) 0 0; font-size: 14px; color: var(--muted); text-align: center; }
+.join-card.shake { animation: bc-shake .45s ease; }
+.join-wait { align-items: center; text-align: center; gap: var(--s3); padding-top: var(--s7); }
+.join-dots { display: flex; gap: 8px; }
+.join-dots i { width: 14px; height: 14px; border-radius: 50%; background: var(--rose); animation: join-dot 1.2s var(--spring) infinite; }
+.join-dots i:nth-child(2) { animation-delay: .15s; background: var(--amber); } .join-dots i:nth-child(3) { animation-delay: .3s; background: var(--emerald); }
+@keyframes join-dot { 40% { transform: translateY(-12px) scale(1.15); } }
+.join-noscript { text-align: center; padding: 24px; }
+
+/* Playing */
+.join-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); }
+.join-who { display: inline-flex; align-items: center; gap: var(--s2); padding: 6px 14px 6px 10px; border-radius: 99px; background: var(--surface); border: 1px solid var(--line); font: 800 16px var(--display); max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.join-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--emerald); animation: bgo-blink 1.6s ease-in-out infinite; }
+.join-rule { font: 700 14px var(--body); color: var(--muted); }
+.join-host { margin: 0; padding: var(--s2) var(--s3); border-radius: 14px; background: #FFF1C2; color: #5A3B00; font-weight: 700; text-align: center; }
+.join-call { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: var(--s3) var(--s4); border-radius: 22px; background: #1F1B4D; color: #fff; text-align: center; min-height: 84px; justify-content: center; box-shadow: var(--shadow); }
+.join-call.idle { font: 700 17px var(--body); color: #E8E4FF; }
+.join-call.pop { animation: bgo-pop .7s var(--spring) both; }
+.join-call-n { font: 800 12px var(--body); letter-spacing: .12em; text-transform: uppercase; color: #FFD15C; }
+.join-call-text { font: 900 clamp(26px, 7vw, 40px)/1.1 var(--display); overflow-wrap: anywhere; }
+.join-call-text.long { font-size: clamp(18px, 4.6vw, 24px); font-weight: 800; }
+.join-card-box .bc { max-width: 100%; padding: 8px; border-radius: 22px; --gap: 5px; }
+.join-card-box .bc-cell { padding: 2px; }
+.join-bingo { appearance: none; cursor: pointer; border: 0; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 14px 16px; border-radius: 22px;
+  background: var(--surface-2); color: var(--muted); font-family: var(--display); transition: transform .5s var(--spring), background .3s, color .3s; touch-action: manipulation; }
+.jb-word { font: 900 34px/1 var(--display); letter-spacing: .02em; }
+.jb-hint { font: 700 15px var(--body); }
+.join-bingo.ready { background: #F2A900; color: #3B2400; box-shadow: inset 0 -6px 0 rgba(0,0,0,.16), 0 12px 30px -8px rgba(242,169,0,.8); animation: join-ready 1.4s var(--spring) infinite; }
+.join-bingo.ready:active { transform: scale(.94); }
+.join-bingo.won { background: var(--emerald); color: #fff; animation: none; }
+.join-bingo:focus-visible { outline: 4px solid var(--focus); outline-offset: 3px; }
+@keyframes join-ready { 0%, 70%, 100% { transform: none; } 80% { transform: scale(1.04) rotate(-1.5deg); } 90% { transform: scale(1.04) rotate(1.5deg); } }
+.join-drawer { border-radius: 18px; background: var(--surface); border: 1px solid var(--line); padding: var(--s2) var(--s4); }
+.join-drawer summary { cursor: pointer; font: 800 16px var(--display); padding: var(--s2) 0; }
+.join-drawer[open] summary { margin-bottom: var(--s2); }
+.join-win .bgo-win-mascot { width: 110px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bc *, .bgo *, .join-main *, .bgo-win, .bgo-win *, .bgo-toast, .join-card { animation: none !important; transition: none !important; }
+  .bc-cell.on .bc-dab { transform: none; }
+}

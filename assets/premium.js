@@ -3,6 +3,8 @@
 // Locked on Free: Seating Chart, Prompts, every escape room except The Locked Library, and editing a room's questions.
 (function () {
   var TT = window.TT, h = TT.h;
+  // Class Bingo is free for now (Kevin, 2026-11-23). To make it Premium, add  bingo: 1  here, add /bingo to the
+  // Premium tag selectors in premium.css, and add it to TT.PLAN_FEATURES in account.js.
   var LOCKED_VIEWS = { seating: 1, prompts: 1, trivia: 1 };
   var FREE_ROOMS = { library: 1 };
 
@@ -14,6 +16,7 @@
     screens: ['Save More Board Screens', 'Free accounts save 2 board screens. Premium saves as many as you like, one for every part of your day.'],
     classes: ['Add More Class Lists', 'Free accounts keep 2 class lists. Premium keeps as many as you teach.'],
     trivia: ['Trivia Showdown Is a Premium Game', 'A quiz-show board with categories and points for 1 to 4 teams, picked by grade. Write your own trivia questions for it too.'],
+    bingo: ['Class Bingo Is a Premium Game', 'Bingo cards made from your vocabulary words or math facts. Play on the board, print a class set, or let students join on their own devices with a class code.'],
     plan: ['ED Sidekick Premium', 'Every escape room, Trivia Showdown, Seating Chart, Prompts and room for every class.']
   };
 

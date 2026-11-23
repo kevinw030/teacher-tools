@@ -24,6 +24,7 @@
 <link rel="stylesheet" href="/assets/legal.css?v=20261123h">
 <link rel="stylesheet" href="/assets/premium.css?v=20261123h">
 <link rel="stylesheet" href="/assets/owner.css?v=od1123e">
+<link rel="stylesheet" href="/assets/bingo.css?v=bg1123">
 <link rel="canonical" href="https://edsidekick.com/would-you-rather">
 </head>
 <body>
@@ -60,6 +61,7 @@
           <a href="/exit-tickets" data-view="exit-tickets">Exit Tickets</a>
           <a href="/seating" data-view="seating">Seating Chart</a>
           <a href="/fact-fluency" data-view="fact-fluency">Fact Fluency</a>
+          <a href="/bingo" data-view="bingo">Class Bingo</a>
           <a href="/prompts" data-view="prompts">Prompts</a>
           <a href="/my-questions" data-view="my-questions">My Questions</a>
         </div>
@@ -208,6 +210,12 @@
         <h3>Fact Fluency</h3>
         <p>Quick rounds of math facts with a class best to beat.</p>
         <span class="go">Start a Round <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+      </a>
+      <a class="tool c-rose" href="/bingo">
+        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="6" cy="6" r="1.6" fill="currentColor"/><circle cx="18" cy="18" r="1.6" fill="currentColor"/></svg></span>
+        <h3>Class Bingo</h3>
+        <p>Bingo cards from your vocabulary words or math facts. Students can join with a class code.</p>
+        <span class="go">Play Bingo <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
       </a>
       <a class="tool c-amber" href="/prompts">
         <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.500c.7.700 1 1.500 1 2.500h6c0-1 .3-1.800 1-2.500A6 6 0 0 0 12 3z"/></svg></span>
@@ -408,6 +416,15 @@
   <section class="panel" id="fluencyMount"></section>
 </main>
 
+<!-- CLASS BINGO -->
+<main class="page c-rose" id="view-bingo" data-view="bingo" hidden>
+  <header class="tool-head">
+    <div><span class="eyebrow">Classroom Tool</span><h1>Class Bingo</h1><p>Bingo cards made from your words or math facts. Call from the board, print a class set, or let students join with a class code.</p></div>
+    <div class="row js-fs-slot"></div>
+  </header>
+  <section class="panel" id="bingoMount"></section>
+</main>
+
 <!-- PROMPTS -->
 <main class="page c-amber" id="view-prompts" data-view="prompts" hidden>
   <header class="tool-head">
@@ -456,7 +473,7 @@
 <script src="/assets/account-config.js?v=20261123h"></script>
 <script src="/assets/account.js?v=tc1123pay2"></script>
 <script src="/assets/track.js?v=od1123"></script>
-<script src="/assets/premium.js?v=od1123b"></script>
+<script src="/assets/premium.js?v=bg1123"></script>
 <script src="/tools/timer.js?v=20261123tt"></script>
 <script src="/tools/picker.js?v=20261123h"></script>
 <script src="/tools/groups.js?v=20261123h"></script>
@@ -494,8 +511,12 @@
 <script src="/tools/seating.js?v=20261123h"></script>
 <script src="/tools/extras.js?v=cc1123"></script>
 <script src="/tools/learn.js?v=20261123h"></script>
+<script src="/assets/bingo-core.js?v=bg1123"></script>
+<script src="/assets/bingo-live.js?v=bg1123"></script>
+<script src="/tools/bingo-lists.js?v=bg1123"></script>
+<script src="/tools/bingo.js?v=bg1123"></script>
 <script src="/tools/owner.js?v=od1123e"></script>
-<script src="/assets/app.js?v=od1123c"></script>
+<script src="/assets/app.js?v=bg1123"></script>
 <script src="/tools/fit.js?v=20261123h"></script>
 <script src="/tools/home.js?v=20261123h"></script>
 <script src="/tools/mobile.js?v=20261123h"></script>
