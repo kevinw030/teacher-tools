@@ -57,6 +57,8 @@
     var body = h('span', { class: 'mascot-body' }, POSES.map(function (p) {
       return h('img', { class: 'mascot-pose m-' + p, src: 'assets/mascot/' + p + '.webp', alt: '', draggable: 'false', decoding: 'async' });
     }));
+    // His gold antenna bulb lights up when he is excited (see .mascot-glow in assets/learn.css).
+    body.prepend(h('span', { class: 'mascot-glow halo' })); body.append(h('span', { class: 'mascot-glow shine' }));
     var lids = h('span', { class: 'mascot-lidbox' }); lids.innerHTML = LIDS; body.append(lids);
     var work = h('span', { class: 'mascot-workbox' }); work.innerHTML = WORK; body.append(work);
     var fx = h('span', { class: 'mascot-fx' });

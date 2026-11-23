@@ -265,6 +265,16 @@
 @keyframes mas-hop-r { 0%, 100% { transform: translate(0, 0) rotate(0) scale(1.06, .92); } 45% { transform: translate(12%, -16%) rotate(10deg) scale(.96, 1.06); } }
 .mascot[data-mood="party"] .mascot-body { transform-origin: 50% 55%; animation: mas-party .9s cubic-bezier(.4, 0, .3, 1.2) infinite; }
 @keyframes mas-party { 0% { transform: translateY(0) rotate(0); } 40% { transform: translateY(-18%) rotate(180deg) scale(1.05); } 80%, 100% { transform: translateY(0) rotate(360deg); } }
+/* Excited: the gold bulb on his antenna glows. --gx / --gy are the middle of the bulb in each picture. */
+.mascot { --gx: 69.3%; --gy: 11%; } .mascot[data-pose="cheer"] { --gx: 67.3%; --gy: 11.3%; } .mascot[data-pose="wave"] { --gx: 65%; --gy: 10.6%; }
+.mascot-glow { position: absolute; left: var(--gx); top: var(--gy); border-radius: 50%; translate: -50% -50%; opacity: 0; pointer-events: none; transition: opacity .35s ease; }
+.mascot-glow.halo { width: 62%; aspect-ratio: 1; background: radial-gradient(circle, rgba(255, 214, 92, .95) 0 18%, rgba(255, 194, 51, .55) 34%, rgba(255, 194, 51, .18) 55%, rgba(255, 194, 51, 0) 70%); }
+.mascot-glow.shine { width: 19%; aspect-ratio: 1; background: radial-gradient(circle at 42% 38%, rgba(255, 255, 255, .95) 0 12%, rgba(255, 244, 190, .7) 38%, rgba(255, 226, 120, 0) 72%); mix-blend-mode: screen; }
+.mascot:is([data-act="yay"], [data-act="twirl"], [data-act="dance"], [data-act="hop"], [data-act="wave"], [data-mood^="cheer"], [data-mood="party"], [data-mood="wave"]) .mascot-glow { opacity: 1; animation: mas-bulb .7s ease-in-out infinite alternate; }
+.mascot:is([data-act="yay"], [data-act="twirl"], [data-act="dance"], [data-act="hop"], [data-act="wave"], [data-mood^="cheer"], [data-mood="party"], [data-mood="wave"]) .mascot-glow.shine { animation-name: mas-bulb-shine; }
+@keyframes mas-bulb { from { scale: .78; opacity: .55; } to { scale: 1.12; opacity: 1; } }
+@keyframes mas-bulb-shine { from { scale: .9; opacity: .45; } to { scale: 1.08; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .mascot-glow { animation: none !important; } }
 @media (prefers-reduced-motion: reduce) { .mascot-body, .mascot-shadow, .mascot-pose, .mascot-lids, .mascot-fx *, .mascot-workbox * { animation: none !important; } .mascot-fx { display: none; } }
 /* where he lives */
 .wyr-buddy .mascot { width: 100%; }
