@@ -43,6 +43,7 @@
   var ADJ = ['Bright', 'Brave', 'Speedy', 'Clever', 'Happy', 'Sunny', 'Lucky', 'Jolly', 'Mighty', 'Cosmic', 'Zippy', 'Bouncy'];
   var ANIMAL = ['Otter', 'Panda', 'Falcon', 'Koala', 'Tiger', 'Dolphin', 'Fox', 'Owl', 'Turtle', 'Llama', 'Penguin', 'Gecko'];
   function funName(av) {
+    if (me && me.adj && window.Lobby) return me.adj + ' ' + Lobby.avatar(av).n;
     var animal = window.Lobby ? Lobby.avatar(av).n : ANIMAL[Math.floor(Math.random() * ANIMAL.length)];
     return ADJ[Math.floor(Math.random() * ADJ.length)] + ' ' + animal;
   }
@@ -82,7 +83,8 @@
       if (c.length !== 6) { err.textContent = 'The code has 6 letters and numbers. Look at your teacher’s screen.'; code.focus(); shake(form); return; }
       var n = name.value.replace(/\s+/g, ' ').trim().slice(0, 16);
       var av = window.Lobby ? Lobby.pick() : 0;
-      me = { code: c, id: B.randomId(), name: n || funName(av), auto: !n, av: av, at: Date.now() };
+      me = { code: c, id: B.randomId(), name: '', auto: !n, av: av, at: Date.now(), adj: ADJ[Math.floor(Math.random() * ADJ.length)] };
+      me.name = n || funName(av);
       store('me', me);
       connect();
     } },
@@ -100,6 +102,7 @@
 
   // ---------- Connecting ----------
   function connect() {
+    avMap = {}; pending = null; picker = null;
     paintWaiting('Finding your class…');
     if (conn) conn.close();
     conn = B.connect({
@@ -109,6 +112,7 @@
         verdict: onVerdict,
         countdown: onCountdown,
         poke: function (m) { if (m && room) room.poke(m.id); },
+        avs: function (m) { if (m && (!state || m.g === state.g)) applySeats(m.map); },
         kick: function (m) { if (m && m.id === me.id) removed(); },
         end: function () { over(); },
         pause: function () { hostHere = false; if (state) paintHost(); }
@@ -116,7 +120,7 @@
       onPeople: function (list) {
         var was = hostHere; hostHere = list.some(function (p) { return p.host; });
         players = list.filter(function (p) { return !p.host; });
-        if (room) room.update(players);
+        if (room) room.update(seatedPlayers());
         if (was !== hostHere && state) paintHost();
       },
       onStatus: function (s) { if (s === 'off' && !state) paintWaiting('Can’t reach the game. Check the internet, then we’ll keep trying.'); },
@@ -199,26 +203,75 @@
     }
     var taps = 0, tapCount = h('span', { class: 'lb-taps', 'aria-live': 'polite' });
     drawMe();
+    redrawMe = drawMe;
     room = Lobby.room({ meId: me.id, empty: 'You’re the first one here!' });
-    room.update(players);
+    room.update(seatedPlayers());
+    var pickBox = paintPicker();
     root.append(h('div', { class: 'join-card lb-in' },
       h('p', { class: 'join-call-n', text: state ? state.title : '' }),
       h('h1', { text: 'You’re In!' }),
       meBox,
-      h('button', { type: 'button', class: 'btn small lb-change', onclick: function () {
-        var was = me.av | 0, wasName = me.auto ? me.name : null;
-        me.av = (was + 1 + Math.floor(Math.random() * (Lobby.AVATARS.length - 1))) % Lobby.AVATARS.length;
-        if (wasName) me.name = funName(me.av);
-        store('me', me); if (conn) conn.track(meta()); drawMe(); beep(660, 0.12, 'triangle', 0.07);
-      } }, 'Pick a Different Animal'),
       tapCount,
       h('div', { class: 'lb-waiting' },
         h('div', { class: 'join-dots', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')),
         h('p', { class: 'lb-waiting-text', text: 'Waiting for Teacher to Start' }),
         h('p', { class: 'join-help', text: 'Tap your animal to make it jump. Your classmates see it bounce too!' })),
+      pickBox,
       h('section', { class: 'lb-others' }, h('h2', { text: 'Who’s Here' }), room.el)));
     if (!document.querySelector('.lb-floaties')) document.body.append(Lobby.floaties());
   }
+  // ---------- Choose your animal: one animal per player, the teacher's screen decides ties ----------
+  var avMap = {}, picker = null, pickNote = null, pickWrap = null, pending = null, pendTimer = null, redrawMe = null;
+  function takenSet() { var t = {}; Object.keys(avMap).forEach(function (k) { if (k !== me.id) t[avMap[k]] = true; }); return t; }
+  function seatedPlayers() { return players.map(function (p) { return avMap[p.id] != null ? Object.assign({}, p, { av: avMap[p.id] }) : p; }); }
+  function paintPicker() {
+    picker = Lobby.picker({ mine: me.av | 0, taken: takenSet(), pending: pending, onPick: choose });
+    pickNote = h('p', { class: 'lb-pick-note', role: 'status' });
+    var open = !me.picked;
+    var toggle = h('button', { type: 'button', class: 'btn small lb-change', 'aria-expanded': String(open), onclick: function () { show(pickWrap.hidden); } },
+      h('span', { text: 'Choose Your Animal' }), h('span', { class: 'lb-chev', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>' }));
+    pickWrap = h('div', { class: 'lb-pick-wrap' }, h('p', { class: 'join-help', text: 'Every player gets a different animal. Gray ones are taken.' }), pickNote, picker.el);
+    function show(on) { pickWrap.hidden = !on; toggle.setAttribute('aria-expanded', String(on)); toggle.classList.toggle('open', on); }
+    show(open);
+    pickWrap.show = show;
+    return h('div', { class: 'lb-pick-box' }, toggle, pickWrap);
+  }
+  function note(text, bad) { if (!pickNote) return; pickNote.textContent = text; pickNote.classList.toggle('bad', !!bad); }
+  function choose(i) {
+    if (i === (me.av | 0) && pending == null) { me.picked = true; store('me', me); if (pickWrap) pickWrap.show(false); return; }
+    if (takenSet()[i]) return;
+    pending = i; note('Grabbing the ' + Lobby.avatar(i).n + '…');
+    if (picker) picker.update({ pending: i });
+    if (conn) conn.send('pick', { id: me.id, av: i });
+    clearTimeout(pendTimer);
+    // No answer from the teacher's screen (an older page): take it if nobody else has it.
+    pendTimer = setTimeout(function () { if (pending === i && !takenSet()[i]) { pending = null; setAv(i, true); } }, 3000);
+  }
+  function setAv(av, mine) {
+    var changed = (me.av | 0) !== av;
+    me.av = av;
+    if (me.auto) me.name = funName(av);
+    if (mine) { me.picked = true; note(''); beep(660, 0.12, 'triangle', 0.07); setTimeout(function () { beep(990, 0.14, 'triangle', 0.07); }, 90); if (pickWrap) pickWrap.show(false); }
+    store('me', me);
+    if (changed && conn) conn.track(meta());
+    if (changed && redrawMe && root.querySelector('.lb-in')) redrawMe();
+    if (picker) picker.update({ mine: av, pending: pending });
+  }
+  function applySeats(map) {
+    avMap = map && typeof map === 'object' ? map : {};
+    var mine = avMap[me.id];
+    if (pending != null) {
+      if (mine === pending) { pending = null; clearTimeout(pendTimer); setAv(mine, true); }
+      else if (takenSet()[pending]) {
+        var lost = pending; pending = null; clearTimeout(pendTimer);
+        note('Someone just picked the ' + Lobby.avatar(lost).n + '. Try another one!', true);
+        if (mine != null) setAv(mine);
+      }
+    } else if (typeof mine === 'number' && mine !== (me.av | 0)) setAv(mine);
+    if (picker) picker.update({ mine: me.av | 0, taken: takenSet(), pending: pending });
+    if (room) room.update(seatedPlayers());
+  }
+
   // ---------- 3, 2, 1, Go! ----------
   function onCountdown(m) {
     if (!m || counting) return;
@@ -243,6 +296,7 @@
   function onState(s) {
     if (!s || !Array.isArray(s.cards)) return;
     clearTimeout(findTimer);
+    if (s.avs) applySeats(s.avs);
     // Everyone waits in the lobby until the teacher presses Start Game. (A game from an older teacher page
     // has no phase: it counts as the lobby until the first call.)
     var inLobby = s.phase === 'lobby' || (s.phase !== 'play' && !(s.called || []).length);
@@ -291,7 +345,7 @@
     var drawer = h('details', { class: 'join-drawer' }, h('summary', { text: 'Called So Far' }), calledEl);
     root.append(
       h('div', { class: 'join-bar' },
-        h('span', { class: 'join-who' }, window.Lobby ? h('span', { class: 'join-ava', 'aria-hidden': 'true', style: '--ac:' + Lobby.avatar(me.av).c, text: Lobby.avatar(me.av).e }) : h('span', { class: 'join-dot', 'aria-hidden': 'true' }), me.name),
+        h('span', { class: 'join-who' }, window.Lobby ? h('span', { class: 'join-ava', 'aria-hidden': 'true', style: '--ac:' + Lobby.avatar(me.av).c }, Lobby.img(me.av)) : h('span', { class: 'join-dot', 'aria-hidden': 'true' }), me.name),
         h('span', { class: 'join-rule', text: B.PATTERNS[state.pattern] + ' Wins' })),
       hostEl, callEl, gridBox, bingoBtn, drawer);
     drawCard();

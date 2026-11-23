@@ -298,7 +298,8 @@ button.bc-cell:focus-visible { outline: 4px solid var(--focus); outline-offset: 
 /* Playing */
 .join-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); }
 .join-who { display: inline-flex; align-items: center; gap: var(--s2); padding: 6px 14px 6px 10px; border-radius: 99px; background: var(--surface); border: 1px solid var(--line); font: 800 16px var(--display); max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.join-ava { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--ac); font-size: 16px; line-height: 1; margin-left: -4px; }
+.join-ava { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--ac) 78%, #fff); margin-left: -4px; }
+.join-ava img { width: 92%; height: 92%; object-fit: contain; }
 .join-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--emerald); animation: bgo-blink 1.6s ease-in-out infinite; }
 .join-rule { font: 700 14px var(--body); color: var(--muted); }
 .join-host { margin: 0; padding: var(--s2) var(--s3); border-radius: 14px; background: #FFF1C2; color: #5A3B00; font-weight: 700; text-align: center; }

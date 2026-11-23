@@ -21,17 +21,44 @@
   }
   L.h = h;
 
-  // ---------- Animals ----------
-  L.AVATARS = [
-    { e: '🦊', c: '#F2643D', n: 'Fox' }, { e: '🐼', c: '#5E6378', n: 'Panda' }, { e: '🦉', c: '#A0662B', n: 'Owl' },
-    { e: '🐢', c: '#0FA974', n: 'Turtle' }, { e: '🐧', c: '#2563EB', n: 'Penguin' }, { e: '🦁', c: '#E89A00', n: 'Lion' },
-    { e: '🐸', c: '#5E9C0C', n: 'Frog' }, { e: '🐙', c: '#E5397A', n: 'Octopus' }, { e: '🦄', c: '#7B4DEB', n: 'Unicorn' },
-    { e: '🐨', c: '#0B9BD8', n: 'Koala' }, { e: '🐯', c: '#F27A1A', n: 'Tiger' }, { e: '🐬', c: '#1597B8', n: 'Dolphin' },
-    { e: '🦖', c: '#2E9E5B', n: 'Dino' }, { e: '🐝', c: '#D9A400', n: 'Bee' }, { e: '🦩', c: '#E0569B', n: 'Flamingo' },
-    { e: '🐳', c: '#3D7BE0', n: 'Whale' }
-  ];
-  L.pick = function () { return Math.floor(Math.random() * L.AVATARS.length); };
+  // ---------- Animals (Kevin's sticker art, assets/animals/<k>.webp) ----------
+  // Each animal can belong to only one player in a game. The teacher's screen hands them out (Lobby.assign).
+  var NAMES = 'Bear,Polar Bear,Fox,Wolf,Deer,Moose,Raccoon,Squirrel,Hedgehog,Skunk,Penguin,Owl,Eagle,Parrot,Flamingo,Turtle,Frog,Dolphin,Shark,Octopus,' +
+    'Elephant,Giraffe,Hippo,Rhino,Gorilla,Monkey,Panda,Koala,Kangaroo,Sloth,Chicken,Duck,Turkey,Donkey,Llama,Lion,Tiger,Leopard,Cheetah,Zebra,' +
+    'Dog,Cat,Bunny,Hamster,Guinea Pig,Horse,Cow,Pig,Sheep,Goat';
+  var TINTS = ['#F2643D', '#0B9BD8', '#E89A00', '#0FA974', '#7B4DEB', '#E5397A', '#2563EB', '#5E9C0C', '#F27A1A', '#1597B8'];
+  L.AVATARS = NAMES.split(',').map(function (n, i) { return { k: n.toLowerCase().replace(/ /g, '-'), n: n, c: TINTS[(i * 3) % TINTS.length] }; });
+  L.pick = function (taken) {
+    var free = [];
+    for (var i = 0; i < L.AVATARS.length; i++) if (!taken || !taken[i]) free.push(i);
+    if (!free.length) return Math.floor(Math.random() * L.AVATARS.length);
+    return free[Math.floor(Math.random() * free.length)];
+  };
   L.avatar = function (i) { return L.AVATARS[((i | 0) % L.AVATARS.length + L.AVATARS.length) % L.AVATARS.length]; };
+  L.img = function (i, cls) {
+    var a = L.avatar(i);
+    return h('img', { class: cls || 'lb-img', src: '/assets/animals/' + a.k + '.webp', alt: '', draggable: 'false', decoding: 'async' });
+  };
+
+  // Teacher's screen: give player `id` the animal they want if no one else in the game has it,
+  // otherwise keep the one they have, otherwise a random free one. `map` is { playerId: animal },
+  // `here` is { playerId: true } for everyone in the game right now. Returns true when `map` changed.
+  // Requests are handled one at a time, so when two students grab the same animal the first one wins.
+  L.assign = function (map, here, id, want) {
+    function takenBy(av) { for (var k in map) if (k !== id && here[k] && map[k] === av) return k; return null; }
+    var n = L.AVATARS.length, had = map[id];
+    var ok = function (v) { return typeof v === 'number' && v >= 0 && v < n && v === Math.floor(v) && !takenBy(v); };
+    var next = ok(want) ? want : ok(had) ? had : null;
+    if (next == null) {
+      var taken = {};
+      for (var k in map) if (k !== id && here[k]) taken[map[k]] = 1;
+      next = L.pick(taken);
+    }
+    if (next === had) return false;
+    map[id] = next; return true;
+  };
+  // Only the animals of players who are here (what the students' screens get).
+  L.seated = function (map, here) { var out = {}; for (var k in map) if (here[k]) out[k] = map[k]; return out; };
 
   // One player: a round colored badge with their animal, and their name under it.
   L.player = function (p, opts) {
@@ -40,9 +67,33 @@
     var el = h(tag, { class: 'lb-p' + (opts.me ? ' me' : '') + (opts.small ? ' small' : ''), 'data-id': p.id, style: '--ac:' + a.c,
       'aria-label': (p.name || 'Player') + (opts.me ? ' (you)' : '') + (opts.onTap ? '. Tap to remove' : '') });
     if (tag === 'button') { el.type = 'button'; el.addEventListener('click', function () { opts.onTap(p, el); }); }
-    el.append(h('span', { class: 'lb-ava', 'aria-hidden': 'true' }, h('span', { class: 'lb-emoji', text: a.e })),
+    el.append(h('span', { class: 'lb-ava', 'aria-hidden': 'true' }, L.img(p.av)),
       h('span', { class: 'lb-name', text: (p.name || 'Player') + (opts.me ? ' (You)' : '') }));
     return el;
+  };
+
+  // The animal picker: every animal, with the ones other players have shown as taken.
+  // opts: { mine: index, taken: { index: true }, pending: index, onPick(index) }. Returns { el, update(opts) }.
+  L.picker = function (opts) {
+    var grid = h('div', { class: 'lb-pick-grid', role: 'radiogroup', 'aria-label': 'Choose your animal' });
+    var btns = L.AVATARS.map(function (a, i) {
+      var b = h('button', { type: 'button', class: 'lb-pick', role: 'radio', style: '--ac:' + a.c, title: a.n,
+        onclick: function () { if (!b.disabled && opts.onPick) opts.onPick(i); } }, L.img(i), h('span', { class: 'lb-pick-n', text: a.n }));
+      b.querySelector('img').loading = 'lazy';
+      grid.append(b); return b;
+    });
+    function update(o) {
+      if (o) Object.keys(o).forEach(function (k) { opts[k] = o[k]; });
+      btns.forEach(function (b, i) {
+        var taken = !!(opts.taken && opts.taken[i]) && i !== opts.mine, mine = i === opts.mine, wait = i === opts.pending;
+        b.disabled = taken;
+        b.classList.toggle('taken', taken); b.classList.toggle('mine', mine); b.classList.toggle('wait', wait);
+        b.setAttribute('aria-checked', mine ? 'true' : 'false');
+        b.setAttribute('aria-label', L.AVATARS[i].n + (mine ? ', yours' : taken ? ', taken' : ''));
+      });
+    }
+    update();
+    return { el: grid, update: update };
   };
 
   // The waiting room: players pop in as they join and shrink away as they leave.
@@ -56,7 +107,7 @@
       var ids = {};
       people.slice().sort(function (a, b) { return (a.at || 0) - (b.at || 0) || String(a.name).localeCompare(String(b.name)); }).forEach(function (p) {
         ids[p.id] = 1;
-        var key = p.id + '|' + p.name + '|' + p.av, old = shown[p.id];
+        var key = p.id + '|' + p.name + '|' + (p.av | 0), old = shown[p.id];
         if (old && old.key === key) { el.append(old.node); return; }
         var node = L.player(p, { me: p.id === opts.meId, onTap: opts.onTap && p.id !== opts.meId ? opts.onTap : null, small: opts.small });
         node.setAttribute('role', 'listitem');

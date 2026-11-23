@@ -217,7 +217,7 @@
       var it = items();
       game = { g: B.randomId(), items: it, order: B.shuffle(it.map(function (_, i) { return i; })), called: [], last: null, round: 1,
         title: title(), size: S.size, free: free(), pattern: S.pattern, live: !!live, code: live ? B.makeCode() : '', winners: [], reveal: false,
-        phase: live ? 'lobby' : 'play', kicked: [] };
+        phase: live ? 'lobby' : 'play', kicked: [], avs: {} };
       claims = []; people = [];
       persist();
       if (live) goLive();
@@ -233,7 +233,14 @@
         on: {
           hello: function (m) { if (m && kickedId(m.id)) conn.send('kick', { id: m.id, g: game.g }); else sendState(); },
           claim: onClaim,
-          poke: function (m) { if (!m || kickedId(m.id)) return; if (lobbyRoom) lobbyRoom.poke(m.id); if (gameRoom) gameRoom.poke(m.id); }
+          poke: function (m) { if (!m || kickedId(m.id)) return; if (lobbyRoom) lobbyRoom.poke(m.id); if (gameRoom) gameRoom.poke(m.id); },
+          // A student chose an animal. Each animal belongs to one player per game: first come, first served.
+          pick: function (m) {
+            if (!m || typeof m.id !== 'string' || kickedId(m.id) || !game) return;
+            var here = hereNow(); here[m.id] = true;
+            if (Lobby.assign(game.avs, here, m.id, Number(m.av))) { persist(); paintPeople(); }
+            sendSeats(true);
+          }
         },
         onPeople: function (list) {
           people = list.filter(function (p) {
@@ -241,16 +248,35 @@
             if (kickedId(p.id)) { conn.send('kick', { id: p.id, g: game.g }); return false; }
             return true;
           });
+          seatPeople();
           paintPeople();
         },
         onStatus: function (s) { liveStatus = s; paintStatus(); },
         onLive: function () { sendState(); }
       });
     }
+    // Every player keeps a different animal. Earlier joiners keep theirs when two want the same one.
+    function hereNow() { var here = {}; people.forEach(function (p) { here[p.id] = true; }); return here; }
+    function seatPeople() {
+      if (!game) return;
+      game.avs = game.avs || {};
+      var here = hereNow(), changed = false;
+      people.slice().sort(function (a, b) { return (a.at || 0) - (b.at || 0); }).forEach(function (p) {
+        var want = game.avs[p.id] != null ? game.avs[p.id] : Number(p.av);
+        if (Lobby.assign(game.avs, here, p.id, want)) changed = true;
+      });
+      if (changed) persist();
+      sendSeats();
+    }
+    var seatTimer = null;
+    function sendSeats(now) {
+      clearTimeout(seatTimer);
+      seatTimer = setTimeout(function () { if (conn && game) conn.send('avs', { g: game.g, map: Lobby.seated(game.avs || {}, hereNow()) }); }, now ? 0 : 150);
+    }
     function stateMsg() {
       return { g: game.g, phase: game.phase || 'play', round: game.round, title: game.title, size: game.size, free: game.free, pattern: game.pattern,
         cards: game.items.map(function (i) { return i.card; }), called: game.called,
-        last: game.last ? { i: game.last.i, text: game.last.text, n: game.called.length } : null, winners: game.winners };
+        last: game.last ? { i: game.last.i, text: game.last.text, n: game.called.length } : null, winners: game.winners, avs: Lobby.seated(game.avs || {}, hereNow()) };
     }
     function sendState() {
       if (!conn || !game) return;
@@ -331,7 +357,7 @@
           TT.button('Remove', { kind: 'small lb-remove', onclick: function () {
             game.kicked = (game.kicked || []).concat(p.id); persist();
             conn.send('kick', { id: p.id, g: game.g });
-            people = people.filter(function (x) { return x.id !== p.id; });
+            people = people.filter(function (x) { return x.id !== p.id; }); sendSeats(true);
             paintPeople(); kickPop.remove(); kickPop = null;
             toast((p.name || 'The player') + ' was removed.');
           } })));
@@ -547,7 +573,7 @@
     var gameRoom = null;
     function countText(n) { return n + (n === 1 ? ' Player' : ' Players'); }
     function paintPeople() {
-      var list = people.map(function (p) { return { id: p.id, name: String(p.name || 'Player').slice(0, 20), av: p.av, at: p.at }; });
+      var list = people.map(function (p) { return { id: p.id, name: String(p.name || 'Player').slice(0, 20), av: game && game.avs && game.avs[p.id] != null ? game.avs[p.id] : p.av, at: p.at }; });
       if (lobbyRoom && game && game.phase === 'lobby' && lobbyRoom.el.isConnected) {
         lobbyRoom.update(list);
         var was = lobbyCount.textContent;
@@ -633,6 +659,7 @@
         game = old;
         if (!game.phase) game.phase = game.live && !game.called.length ? 'lobby' : 'play';   // a game from before the lobby
         game.kicked = game.kicked || [];
+        game.avs = game.avs || {};
         if (game.live) goLive();
       }
     } catch (e) {}
