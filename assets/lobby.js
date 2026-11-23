@@ -181,6 +181,20 @@
     } catch (e) {}
   };
 
+  // ---------- Leaving ends the game ----------
+  // When the teacher leaves a class-code game (another page, All Tools, Home, closing or reloading the tab),
+  // the game ends: students see "Thanks for Playing!" and the code stops working. Coming back starts fresh.
+  // opts: { page: 'bingo', active(): a game is running, players(): how many students are in, end() }
+  L.endOnLeave = function (opts) {
+    function gone() { if (opts.active()) opts.end(); }
+    window.addEventListener('tt:page', function () { if (!window.TT || !TT.page || TT.page() !== opts.page) gone(); });
+    window.addEventListener('pagehide', gone);
+    // Closing or reloading the tab by mistake with students in: the browser asks first.
+    window.addEventListener('beforeunload', function (e) {
+      if (opts.active() && opts.players && opts.players() > 0) { e.preventDefault(); e.returnValue = ''; }
+    });
+  };
+
   // ---------- 3, 2, 1, Go! ----------
   // Shows over the whole page and calls done() when it's over (about 3.6 seconds).
   var COUNT_COLORS = ['#F2643D', '#E89A00', '#0FA974'];

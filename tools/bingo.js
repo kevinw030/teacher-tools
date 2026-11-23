@@ -654,19 +654,10 @@
       if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight') { e.preventDefault(); callNext(); }
     });
 
-    // Pick up a game that was running before the page was refreshed.
-    try {
-      var old = JSON.parse(sessionStorage.getItem(GAME_KEY) || 'null');
-      if (old && old.items && Date.now() - (old.savedAt || 0) < 8 * 3600e3) {
-        game = old;
-        if (!game.phase) game.phase = game.live && !game.called.length ? 'lobby' : 'play';   // a game from before the lobby
-        game.kicked = game.kicked || [];
-        game.avs = game.avs || {};
-        if (game.live) goLive();
-      }
-    } catch (e) {}
-    if (game) paintNow(); else paintSetup();
-    window.addEventListener('pagehide', function () { if (conn && game) conn.send('pause', { g: game.g }); });
+    // Games don't carry over: leaving this page ends the game (Lobby.endOnLeave), so a visit always starts fresh.
+    try { sessionStorage.removeItem(GAME_KEY); } catch (e) {}
+    paintSetup();
+    Lobby.endOnLeave({ page: 'bingo', active: function () { return !!game; }, players: function () { return game && game.live ? people.length : 0; }, end: endGame });
 
     return {
       show: function () { if (!game) paintSetup(); },

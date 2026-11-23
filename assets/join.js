@@ -48,7 +48,7 @@
     return ADJ[Math.floor(Math.random() * ADJ.length)] + ' ' + animal;
   }
 
-  var root, me = recall('me') || null, conn = null, state = null, cells = null, marks = [], hostHere = false, findTimer = null, lastN = -1, wins = 0, cardKey = '';
+  var goneTimer = null, root, me = recall('me') || null, conn = null, state = null, cells = null, marks = [], hostHere = false, findTimer = null, lastN = -1, wins = 0, cardKey = '';
 
   function start() {
     root = document.getElementById('join');
@@ -139,6 +139,9 @@
         players = list.filter(function (p) { return !p.host; });
         if (room) room.update(seatedPlayers());
         if (was !== hostHere && state) paintHost();
+        // The teacher's screen left and didn't come back (its "end" message got lost): the game is over.
+        clearTimeout(goneTimer);
+        if (state && !hostHere) goneTimer = setTimeout(function () { if (state && !hostHere) over(); }, 20000);
       },
       onStatus: function (s) { if (s === 'off' && !state) paintWaiting('Can’t reach the game. Check the internet, then we’ll keep trying.'); },
       onLive: function () { conn.send('hello', { id: me.id }); }
@@ -179,6 +182,7 @@
     paintEnter();
   }
   function over() {
+    clearTimeout(goneTimer);
     if (conn) conn.close(); conn = null;
     store('me', null); store('card', null);
     state = null;
@@ -418,7 +422,7 @@
   }
   function paintHost() {
     if (!hostEl) return;
-    hostEl.textContent = hostHere ? '' : 'Your teacher’s screen is away. Keep your card, the game will pick up again.';
+    hostEl.textContent = hostHere ? '' : 'Your teacher’s screen is away. Hang on a moment…';
     hostEl.hidden = hostHere;
   }
   function claim() {
