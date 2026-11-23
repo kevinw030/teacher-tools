@@ -455,17 +455,9 @@
       h('span', { text: 'Previewing as ' + (v === 'free' ? 'Free' : 'Premium') }),
       h('button', { type: 'button', onclick: function () { TT.account.setViewAs(''); } }, 'Back to Owner View')));
   }
-  // A Dashboard link in the top bar for the owner.
-  function navLink() {
-    if (!TT.account || !TT.account.realPlan || TT.account.realPlan() !== 'owner') return;
-    var acct = document.querySelector('.nav-account');
-    if (!acct || document.querySelector('.nav-owner')) return;
-    var spot = acct.closest('.acct-menu-wrap') || acct;   // sit beside the account menu, not inside it
-    spot.parentNode.insertBefore(h('a', { class: 'nav-owner', href: '/owner', 'data-view': 'owner', text: 'Dashboard' }), spot);
-  }
+  // The owner opens the dashboard from the account menu (hover or tap the profile icon), built in assets/account.js.
   function start() {
-    pill(); navLink();
-    if (TT.account && TT.account.onChange) TT.account.onChange(navLink);
+    pill();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
