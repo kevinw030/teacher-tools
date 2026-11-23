@@ -13,7 +13,16 @@
     // The window shows the teacher's own time of day, and the sill shows the season.
     var season = TT.season ? TT.season() : null, key = TT.dayPhase(hr) + (hr < 12 ? 'a' : 'p') + (season ? season.id : '');
     if (key !== shownScene) { shownScene = key; $('homeWindow').innerHTML = TT.homeWindow(hr, season); }
-    if (!homeMascot) { homeMascot = TT.mascot({ mood: 'wave' }); $('homeMascot').append(homeMascot); }
+    if (!homeMascot) {
+      homeMascot = TT.mascot({ mood: 'wave' }); $('homeMascot').append(homeMascot);
+      setTimeout(function () { homeMascot.mood('idle'); }, 2200);
+      // Tap him for a trick, and he reacts when you reach for a button.
+      var tricks = ['yay', 'twirl', 'hop', 'dance', 'peek'], t = 0;
+      $('homeMascot').addEventListener('click', function () { homeMascot.play(tricks[t++ % tricks.length]); if (TT.tick) TT.tick(); });
+      var open = document.querySelector('.wel-open'), go = $('todayGo');
+      if (open) { open.addEventListener('pointerenter', function () { homeMascot.play('yay'); }); open.addEventListener('focus', function () { homeMascot.play('yay'); }); }
+      if (go) { go.addEventListener('pointerenter', function () { homeMascot.play('ponder'); }); go.addEventListener('focus', function () { homeMascot.play('ponder'); }); }
+    }
     $('wyrDate').textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) + ' · Pick a side, then tell a partner why.';
   }
   TT.paintWelcome = function () { paintDate(); };
