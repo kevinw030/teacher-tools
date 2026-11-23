@@ -62,28 +62,29 @@
 
 <!-- HOME -->
 <main class="page" id="view-home" data-view="home">
-  <section class="hero hero-scene">
-    <div class="hero-art" aria-hidden="true"></div>
-    <div class="hero-hello glass" data-rise>
-      <h1 id="greeting">Good morning!</h1>
-      <p>Everything you need for the board, one click away.</p>
-    </div>
-    <div class="hero-side" data-rise>
-      <div class="date-card">
-        <span class="date-day" id="dateDay">20</span>
-        <span class="date-text"><b id="dateWeekday">Friday</b><span id="dateMonth">November 2026</span></span>
+  <section class="welcome" aria-label="Welcome" data-rise>
+    <div class="wel-main">
+      <div class="wel-text">
+        <p class="wel-date" id="homeDate">Today</p>
+        <h1 id="greeting">Good morning!</h1>
+        <a class="wel-open" href="#board">Open My Board
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
       </div>
-      <div id="petMini"></div>
+      <div class="wel-scene" aria-hidden="true">
+        <span class="wel-floor"></span>
+        <div class="wel-window" id="homeWindow"></div>
+        <div class="wel-mascot" id="homeMascot"></div>
+      </div>
     </div>
-  </section>
-
-  <section class="feature glass" aria-label="Today's Would You Rather" data-rise>
-    <div style="min-width:0">
-      <span class="eyebrow">Today's Would You Rather</span>
-      <p class="feature-q" id="todayQ">Would you rather …</p>
+    <div class="wel-q" aria-label="Today's Would You Rather">
+      <div class="wel-q-text">
+        <span class="wel-q-label">Today’s Would You Rather</span>
+        <p class="wel-q-line" id="todayQ">…</p>
+      </div>
+      <a class="wel-q-go" id="todayGo" href="#would-you-rather"><span id="todayGoText">Show the Class</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
     </div>
-    <a class="btn primary big" id="todayGo" href="#would-you-rather"><span id="todayGoText">Show the Class</span>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
+    <div id="petMini" hidden></div>
   </section>
 
   <section class="home-daily" aria-labelledby="dailyHead">
@@ -427,6 +428,7 @@
 <script src="tools/picker.js"></script>
 <script src="tools/groups.js"></script>
 <script src="tools/mascot.js"></script>
+<script src="tools/welcome.js"></script>
 <script src="would-you-rather/questions.js"></script>
 <script src="would-you-rather/app.js"></script>
 <script src="assets/backgrounds.js"></script>

@@ -20,12 +20,20 @@
     var classInput = h('input', { type: 'text', id: 'setClass', maxlength: 30, placeholder: 'Like Room 12 or 4th Grade Stars', 'aria-label': 'What you call your class' });
     classInput.value = s.className || '';
     classInput.addEventListener('input', function () { s.className = classInput.value.trim(); TT.saveSettings(); });
+    function zonePick() {
+      var sel = h('select', { id: 'setZone', class: 'set-select', 'aria-label': 'Time zone' });
+      (TT.TIME_ZONES || [['auto', 'Match This Computer']]).forEach(function (o) {
+        var opt = h('option', { value: o[0], text: o[1] }); if ((s.tz || 'auto') === o[0]) opt.selected = true; sel.append(opt);
+      });
+      sel.addEventListener('change', function () { s.tz = sel.value; TT.saveSettings(); if (TT.paintWelcome) TT.paintWelcome(); });
+      return sel;
+    }
     function seasonPick() {
       var sel = h('select', { id: 'setSeason', class: 'set-select', 'aria-label': 'Seasonal theme' });
       [['auto', 'Follow the Calendar'], ['off', 'Off']].concat((TT.SEASONS || []).map(function (x) { return [x.id, x.name]; })).forEach(function (o) {
         var opt = h('option', { value: o[0], text: o[1] }); if ((s.season || 'auto') === o[0]) opt.selected = true; sel.append(opt);
       });
-      sel.addEventListener('change', function () { s.season = sel.value; TT.saveSettings(); if (TT.applySeason) TT.applySeason(); });
+      sel.addEventListener('change', function () { s.season = sel.value; TT.saveSettings(); if (TT.applySeason) TT.applySeason(); if (TT.paintWelcome) TT.paintWelcome(); });
       return sel;
     }
     function row(title, desc, control) {
@@ -34,6 +42,7 @@
     el.append(h('div', { class: 'settings' },
       row('Your Name', 'Shown in the greeting on the home page.', nameInput),
       row('Class Name', 'Shown on the Morning Meeting screen, like “Good morning, Room 12!”', classInput),
+      row('Time Zone', 'Sets the greeting and the view out of the classroom window on the home page.', zonePick()),
       row('Theme', 'Light, dark, or match this computer.', seg([['auto', 'Match Computer'], ['light', 'Light'], ['dark', 'Dark']], 'theme', TT.applyTheme)),
       row('Seasonal Theme', 'Holiday touches on the home page, board backgrounds and games.', seasonPick()),
       row('Sounds', 'Chimes, ticks and spinner sounds.', seg([[true, 'On'], [false, 'Off']], 'sound', function () { if (s.sound) TT.chime(); })),

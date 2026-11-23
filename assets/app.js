@@ -4,31 +4,33 @@
   var $ = function (id) { return document.getElementById(id); };
 
   // ---------- Home: date and greeting ----------
+  var homeMascot = null, shownScene = '';
   function paintDate() {
-    var d = new Date();
-    $('dateDay').textContent = d.getDate();
-    $('dateWeekday').textContent = d.toLocaleDateString(undefined, { weekday: 'long' });
-    $('dateMonth').textContent = d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
-    var hr = d.getHours();
+    var now = TT.clock(), hr = now.hour;
+    $('homeDate').textContent = now.text;
     var who = TT.settings.name ? ', ' + TT.settings.name : '';
     $('greeting').textContent = (hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening') + who + '!';
-    $('wyrDate').textContent = d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) + ' · Pick a side, then tell a partner why.';
+    // The window shows the teacher's own time of day, and the sill shows the season.
+    var season = TT.season ? TT.season() : null, key = TT.dayPhase(hr) + (hr < 12 ? 'a' : 'p') + (season ? season.id : '');
+    if (key !== shownScene) { shownScene = key; $('homeWindow').innerHTML = TT.homeWindow(hr, season); }
+    if (!homeMascot) { homeMascot = TT.mascot({ mood: 'wave' }); $('homeMascot').append(homeMascot); }
+    $('wyrDate').textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) + ' · Pick a side, then tell a partner why.';
   }
-  // The home page keeps today's question a secret until the class has spun for it.
+  TT.paintWelcome = function () { paintDate(); };
+  // The banner keeps today's question a secret until the class has spun for it.
   function paintToday() {
     var q = TT.wyr && TT.wyr.current();
     var box = $('todayQ'), go = $('todayGo'), label = $('todayGoText');
-    box.textContent = '';
     box.classList.toggle('secret', !q);
     if (!TT.wyr || !TT.wyr.count()) { box.textContent = 'Add questions to get started.'; label.textContent = 'Open'; return; }
     if (!q) {
-      box.append(TT.mascot ? h('span', { class: 'q-mascot' }, TT.mascot({ mood: 'wave' })) : h('span', { class: 'q-mark', 'aria-hidden': 'true', text: '?' }), 'Today’s question is still a secret. Spin the wheel to find out!');
+      box.textContent = 'It’s still a secret. Spin the wheel to find out!';
       label.textContent = 'Spin the Wheel';
       go.onclick = function () { TT.wyr.autoSpin = true; };
       return;
     }
     go.onclick = null; label.textContent = 'Show the Class';
-    box.append('Would you rather ', h('span', { class: 'x', text: q[0] }), ' or ', h('span', { class: 'y', text: q[1] }), '?');
+    box.textContent = q[0].charAt(0).toUpperCase() + q[0].slice(1) + ' or ' + q[1] + '?';
   }
 
   // ---------- My links ----------
@@ -172,6 +174,7 @@
   var shown = new Date().toDateString();
   setInterval(function () {
     if (new Date().toDateString() !== shown) { shown = new Date().toDateString(); paintDate(); paintToday(); }
+    else if (!$('view-home').hidden) paintDate();   // keeps the greeting and the window in step with the clock
   }, 60000);
 
   document.querySelector('.nav-gear').innerHTML = TT.icon('gear');
