@@ -129,3 +129,14 @@ body.pm-free .mob-item[href="#seating"]::after, body.pm-free .mob-item[href="#pr
 .acct-backup { border-top: 1px solid var(--line); padding-top: 14px; display: flex; flex-direction: column; gap: 6px; }
 .acct-backup h3 { margin: 0; font-family: var(--display); font-size: 18px; }
 .acct-backup p { margin: 0; }
+
+/* "Plus" in gold on the plan lists */
+.plan-plus { font-weight: 900; background: linear-gradient(135deg, #F5B70A, #E08A00); -webkit-background-clip: text; background-clip: text; color: transparent; }
+:root[data-theme="dark"] .plan-plus { background-image: linear-gradient(135deg, #FFD54A, #FFB020); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .plan-plus { background-image: linear-gradient(135deg, #FFD54A, #FFB020); } }
+
+/* Trivia Showdown card on the Games page */
+body.pm-free a.tool[href="#trivia"]::after, body.pm-owner a.tool[href="#trivia"]::after {
+  content: "Premium"; position: absolute; top: 16px; right: 16px; font-family: var(--body); font-size: 12px; font-weight: 800; line-height: 1; color: #fff; padding: 5px 10px; border-radius: 999px; background: var(--pm-grad); white-space: nowrap;
+}
+body.pm-free a.tool[href="#trivia"] .tool-icon { filter: saturate(.6); }

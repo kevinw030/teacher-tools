@@ -12,35 +12,36 @@
   // screens: saved board screens. classes: class lists. trivia: own trivia questions. tickets: past exit tickets kept.
   // premium: tools and rooms that only Premium opens (see assets/premium.js). saveBoard: the board remembers your screens.
   var PLANS = {
-    open: { screens: 10, classes: Infinity, trivia: Infinity, tickets: 50, photo: true, premium: true, saveBoard: true }, // accounts switched off
-    free: { screens: 2, classes: 2, trivia: 20, tickets: 5, photo: true, premium: false, saveBoard: true },
-    premium: { screens: 10, classes: Infinity, trivia: Infinity, tickets: 50, photo: true, premium: true, saveBoard: true }
+    open: { screens: Infinity, classes: Infinity, trivia: Infinity, tickets: 50, photo: true, premium: true, saveBoard: true }, // accounts switched off
+    free: { screens: 2, classes: 2, trivia: 0, tickets: 5, photo: true, premium: false, saveBoard: true },
+    premium: { screens: Infinity, classes: Infinity, trivia: Infinity, tickets: 50, photo: true, premium: true, saveBoard: true }
   };
   PLANS.owner = PLANS.premium;
   // Not signed in: everything works, but the board keeps only the screen on show and forgets it when the page closes.
-  PLANS.guest = { screens: 1, classes: 2, trivia: 20, tickets: 5, photo: true, premium: false, saveBoard: false };
+  PLANS.guest = { screens: 1, classes: 2, trivia: 0, tickets: 5, photo: true, premium: false, saveBoard: false };
   TT.PLANS = PLANS;
 
   // What each plan includes. The pricing tab and the Premium pop-up both read these lists.
   TT.PLAN_FEATURES = {
     free: [
-      ['Every Board Widget, Daily Tool and Game'],
+      ['Every Board Widget and Daily Tool'],
+      ['Every Game but Trivia Showdown', 'Including all four math races'],
       ['Saves to Your Account', 'Use it on any computer'],
       [PLANS.free.screens + ' Saved Board Screens'],
       [PLANS.free.classes + ' Class Lists'],
       ['Your Own Photo Backgrounds'],
       ['The Locked Library Escape Room', 'New questions for each grade every time you play'],
-      ['Your Own Would You Rather Questions', 'Plus ' + PLANS.free.trivia + ' of your own trivia questions'],
+      ['Your Own Would You Rather Questions', 'As many as you like'],
       ['The Last ' + PLANS.free.tickets + ' Exit Tickets']
     ],
     premium: [
-      [PLANS.premium.screens + ' Saved Board Screens'],
+      ['Unlimited Saved Board Screens'],
       ['Unlimited Class Lists'],
       ['All 4 Escape Rooms', 'Space Station, Pirate Treasure and Museum too'],
       ['Edit the Questions in Any Room', 'Match a room to this week\'s lesson'],
       ['Seating Chart', 'Build your room and seat your class'],
       ['Prompts', 'Writing, discussion and This or That by grade'],
-      ['Unlimited Trivia Questions of Your Own'],
+      ['Trivia Showdown', 'Quiz-show game for 1 to 4 teams, with your own questions too'],
       ['The Last ' + PLANS.premium.tickets + ' Exit Tickets']
     ]
   };
@@ -76,6 +77,11 @@
     return { mo: mo, yr: yr, off: off, earlyOpen: new Date() < until,
       untilText: new Date(until.getTime() - 86400000).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }),
       save: mo && yr ? Math.round((1 - yr / (mo * 12)) * 100) : 0 };
+  };
+  // "Everything in Free, Plus:" with the word Plus in gold.
+  TT.planLead = function (text, cls) {
+    var parts = String(text).split(/(Plus)/);
+    return h('p', { class: cls }, parts.map(function (t) { return t === 'Plus' ? h('span', { class: 'plan-plus', text: t }) : t; }));
   };
   TT.money = function (n) { return '$' + (Math.round(n * 100) / 100).toFixed(n % 1 ? 2 : 0); };
   Object.defineProperty(TT.config, 'maxScreens', { get: function () { return TT.limit('screens'); }, configurable: true });
@@ -539,7 +545,7 @@
         return linkUrl ? cta(label, 'primary', { href: payLink(linkUrl) }) : cta('Coming Soon', '', { disabled: true });
       }
       function list(lead, items) {
-        return h('div', { class: 'plan-list' }, h('p', { class: 'plan-lead', text: lead }),
+        return h('div', { class: 'plan-list' }, TT.planLead(lead, 'plan-lead'),
           h('ul', null, items.map(function (t) { return h('li', null, h('span', { class: 'tick', 'aria-hidden': 'true', text: '✓' }), h('span', null, t[0], t[1] ? h('small', { text: t[1] }) : null)); })));
       }
       function priceBlock(amount, was) {
@@ -558,7 +564,7 @@
         list('Get started with:', TT.PLAN_FEATURES.free)));
       cols.push(h('div', { class: 'plan-col featured' },
         h('div', { class: 'plan-top' }, h('h3', { text: 'Premium' }), h('span', { class: 'plan-tag', text: 'Recommended' })),
-        h('p', { class: 'plan-desc', text: 'Every escape room, Seating Chart, Prompts and room for every class.' }),
+        h('p', { class: 'plan-desc', text: 'Every escape room, Trivia Showdown, Seating Chart, Prompts and room for every class.' }),
         priceBlock(yearly ? money(yr) : money(mo)),
         paidCta(CFG.premiumMonthlyLink, CFG.premiumYearlyLink, 'Get Premium'),
         h('p', { class: 'plan-note', text: yearly ? 'Billed once a year. Cancel anytime.' : 'Billed monthly. Cancel anytime.' }),
@@ -578,7 +584,7 @@
         }));
       return h('section', { class: 'pricing' },
         h('div', { class: 'pricing-head' }, h('h2', { text: 'Start Free. Upgrade Anytime.' }),
-          h('p', { class: 'muted', text: 'Every board widget, Daily tool and game is free. Premium opens every escape room, Seating Chart and Prompts.' }), toggle),
+          h('p', { class: 'muted', text: 'Every board widget, Daily tool and almost every game is free. Premium opens every escape room, Trivia Showdown, Seating Chart and Prompts.' }), toggle),
         h('div', { class: 'pricing-grid cols-' + cols.length }, cols));
     }
 

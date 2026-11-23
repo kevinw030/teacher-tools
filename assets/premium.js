@@ -3,7 +3,7 @@
 // Locked on Free: Seating Chart, Prompts, every escape room except The Locked Library, and editing a room's questions.
 (function () {
   var TT = window.TT, h = TT.h;
-  var LOCKED_VIEWS = { seating: 1, prompts: 1 };
+  var LOCKED_VIEWS = { seating: 1, prompts: 1, trivia: 1 };
   var FREE_ROOMS = { library: 1 };
 
   var COPY = {
@@ -11,15 +11,15 @@
     roomEdit: ['Make Any Room Your Own', 'Write your own question for any spot in a room, so an escape room can review this week’s lesson.'],
     seating: ['Seating Chart Is a Premium Tool', 'Build your room, then drag students to their seats or shuffle them. Each class list keeps its own chart.'],
     prompts: ['Prompts Is a Premium Tool', 'Writing prompts, discussion starters and This or That questions for your grade, each with a helper.'],
-    screens: ['Save More Board Screens', 'Free accounts save 2 board screens. Premium saves 10, one for every part of your day.'],
+    screens: ['Save More Board Screens', 'Free accounts save 2 board screens. Premium saves as many as you like, one for every part of your day.'],
     classes: ['Add More Class Lists', 'Free accounts keep 2 class lists. Premium keeps as many as you teach.'],
-    trivia: ['Write All the Trivia You Want', 'Free accounts hold 20 trivia questions of your own. Premium has no limit.'],
-    plan: ['ED Sidekick Premium', 'Every escape room, Seating Chart, Prompts and room for every class.']
+    trivia: ['Trivia Showdown Is a Premium Game', 'A quiz-show board with categories and points for 1 to 4 teams, picked by grade. Write your own trivia questions for it too.'],
+    plan: ['ED Sidekick Premium', 'Every escape room, Trivia Showdown, Seating Chart, Prompts and room for every class.']
   };
 
   // Used only if an older copy of account.js is still in the browser's cache.
-  var FALLBACK_FEATURES = [['10 Saved Board Screens'], ['Unlimited Class Lists'], ['All 4 Escape Rooms'], ['Edit the Questions in Any Room'],
-    ['Seating Chart'], ['Prompts'], ['Unlimited Trivia Questions of Your Own'], ['The Last 50 Exit Tickets']];
+  var FALLBACK_FEATURES = [['Unlimited Saved Board Screens'], ['Unlimited Class Lists'], ['All 4 Escape Rooms'], ['Edit the Questions in Any Room'],
+    ['Seating Chart'], ['Prompts'], ['Trivia Showdown'], ['The Last 50 Exit Tickets']];
   function fallbackPrices() {
     var C = window.TT_ACCOUNT_CONFIG || {}, mo = parseFloat(String(C.priceMonthly || '3.99').replace(/[^0-9.]/g, '')), yr = parseFloat(String(C.priceYearly || '29').replace(/[^0-9.]/g, ''));
     var until = new Date((C.earlyUntil || '2027-01-01') + 'T00:00:00');
@@ -110,7 +110,7 @@
         h('div', null, h('span', { class: 'pm-eyebrow', text: 'ED Sidekick Premium' }), h('h2', { id: 'pmTitle', text: copy[0] }))),
       h('p', { class: 'pm-text', text: copy[1] }),
       h('div', { class: 'pm-mid' }, h('div', { class: 'pm-pricecol' }, toggle, priceBox),
-        h('div', { class: 'pm-feats' }, h('p', { class: 'pm-lead', text: 'Everything in Free, Plus:' }), list)),
+        h('div', { class: 'pm-feats' }, (TT.planLead ? TT.planLead('Everything in Free, Plus:', 'pm-lead') : h('p', { class: 'pm-lead', text: 'Everything in Free, Plus:' })), list)),
       h('div', { class: 'pm-actions' }, go, later),
       h('p', { class: 'pm-foot', text: signedIn ? 'Everything you have saved stays put when you upgrade.' : 'Start with a free account, then upgrade anytime.' }));
     layer = h('div', { class: 'pm-layer', onclick: function (e) { if (e.target === layer) close(); } }, card);
@@ -160,7 +160,7 @@
         h('span', { class: 'pm-icon', html: TT.icon('lock') }),
         h('h2', { text: copy[0] }), h('p', { class: 'muted', text: copy[1] }),
         h('div', { class: 'row center' }, TT.button('See What Premium Includes', { kind: 'primary big', onclick: function () { open(name); } }),
-          h('a', { class: 'btn big', href: '#home', text: 'Back to All Tools' })));
+          h('a', { class: 'btn big', href: name === 'trivia' ? '#games' : '#home', text: name === 'trivia' ? 'Back to All Games' : 'Back to All Tools' })));
       el.append(gateCard);
     }
     paint();

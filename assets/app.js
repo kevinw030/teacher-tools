@@ -89,7 +89,7 @@
         h('div', null, h('a', { class: 'btn small', href: '#games', html: TT.icon('back') + '<span>All Games</span>' }), h('h1', { text: g.title }), h('p', { text: g.desc })),
         h('div', { class: 'row js-fs-slot' })),
       mount));
-    gameMounters[g.id] = function () { return g.mount(mount) || {}; };
+    gameMounters[g.id] = function () { return TT.premium.gate(g.id, mount, g.mount); };
     // Leaving a game closes it out: the page is emptied and any half-finished game is forgotten,
     // so the next visit starts fresh. Scores between rounds, best times and settings are kept.
     gameClosers[g.id] = function () {
