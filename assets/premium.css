@@ -20,17 +20,17 @@
 .er-edit-row { margin-top: -4px; }
 
 /* Links to locked tools get a Premium tag (nav menu, home cards, phone sheet). */
-body.pm-free .nav-pop a[href="#seating"], body.pm-free .nav-pop a[href="#prompts"], body.pm-owner .nav-pop a[href="#seating"], body.pm-owner .nav-pop a[href="#prompts"] { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-body.pm-free .nav-pop a[href="#seating"]::after, body.pm-free .nav-pop a[href="#prompts"]::after,
-body.pm-free a.tool[href="#seating"]::after, body.pm-free a.tool[href="#prompts"]::after,
-body.pm-free .mob-item[href="#seating"]::after, body.pm-free .mob-item[href="#prompts"]::after,
-body.pm-owner .nav-pop a[href="#seating"]::after, body.pm-owner .nav-pop a[href="#prompts"]::after,
-body.pm-owner a.tool[href="#seating"]::after, body.pm-owner a.tool[href="#prompts"]::after {
+body.pm-free .nav-pop a[href="/seating"], body.pm-free .nav-pop a[href="/prompts"], body.pm-owner .nav-pop a[href="/seating"], body.pm-owner .nav-pop a[href="/prompts"] { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+body.pm-free .nav-pop a[href="/seating"]::after, body.pm-free .nav-pop a[href="/prompts"]::after,
+body.pm-free a.tool[href="/seating"]::after, body.pm-free a.tool[href="/prompts"]::after,
+body.pm-free .mob-item[href="/seating"]::after, body.pm-free .mob-item[href="/prompts"]::after,
+body.pm-owner .nav-pop a[href="/seating"]::after, body.pm-owner .nav-pop a[href="/prompts"]::after,
+body.pm-owner a.tool[href="/seating"]::after, body.pm-owner a.tool[href="/prompts"]::after {
   content: "Premium"; font-family: var(--body); font-size: 11px; font-weight: 800; line-height: 1; color: #fff; padding: 4px 8px; border-radius: 999px; background: var(--pm-grad); white-space: nowrap;
 }
-body.pm-free a.tool[href="#seating"]::after, body.pm-free a.tool[href="#prompts"]::after, body.pm-owner a.tool[href="#seating"]::after, body.pm-owner a.tool[href="#prompts"]::after { position: absolute; top: 16px; right: 16px; font-size: 12px; padding: 5px 10px; }
-body.pm-free .mob-item[href="#seating"], body.pm-free .mob-item[href="#prompts"] { position: relative; }
-body.pm-free .mob-item[href="#seating"]::after, body.pm-free .mob-item[href="#prompts"]::after { position: absolute; top: 2px; right: 4px; font-size: 9.5px; padding: 3px 6px; }
+body.pm-free a.tool[href="/seating"]::after, body.pm-free a.tool[href="/prompts"]::after, body.pm-owner a.tool[href="/seating"]::after, body.pm-owner a.tool[href="/prompts"]::after { position: absolute; top: 16px; right: 16px; font-size: 12px; padding: 5px 10px; }
+body.pm-free .mob-item[href="/seating"], body.pm-free .mob-item[href="/prompts"] { position: relative; }
+body.pm-free .mob-item[href="/seating"]::after, body.pm-free .mob-item[href="/prompts"]::after { position: absolute; top: 2px; right: 4px; font-size: 9.5px; padding: 3px 6px; }
 
 /* ---------- Coming Soon ---------- */
 .btn.soon-btn, .btn.soon-btn:hover { opacity: .6; cursor: not-allowed; filter: grayscale(.4); transform: none; }
@@ -136,7 +136,7 @@ body.pm-free .mob-item[href="#seating"]::after, body.pm-free .mob-item[href="#pr
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .plan-plus { background-image: linear-gradient(135deg, #FFD54A, #FFB020); } }
 
 /* Trivia Showdown card on the Games page */
-body.pm-free a.tool[href="#trivia"]::after, body.pm-owner a.tool[href="#trivia"]::after {
+body.pm-free a.tool[href="/trivia"]::after, body.pm-owner a.tool[href="/trivia"]::after {
   content: "Premium"; position: absolute; top: 16px; right: 16px; font-family: var(--body); font-size: 12px; font-weight: 800; line-height: 1; color: #fff; padding: 5px 10px; border-radius: 999px; background: var(--pm-grad); white-space: nowrap;
 }
-body.pm-free a.tool[href="#trivia"] .tool-icon { filter: saturate(.6); }
+body.pm-free a.tool[href="/trivia"] .tool-icon { filter: saturate(.6); }

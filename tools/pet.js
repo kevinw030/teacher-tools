@@ -390,7 +390,7 @@
 (function () {
   if (TT.PETS_ON) return;
   function off() {
-    var links = document.querySelectorAll('a[href="#pet"]');
+    var links = document.querySelectorAll('a[href="/pet"], a[href="#pet"]');
     for (var i = 0; i < links.length; i++) links[i].hidden = true, links[i].style.display = 'none';
     if (TT.page() === 'pet') TT.go('home', true);
   }

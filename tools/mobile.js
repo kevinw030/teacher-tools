@@ -25,7 +25,7 @@
     for (var i = 0; i < links.length; i++) {
       var a = links[i];
       if (a.hidden || a.style.display === 'none') continue;   // switched-off pages stay off
-      var view = a.getAttribute('data-view'), tile = document.querySelector('#view-home a.tool[href="#' + view + '"]');
+      var view = a.getAttribute('data-view'), tile = document.querySelector('#view-home a.tool[href="/' + view + '"]');
       var ico = tile && tile.querySelector('.tool-icon'), color = tile ? (tile.className.match(/c-[a-z]+/) || ['c-violet'])[0] : 'c-violet';
       lists[key].push({ view: view, label: a.textContent, icon: ico ? ico.innerHTML : svg(ICON.dot), color: color });
       where[view] = key;

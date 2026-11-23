@@ -81,7 +81,7 @@
           if (L.length % COLORS.length === 1 && i === L.length - 1) c = COLORS[(i + 2) % COLORS.length];
           ctx.fillStyle = c; ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 1.5; ctx.stroke();
           ctx.save(); ctx.rotate(i * seg + seg / 2);
-          ctx.fillStyle = '#fff'; ctx.font = '700 ' + fs + 'px "Plus Jakarta Sans", "Segoe UI", sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+          ctx.fillStyle = '#fff'; ctx.font = '700 ' + fs + 'px "Gabarito", "Segoe UI", sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
           var t = name; while (ctx.measureText(t).width > R * 0.7 && t.length > 2) t = t.slice(0, -2) + '…';
           ctx.fillText(t, R - 10, 0); ctx.restore();
         });

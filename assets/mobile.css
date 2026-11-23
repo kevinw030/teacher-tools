@@ -67,7 +67,7 @@
   .page { padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(var(--mob-tab) + var(--mob-b) + 32px) max(16px, env(safe-area-inset-left, 0px)); gap: 16px; }
   /* The page name and the way back live in the top bar, so the page itself starts with the tool. */
   .tool-head { flex-wrap: nowrap; align-items: center; gap: 12px; }
-  .tool-head h1, .tool-head .back-all, .tool-head a.btn.small[href="#games"], .tool-head .eyebrow { display: none; }
+  .tool-head h1, .tool-head .back-all, .tool-head a.btn.small[href="/games"], .tool-head .eyebrow { display: none; }
   .tool-head p { margin: 0; font-size: 15px; line-height: 1.4; }
   .tool-head .js-fs-slot { flex: none; }
   .tool-head .js-fs-slot:empty { display: none; }
