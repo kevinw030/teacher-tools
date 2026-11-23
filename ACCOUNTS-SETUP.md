@@ -75,6 +75,16 @@ Supabase's built-in email sends only a few sign-in emails an hour and won't let 
 5. Now the templates unlock. Change the wording of **Confirm signup** and **Reset Password** to ED Sidekick if you like.
 6. Turn **Confirm email** back on (Authentication > Sign In / Providers > Email).
 
+## Part 1b: Owner Dashboard (one paste)
+
+The Owner Dashboard (edsidekick.com/#owner, or the green Dashboard button in the top bar) shows visits, the most-used tools and games, every account, members, Premium sign-ups and income. Only accounts with plan = 'owner' can see any of it: the database checks this itself, so the public page code can't reveal anything.
+
+1. Supabase > **SQL Editor** > **New query**.
+2. Paste everything from `supabase/owner-dashboard.sql` and click **Run**. (Safe to run again later.)
+3. Open the dashboard on the site. Visits count from this moment on.
+
+When Stripe is set up (Part 2), also add `invoice.paid` and `charge.refunded` to the webhook's events so payments show under Income.
+
 ## Part 2: Payments (Stripe)
 
 1. Sign up at https://stripe.com and finish the account details (business info and the bank account for payouts).
@@ -90,7 +100,7 @@ Supabase's built-in email sends only a few sign-in emails an hour and won't let 
    `supabase/functions/stripe-webhook/index.ts`, and turn **off** "Verify JWT" (Stripe signs its messages instead).
 6. In Stripe, **Developers > Webhooks > Add endpoint**:
    - URL: `https://YOUR-PROJECT.supabase.co/functions/v1/stripe-webhook`
-   - Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
+   - Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `charge.refunded`
    - Copy the **Signing secret**.
 7. In Supabase, **Edge Functions > Secrets**, add `STRIPE_SECRET_KEY` (Stripe: Developers > API keys > Secret key)
    and `STRIPE_WEBHOOK_SECRET` (the signing secret from step 6).

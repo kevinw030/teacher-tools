@@ -68,6 +68,7 @@
   function onKey(e) { if (e.key === 'Escape') { e.stopPropagation(); close(); } }
 
   function open(feature) {
+    if (TT.track) TT.track('premium-popup', feature || 'plan');
     if (layer) layer.remove();
     lastFocus = document.activeElement;
     var copy = COPY[feature] || COPY.plan;

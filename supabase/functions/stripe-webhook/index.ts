@@ -34,5 +34,23 @@ Deno.serve(async (req) => {
     const active = event.type === 'customer.subscription.updated' && ['active', 'trialing', 'past_due'].includes(sub.status);
     await setPlanByCustomer(customer, active ? 'premium' : 'free');
   }
+  // Record each payment for the Owner Dashboard's income numbers (table from owner-dashboard.sql).
+  if (event.type === 'invoice.paid') {
+    const inv = event.data.object as Stripe.Invoice;
+    const customer = typeof inv.customer === 'string' ? inv.customer : inv.customer?.id;
+    let { data: who } = await admin.from('profiles').select('id').eq('stripe_customer', customer ?? '').maybeSingle();
+    // The very first invoice can arrive before checkout links the customer, so fall back to the email.
+    if (!who && inv.customer_email) ({ data: who } = await admin.from('profiles').select('id').eq('email', inv.customer_email).maybeSingle());
+    const line = inv.lines?.data?.[0];
+    await admin.from('payments').upsert({
+      user_id: who?.id ?? null, stripe_invoice: inv.id, amount_cents: inv.amount_paid ?? 0, currency: inv.currency,
+      billing: line?.price?.recurring?.interval ?? null, status: 'paid',
+      paid_at: new Date((inv.status_transitions?.paid_at ?? inv.created) * 1000).toISOString(),
+    }, { onConflict: 'stripe_invoice' });
+  } else if (event.type === 'charge.refunded') {
+    const ch = event.data.object as Stripe.Charge;
+    const invoice = typeof ch.invoice === 'string' ? ch.invoice : ch.invoice?.id;
+    if (invoice) await admin.from('payments').update({ status: 'refunded' }).eq('stripe_invoice', invoice);
+  }
   return new Response('ok');
 });
