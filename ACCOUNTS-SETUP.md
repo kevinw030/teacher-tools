@@ -109,15 +109,15 @@ The signing secret goes in one place only: Supabase's Secrets page (step 5). Pay
 |---|---|---|
 | Plus Monthly | $3.99 | Monthly |
 | Plus Yearly | $35.99 | Yearly |
-| Plus Early Access Monthly | $2.59 | Monthly |
-| Plus Early Access Yearly | $23.39 | Yearly |
+| Plus Early Access Monthly | $2.99 | Monthly |
+| Plus Early Access Yearly | $30.99 | Yearly |
 
-(Yearly is 25% off twelve months, rounded to $35.99. Early Access is 35% off, monthly or yearly, for people who join
-before January 1, 2027, and they keep that price as long as they stay subscribed. The site stops showing the Early Access
-price on that date.)
+(Yearly is 25% off twelve months ($47.88), rounded to $35.99. Early Access, for people who join before January 1, 2027:
+monthly is 25% off ($2.99), and yearly is 35% off twelve months instead of 25% ($31.12, rounded down to $30.99).
+Early members keep that price as long as they stay subscribed. The site stops showing the Early Access prices on that date.)
 
 **Premium (later, not tonight):** when the live quiz games are ready, make a second product, `ED Sidekick Premium`, with
-$7.99 monthly and $71.99 yearly (plus $5.19 and $46.79 early prices if Early Access is still on), four more Payment Links,
+$7.99 monthly and $71.99 yearly (plus $5.99 monthly and $61.99 yearly early prices if Early Access is still on), four more Payment Links,
 and turn on plan switching in the customer portal. The webhook and one SQL line get updated then too. Claude will walk you through it.
 
 ### 3. Make four Payment Links

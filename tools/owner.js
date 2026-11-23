@@ -323,12 +323,11 @@
     function incomeCard() {
       var pays = data.payments || [], C = (TT.account && TT.account.config) || {};
       var pr = TT.account.prices();
-      var early = function (n) { return '$' + pr.early(n).toFixed(2); };
       var row = function (label, n) { return h('li', null, h('span', { text: label }), h('b', { text: '$' + n.toFixed(2) })); };
       var priceList = h('ul', { class: 'od-prices' },
         row('Plus Monthly', pr.mo), row('Plus Yearly', pr.yr),
-        pr.earlyOpen ? h('li', null, h('span', { text: 'Plus Early Access Monthly (until ' + pr.untilText + ')' }), h('b', { text: early(pr.mo) })) : null,
-        pr.earlyOpen ? h('li', null, h('span', { text: 'Plus Early Access Yearly (until ' + pr.untilText + ')' }), h('b', { text: early(pr.yr) })) : null,
+        pr.earlyOpen ? h('li', null, h('span', { text: 'Plus Early Access Monthly (until ' + pr.untilText + ')' }), h('b', { text: '$' + pr.earlyPrices.mo.toFixed(2) })) : null,
+        pr.earlyOpen ? h('li', null, h('span', { text: 'Plus Early Access Yearly (until ' + pr.untilText + ')' }), h('b', { text: '$' + pr.earlyPrices.yr.toFixed(2) })) : null,
         row('Premium Monthly' + (C.topOpen ? '' : ' (Coming Soon)'), pr.topMo), row('Premium Yearly' + (C.topOpen ? '' : ' (Coming Soon)'), pr.topYr));
       if (!pays.length) {
         var connected = !!(C.premiumMonthlyLink || C.premiumYearlyLink);

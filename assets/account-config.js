@@ -15,17 +15,21 @@ window.TT_ACCOUNT_CONFIG = {
 
   // The paid plans. Members see two: Plus (inside the code and the database it is still called
   // 'premium', so older accounts keep working) and Premium (the top plan, Coming Soon for now).
-  // Yearly = 25% off twelve months, rounded to .99. Early Access takes earlyDiscount off for people who
-  // join before earlyUntil (the early prices hide themselves after that date).
+  // Yearly = 25% off twelve months, rounded to .99. Early Access (people who join before earlyUntil;
+  // the early prices hide themselves after that date): monthly plans 25% off, yearly plans 35% off
+  // twelve months instead of 25%. The early yearly prices are rounded down to .99, so they are at least 35% off.
 
   // Plus. From Stripe: Payment Links for the four Plus prices. Leave empty until payments are ready.
   premiumMonthlyLink: '',  // Plus monthly, $3.99
   premiumYearlyLink: '',   // Plus yearly, $35.99
-  earlyMonthlyLink: '',    // Plus Early Access monthly, $2.59
-  earlyYearlyLink: '',     // Plus Early Access yearly, $23.39
+  earlyMonthlyLink: '',    // Plus Early Access monthly, $2.99
+  earlyYearlyLink: '',     // Plus Early Access yearly, $30.99
   priceMonthly: '$3.99',
   priceYearly: '$35.99',
-  earlyDiscount: 0.35,
+  earlyPriceMonthly: '$2.99',
+  earlyPriceYearly: '$30.99',
+  earlyOffMonthly: 0.25,   // only for the "25% Off" / "35% Off" tags
+  earlyOffYearly: 0.35,
   earlyUntil: '2027-01-01',
 
   // Premium (top plan, live quiz games later). While topOpen is false its column says Coming Soon
@@ -33,6 +37,8 @@ window.TT_ACCOUNT_CONFIG = {
   topOpen: false,
   topPriceMonthly: '$7.99',
   topPriceYearly: '$71.99',
+  topEarlyPriceMonthly: '$5.99',
+  topEarlyPriceYearly: '$61.99',
   topMonthlyLink: '',
   topYearlyLink: '',
   topEarlyMonthlyLink: '',

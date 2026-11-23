@@ -27,7 +27,9 @@
   function fallbackPrices() {
     var C = window.TT_ACCOUNT_CONFIG || {}, mo = parseFloat(String(C.priceMonthly || '3.99').replace(/[^0-9.]/g, '')), yr = parseFloat(String(C.priceYearly || '35.99').replace(/[^0-9.]/g, ''));
     var until = new Date((C.earlyUntil || '2027-01-01') + 'T00:00:00');
-    return { mo: mo, yr: yr, off: C.earlyDiscount || 0.35, earlyOpen: new Date() < until, save: Math.round((1 - yr / (mo * 12)) * 100),
+    var e = { mo: parseFloat(String(C.earlyPriceMonthly || '2.99').replace(/[^0-9.]/g, '')), yr: parseFloat(String(C.earlyPriceYearly || '30.99').replace(/[^0-9.]/g, '')) };
+    return { mo: mo, yr: yr, earlyOpen: new Date() < until, save: Math.round((1 - yr / (mo * 12)) * 100),
+      price: function (top, yearly, isEarly) { return !isEarly ? { now: yearly ? yr : mo, was: 0 } : { now: yearly ? e.yr : e.mo, was: yearly ? mo * 12 : mo, off: yearly ? (C.earlyOffYearly || 0.35) : (C.earlyOffMonthly || 0.25) }; },
       untilText: new Date(until.getTime() - 86400000).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }) };
   }
   function has() { return TT.limit ? !!TT.limit('premium') : true; }
@@ -83,12 +85,12 @@
     var priceBox = h('div', { class: 'pm-price' });
     var toggle = h('div', { class: 'segmented pm-bill', role: 'group', 'aria-label': 'Billing' });
     function paintPrice() {
-      var yearly = billing === 'year', full = yearly ? pr.yr : pr.mo, now = pr.earlyOpen ? full * (1 - pr.off) : full;
+      var yearly = billing === 'year', p = pr.price(false, yearly, pr.earlyOpen);
       priceBox.textContent = '';
       // Built with TT.h so a missing piece is skipped (a plain append would print "null").
       priceBox.append(h('div', { class: 'pm-price-in' },
-        pr.earlyOpen ? h('span', { class: 'pm-early', text: 'Early Access · ' + Math.round(pr.off * 100) + '% Off' }) : null,
-        h('div', { class: 'pm-amount' }, pr.earlyOpen ? h('s', { text: money(full) }) : null, h('b', { text: money(now) }), h('span', { text: yearly ? ' / year' : ' / month' })),
+        pr.earlyOpen ? h('span', { class: 'pm-early', text: 'Early Access · ' + Math.round(p.off * 100) + '% Off' }) : null,
+        h('div', { class: 'pm-amount' }, p.was ? h('s', { text: money(p.was) }) : null, h('b', { text: money(p.now) }), h('span', { text: yearly ? ' / year' : ' / month' })),
         h('small', { text: (pr.earlyOpen ? 'Early price for members who join by ' + pr.untilText + '. ' : '') + (yearly ? 'Billed once a year. Cancel anytime.' : 'Billed monthly. Cancel anytime.') })));
       toggle.textContent = '';
       [['month', 'Monthly'], ['year', 'Yearly' + (pr.save > 0 ? ' · Save ' + pr.save + '%' : '')]].forEach(function (o) {

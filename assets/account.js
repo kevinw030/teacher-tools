@@ -91,10 +91,19 @@
     function num(v, d) { return parseFloat(String(v == null ? d : v).replace(/[^0-9.]/g, '')) || 0; }
     var mo = num(CFG.priceMonthly, '3.99'), yr = num(CFG.priceYearly, '35.99');
     var topMo = num(CFG.topPriceMonthly, '7.99'), topYr = num(CFG.topPriceYearly, '71.99');
-    var off = CFG.earlyDiscount || 0.35;
     var until = new Date((CFG.earlyUntil || '2027-01-01') + 'T00:00:00');
-    return { mo: mo, yr: yr, topMo: topMo, topYr: topYr, off: off, earlyOpen: new Date() < until,
-      early: function (n) { return Math.floor(n * (1 - off) * 100 + 1e-6) / 100; },
+    var early = { mo: num(CFG.earlyPriceMonthly, '2.99'), yr: num(CFG.earlyPriceYearly, '30.99'),
+      topMo: num(CFG.topEarlyPriceMonthly, '5.99'), topYr: num(CFG.topEarlyPriceYearly, '61.99') };
+    var offMo = CFG.earlyOffMonthly || 0.25, offYr = CFG.earlyOffYearly || 0.35;
+    return { mo: mo, yr: yr, topMo: topMo, topYr: topYr, earlyOpen: new Date() < until, earlyPrices: early, offMo: offMo, offYr: offYr,
+      // One plan's price for a billing period. Early Access monthly is crossed out against the monthly price,
+      // and early yearly against twelve months (it is 35% off twelve months).
+      price: function (top, yearly, isEarly) {
+        var full = top ? (yearly ? topYr : topMo) : (yearly ? yr : mo);
+        if (!isEarly) return { now: full, was: 0 };
+        var e = early[(top ? 'top' : '') + (yearly ? (top ? 'Yr' : 'yr') : (top ? 'Mo' : 'mo'))];
+        return { now: e, was: yearly ? (top ? topMo : mo) * 12 : full, off: yearly ? offYr : offMo };
+      },
       untilText: new Date(until.getTime() - 86400000).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }),
       save: mo && yr ? Math.round((1 - yr / (mo * 12)) * 100) : 0 };
   };
@@ -581,7 +590,7 @@
     var money = TT.money;
     function plansCard() {
       var plan = TT.account.plan(), prem = plan === 'premium' || plan === 'owner';
-      var pr = TT.account.prices(), mo = pr.mo, yr = pr.yr, pct = Math.round(pr.off * 100), earlyOpen = pr.earlyOpen, untilText = pr.untilText, save = pr.save;
+      var pr = TT.account.prices(), mo = pr.mo, yr = pr.yr, earlyOpen = pr.earlyOpen, untilText = pr.untilText, save = pr.save;
       var yearly = billing === 'year';
 
       function startFree() { tab = 'account'; mode = 'signup'; msgText = ''; paint(); scrollToForm(); }
@@ -619,22 +628,22 @@
         h('p', { class: 'plan-note', text: 'No card needed. A free account saves your boards and classes.' }),
         list('Get started with:', TT.PLAN_FEATURES.free)));
       // Plus: during Early Access the early price shows, with the regular price crossed out.
-      var plusFull = yearly ? yr : mo;
+      var plusP = pr.price(false, yearly, earlyOpen);
       cols.push(h('div', { class: 'plan-col featured' },
         h('div', { class: 'plan-top' }, h('h3', { text: 'Plus' }), h('span', { class: 'plan-tag', text: 'Recommended' })),
         h('p', { class: 'plan-desc', text: 'Every escape room, Trivia Showdown, Seating Chart, Prompts and room for every class.' }),
-        priceBlock(money(earlyOpen ? pr.early(plusFull) : plusFull), earlyOpen ? money(plusFull) : ''),
-        earlyOpen ? h('p', { class: 'plan-early' }, h('span', { class: 'plan-tag early-tag', text: 'Early Access · ' + pct + '% Off' }),
-          h('small', { text: 'For members who join by ' + untilText + '.' })) : null,
+        priceBlock(money(plusP.now), plusP.was ? money(plusP.was) : ''),
+        earlyOpen ? h('p', { class: 'plan-early' }, h('span', { class: 'plan-tag early-tag', text: 'Early Access · ' + Math.round(plusP.off * 100) + '% Off' }),
+          h('small', { text: Math.round(plusP.off * 100) + (yearly ? '% off twelve months' : '% off every month') + ' for members who join by ' + untilText + '.' })) : null,
         earlyOpen ? paidCta(CFG.earlyMonthlyLink, CFG.earlyYearlyLink, 'Get Plus') : paidCta(CFG.plusMonthlyLink || CFG.premiumMonthlyLink, CFG.plusYearlyLink || CFG.premiumYearlyLink, 'Get Plus'),
         h('p', { class: 'plan-note', text: yearly ? 'Billed once a year. Cancel anytime.' : 'Billed monthly. Cancel anytime.' }),
         list('Everything in Free, Plus:', TT.PLAN_FEATURES.premium)));
       // Premium: the top plan. Coming Soon until CFG.topOpen is turned on.
-      var topFull = yearly ? pr.topYr : pr.topMo, topEarly = CFG.topOpen && earlyOpen;
+      var topEarly = CFG.topOpen && earlyOpen, topP = pr.price(true, yearly, topEarly);
       cols.push(h('div', { class: 'plan-col top' + (CFG.topOpen ? '' : ' soon') },
         h('div', { class: 'plan-top' }, h('h3', { text: 'Premium' }), CFG.topOpen ? null : h('span', { class: 'plan-tag soon-tag', text: 'Coming Soon' })),
         h('p', { class: 'plan-desc', text: 'Everything in Plus, with live quiz games your class plays on their own devices.' }),
-        priceBlock(money(topEarly ? pr.early(topFull) : topFull), topEarly ? money(topFull) : ''),
+        priceBlock(money(topP.now), topP.was ? money(topP.was) : ''),
         CFG.topOpen ? (plan === 'top' ? cta('Your Plan', '', { disabled: true }) : topEarly ? paidCta(CFG.topEarlyMonthlyLink, CFG.topEarlyYearlyLink, 'Get Premium') : paidCta(CFG.topMonthlyLink, CFG.topYearlyLink, 'Get Premium'))
           : cta('Coming Soon', '', { disabled: true }),
         h('p', { class: 'plan-note', text: CFG.topOpen ? (yearly ? 'Billed once a year. Cancel anytime.' : 'Billed monthly. Cancel anytime.') : 'Not open yet. Plus members will be able to move up when it launches.' }),
