@@ -216,11 +216,12 @@
     function start(live) {
       var it = items();
       game = { g: B.randomId(), items: it, order: B.shuffle(it.map(function (_, i) { return i; })), called: [], last: null, round: 1,
-        title: title(), size: S.size, free: free(), pattern: S.pattern, live: !!live, code: live ? B.makeCode() : '', winners: [], reveal: false };
+        title: title(), size: S.size, free: free(), pattern: S.pattern, live: !!live, code: live ? B.makeCode() : '', winners: [], reveal: false,
+        phase: live ? 'lobby' : 'play', kicked: [] };
       claims = []; people = [];
       persist();
       if (live) goLive();
-      paintGame();
+      paintNow();
       var pg = root.closest('.page'); if (pg && pg.getBoundingClientRect().top < 0) window.scrollTo({ top: 0, behavior: still ? 'auto' : 'smooth' });
       if (TT.track) TT.track('bingo', live ? 'live' : 'screen');
     }
@@ -230,16 +231,23 @@
       conn = B.connect({
         code: game.code, me: 'host-' + game.g, meta: { host: true },
         on: {
-          hello: function () { sendState(); },
+          hello: function (m) { if (m && kickedId(m.id)) conn.send('kick', { id: m.id, g: game.g }); else sendState(); },
           claim: onClaim
         },
-        onPeople: function (list) { people = list.filter(function (p) { return !p.host; }); paintPeople(); },
+        onPeople: function (list) {
+          people = list.filter(function (p) {
+            if (p.host) return false;
+            if (kickedId(p.id)) { conn.send('kick', { id: p.id, g: game.g }); return false; }
+            return true;
+          });
+          paintPeople();
+        },
         onStatus: function (s) { liveStatus = s; paintStatus(); },
         onLive: function () { sendState(); }
       });
     }
     function stateMsg() {
-      return { g: game.g, round: game.round, title: game.title, size: game.size, free: game.free, pattern: game.pattern,
+      return { g: game.g, phase: game.phase || 'play', round: game.round, title: game.title, size: game.size, free: game.free, pattern: game.pattern,
         cards: game.items.map(function (i) { return i.card; }), called: game.called,
         last: game.last ? { i: game.last.i, text: game.last.text, n: game.called.length } : null, winners: game.winners };
     }
@@ -250,7 +258,7 @@
     }
 
     function callNext() {
-      if (!game || celebrating) return;
+      if (!game || celebrating || counting || game.phase === 'lobby') return;
       var left = game.order.filter(function (i) { return game.called.indexOf(i) < 0; });
       if (!left.length) { stopAuto(); return; }
       var i = left[0], item = game.items[i];
@@ -284,11 +292,78 @@
       }, 100);
     }
     function newRound() {
-      game.round++; game.g = game.g; game.called = []; game.last = null; game.winners = []; game.reveal = false;
+      game.round++; game.called = []; game.last = null; game.winners = []; game.reveal = false;
       game.order = B.shuffle(game.items.map(function (_, i) { return i; }));
       claims = [];
-      persist(); sendState(); stopAuto(); paintGame();
-      toast(game.live ? 'New round! Everyone has a fresh card.' : 'New round! Clear your cards.');
+      stopAuto();
+      if (game.live && window.Lobby) {
+        // Everyone counts down together, then the fresh cards deal in.
+        game.phase = 'play'; persist();
+        countIn('Round ' + game.round, function () { sendState(); paintGame(); });
+        return;
+      }
+      persist(); sendState(); paintGame();
+      toast('New round! Clear your cards.');
+    }
+    // 3, 2, 1, Go on the board and on every student's screen at the same moment.
+    var counting = null;
+    function countIn(title, done) {
+      if (counting) return;
+      if (conn) conn.send('countdown', { g: game.g, round: game.round, title: title });
+      counting = Lobby.countdown({ title: title, done: function () { counting = null; done(); } });
+    }
+    function startGame() {
+      if (!game || game.phase !== 'lobby') return;
+      game.phase = 'play'; persist();
+      countIn(game.title, function () { sendState(); paintGame(); });
+    }
+    function kickedId(id) { return !!(game && game.kicked && game.kicked.indexOf(id) >= 0); }
+    // Remove a player (for an unkind nickname). They see a message and can join again with a new name.
+    var kickPop = null;
+    function askKick(p, node) {
+      if (kickPop) kickPop.remove();
+      var r = node.getBoundingClientRect();
+      kickPop = h('div', { class: 'lb-kick', role: 'dialog', 'aria-label': 'Remove ' + p.name },
+        h('p', { text: 'Remove ' + (p.name || 'this player') + '?' }),
+        h('div', { class: 'row' },
+          TT.button('Cancel', { kind: 'small', onclick: function () { kickPop.remove(); kickPop = null; } }),
+          TT.button('Remove', { kind: 'small lb-remove', onclick: function () {
+            game.kicked = (game.kicked || []).concat(p.id); persist();
+            conn.send('kick', { id: p.id, g: game.g });
+            people = people.filter(function (x) { return x.id !== p.id; });
+            paintPeople(); kickPop.remove(); kickPop = null;
+            toast((p.name || 'The player') + ' was removed.');
+          } })));
+      kickPop.style.left = Math.max(8, Math.min(window.innerWidth - 230, r.left + r.width / 2 - 110)) + 'px';
+      kickPop.style.top = Math.min(window.innerHeight - 120, r.bottom + 8) + 'px';
+      document.body.append(kickPop);
+      setTimeout(function () { var b = kickPop && kickPop.querySelector('.lb-remove'); if (b) b.focus(); }, 30);
+    }
+    document.addEventListener('pointerdown', function (e) { if (kickPop && !kickPop.contains(e.target)) { kickPop.remove(); kickPop = null; } });
+    function paintNow() { if (game.live && game.phase === 'lobby') paintLobby(); else paintGame(); }
+
+    // ---- The lobby: the code, and everyone who has joined ----
+    var lobbyRoom = null, lobbyCount = null, startBtn = null;
+    function paintLobby() {
+      root.textContent = '';
+      root.className = 'bgo bgo-lobby';
+      peopleEl = null; claimsEl = null; callEl = null; boardEl = null; countEl = null;
+      var head = h('div', { class: 'bgo-game-head' },
+        h('div', { class: 'bgo-game-title' }, h('span', { class: 'bgo-chip-title', text: game.title }),
+          h('span', { class: 'bgo-rule', text: sizeLabel(game.size) + ' Cards' }),
+          h('span', { class: 'bgo-rule', text: B.PATTERNS[game.pattern] + ' Wins' })),
+        h('div', { class: 'row' }, TT.button('End Game', { kind: 'small', icon: 'close', onclick: function () { if (confirmEnd()) endGame(); } })));
+      lobbyRoom = Lobby.room({ empty: 'No one yet. As students join, they pop in here.', onTap: askKick });
+      lobbyCount = h('span', { class: 'lb-wait-count', 'aria-live': 'polite' });
+      startBtn = h('button', { type: 'button', class: 'btn big lb-start', onclick: startGame, html: TT.icon('play') + '<span>Start Game</span>' });
+      var wait = h('section', { class: 'lb-wait' },
+        h('div', { class: 'lb-wait-head' }, h('h2', { text: 'Waiting Room' }), lobbyCount, statusEl = h('span', { class: 'bgo-status' })),
+        lobbyRoom.el,
+        h('p', { class: 'lb-tip', text: 'Tap a player to remove them. Students can still join after the game starts.' }),
+        startBtn);
+      root.append(head, h('div', { class: 'lb-host' }, joinCard(true), wait));
+      paintPeople(); paintStatus();
+      if (TT.fitRefresh) TT.fitRefresh();
     }
     function endGame() {
       stopAuto();
@@ -296,6 +371,9 @@
       game = null; claims = []; people = [];
       persist();
       if (celebrating) { celebrating.remove(); celebrating = null; }
+      if (counting) { counting.cancel(); counting = null; }
+      if (kickPop) { kickPop.remove(); kickPop = null; }
+      lobbyRoom = null; gameRoom = null;
       paintSetup();
     }
 
@@ -307,7 +385,7 @@
       return { line: B.winLine(good, game.size, game.pattern), wrong: wrong, hits: cells.map(function (c) { return c === -1 || !!calledSet[c]; }) };
     }
     function onClaim(m) {
-      if (!game || !m || m.g !== game.g || m.round !== game.round || typeof m.id !== 'string') return;
+      if (!game || !m || m.g !== game.g || m.round !== game.round || typeof m.id !== 'string' || kickedId(m.id)) return;
       var name = String(m.name || 'A player').slice(0, 20);
       var cells = B.makeCard(game.items.length, game.size, game.free, m.id + ':' + game.g + ':' + game.round);
       var marks = cells.map(function (_, p) { return Array.isArray(m.marks) && m.marks.indexOf(p) >= 0; });
@@ -396,14 +474,14 @@
     }
     function confirmEnd() { return window.confirm ? window.confirm('End this game? Students will see that class is over.') : true; }
 
-    function joinCard() {
+    function joinCard(big) {
       var host = location.host.replace(/^www\./, '') || 'edsidekick.com';
       var url = location.origin + '/join?code=' + game.code;
       var qr = h('div', { class: 'bgo-qr', 'aria-hidden': 'true' });
       loadQR().then(function () {
         try { var q = window.qrcode(0, 'M'); q.addData(url); q.make(); qr.innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true }); } catch (e) {}
       }, function () {});
-      var card = h('section', { class: 'bgo-join' + (game.called.length && !game.bigCode ? ' compact' : '') },
+      var card = h('section', { class: 'bgo-join' + (!big && game.called.length && !game.bigCode ? ' compact' : '') },
         h('div', { class: 'bgo-join-text' },
           h('span', { class: 'bgo-join-step', text: 'Go To' }),
           h('span', { class: 'bgo-join-url', text: host + '/join' }),
@@ -414,7 +492,7 @@
       var size = TT.button(card.classList.contains('compact') ? 'Show the Code Big' : 'Make the Code Smaller', { kind: 'small bgo-join-size', icon: card.classList.contains('compact') ? 'expand' : 'shrink', onclick: function () {
         game.bigCode = card.classList.contains('compact'); persist(); paintGame();
       } });
-      return h('div', { class: 'bgo-join-wrap' }, card, size);
+      return big ? card : h('div', { class: 'bgo-join-wrap' }, card, size);
     }
     var qrLoading = null;
     function loadQR() {
@@ -465,14 +543,27 @@
         next.querySelector('span').textContent = done ? 'All Called' : game.called.length ? 'Call Next' : 'Start Calling';
       }
     }
+    var gameRoom = null;
+    function countText(n) { return n + (n === 1 ? ' Player' : ' Players'); }
     function paintPeople() {
+      var list = people.map(function (p) { return { id: p.id, name: String(p.name || 'Player').slice(0, 20), av: p.av, at: p.at }; });
+      if (lobbyRoom && game && game.phase === 'lobby' && lobbyRoom.el.isConnected) {
+        lobbyRoom.update(list);
+        var was = lobbyCount.textContent;
+        lobbyCount.innerHTML = '<span class="n">' + list.length + '</span> ' + (list.length === 1 ? 'Player' : 'Players');
+        if (was && was !== lobbyCount.textContent && !still) lobbyCount.firstChild.classList.add('bump');
+        startBtn.classList.toggle('ready', list.length > 0);
+        return;
+      }
       if (!peopleEl) return;
-      peopleEl.textContent = '';
-      if (!people.length) { peopleEl.append(h('p', { class: 'bgo-empty', text: 'No one yet. Students join at the address on the left.' })); return; }
-      peopleEl.append(h('p', { class: 'bgo-people-count', text: people.length + (people.length === 1 ? ' player' : ' players') }));
-      var box = h('div', { class: 'chips small' });
-      people.slice().sort(function (a, b) { return String(a.name).localeCompare(String(b.name)); }).forEach(function (p) { box.append(h('span', { class: 'chip static', text: String(p.name || 'Player').slice(0, 20) })); });
-      peopleEl.append(box);
+      if (!gameRoom || !peopleEl.contains(gameRoom.el)) {
+        peopleEl.textContent = '';
+        peopleEl.append(h('p', { class: 'bgo-people-count' }));
+        gameRoom = Lobby.room({ small: true, empty: 'No one yet. Students join at the address on the left.', onTap: askKick });
+        peopleEl.append(gameRoom.el);
+      }
+      peopleEl.firstChild.textContent = list.length ? countText(list.length) : '';
+      gameRoom.update(list);
     }
     function paintClaims() {
       if (!claimsEl) return;
@@ -527,7 +618,7 @@
 
     // Space, Enter or the right arrow calls the next one (unless you're typing).
     document.addEventListener('keydown', function (e) {
-      if (!game || celebrating || TT.page() !== 'bingo' || e.repeat) return;
+      if (!game || celebrating || counting || game.phase === 'lobby' || TT.page() !== 'bingo' || e.repeat) return;
       var t = e.target, tag = t && t.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
       if ((e.key === ' ' || e.key === 'Enter') && tag === 'BUTTON' && t !== root.querySelector('.bgo-next')) return;
@@ -539,7 +630,7 @@
       var old = JSON.parse(sessionStorage.getItem(GAME_KEY) || 'null');
       if (old && old.items && Date.now() - (old.savedAt || 0) < 8 * 3600e3) { game = old; if (game.live) goLive(); }
     } catch (e) {}
-    if (game) paintGame(); else paintSetup();
+    if (game) paintNow(); else paintSetup();
     window.addEventListener('pagehide', function () { if (conn && game) conn.send('pause', { g: game.g }); });
 
     return {

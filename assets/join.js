@@ -42,7 +42,10 @@
   // A friendly name for anyone who doesn't type one.
   var ADJ = ['Bright', 'Brave', 'Speedy', 'Clever', 'Happy', 'Sunny', 'Lucky', 'Jolly', 'Mighty', 'Cosmic', 'Zippy', 'Bouncy'];
   var ANIMAL = ['Otter', 'Panda', 'Falcon', 'Koala', 'Tiger', 'Dolphin', 'Fox', 'Owl', 'Turtle', 'Llama', 'Penguin', 'Gecko'];
-  function funName() { return ADJ[Math.floor(Math.random() * ADJ.length)] + ' ' + ANIMAL[Math.floor(Math.random() * ANIMAL.length)]; }
+  function funName(av) {
+    var animal = window.Lobby ? Lobby.avatar(av).n : ANIMAL[Math.floor(Math.random() * ANIMAL.length)];
+    return ADJ[Math.floor(Math.random() * ADJ.length)] + ' ' + animal;
+  }
 
   var root, me = recall('me') || null, conn = null, state = null, cells = null, marks = [], hostHere = false, findTimer = null, lastN = -1, wins = 0, cardKey = '';
 
@@ -78,7 +81,8 @@
       var c = B.cleanCode(code.value);
       if (c.length !== 6) { err.textContent = 'The code has 6 letters and numbers. Look at your teacher’s screen.'; code.focus(); shake(form); return; }
       var n = name.value.replace(/\s+/g, ' ').trim().slice(0, 16);
-      me = { code: c, id: B.randomId(), name: n || funName(), auto: !n };
+      var av = window.Lobby ? Lobby.pick() : 0;
+      me = { code: c, id: B.randomId(), name: n || funName(av), auto: !n, av: av, at: Date.now() };
       store('me', me);
       connect();
     } },
@@ -99,14 +103,21 @@
     paintWaiting('Finding your class…');
     if (conn) conn.close();
     conn = B.connect({
-      code: me.code, me: me.id, meta: { name: me.name },
+      code: me.code, me: me.id, meta: meta(),
       on: {
         state: onState,
         verdict: onVerdict,
+        countdown: onCountdown,
+        kick: function (m) { if (m && m.id === me.id) removed(); },
         end: function () { over(); },
         pause: function () { hostHere = false; if (state) paintHost(); }
       },
-      onPeople: function (list) { var was = hostHere; hostHere = list.some(function (p) { return p.host; }); if (was !== hostHere && state) paintHost(); },
+      onPeople: function (list) {
+        var was = hostHere; hostHere = list.some(function (p) { return p.host; });
+        players = list.filter(function (p) { return !p.host; });
+        if (room) room.update(players);
+        if (was !== hostHere && state) paintHost();
+      },
       onStatus: function (s) { if (s === 'off' && !state) paintWaiting('Can’t reach the game. Check the internet, then we’ll keep trying.'); },
       onLive: function () { conn.send('hello', { id: me.id }); }
     });
@@ -161,19 +172,80 @@
 
   // ---------- Playing ----------
   var callEl, gridBox, bingoBtn, calledEl, hostEl, toastEl;
+  function meta() { return { name: me.name, av: me.av | 0, at: me.at || 0 }; }
+  var players = [], room = null, counting = false, waitingPaint = false;
+
+  // ---------- The lobby: "You're In!" and everyone else who has joined ----------
+  function paintLobby() {
+    root.textContent = '';
+    root.className = 'join-main is-lobby';
+    cardKey = '';
+    var meBox = h('div', { class: 'lb-me-wrap' });
+    function drawMe() {
+      meBox.textContent = '';
+      var p = Lobby.player({ id: me.id, name: me.name, av: me.av }, { me: false });
+      p.classList.add('lb-me');
+      meBox.append(p);
+    }
+    drawMe();
+    room = Lobby.room({ meId: me.id, empty: 'You’re the first one here!' });
+    room.update(players);
+    root.append(h('div', { class: 'join-card lb-in' },
+      h('p', { class: 'join-call-n', text: state ? state.title : '' }),
+      h('h1', { text: 'You’re In!' }),
+      meBox,
+      h('button', { type: 'button', class: 'btn small lb-change', onclick: function () {
+        var was = me.av | 0, wasName = me.auto ? me.name : null;
+        me.av = (was + 1 + Math.floor(Math.random() * (Lobby.AVATARS.length - 1))) % Lobby.AVATARS.length;
+        if (wasName) me.name = funName(me.av);
+        store('me', me); if (conn) conn.track(meta()); drawMe(); beep(660, 0.12, 'triangle', 0.07);
+      } }, 'Pick a Different Animal'),
+      h('div', { class: 'join-dots', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')),
+      h('p', { class: 'join-lead', text: 'Waiting for your teacher to start the game…' }),
+      h('section', { class: 'lb-others' }, h('h2', { text: 'Who’s Here' }), room.el)));
+  }
+  // ---------- 3, 2, 1, Go! ----------
+  function onCountdown(m) {
+    if (!m || counting) return;
+    counting = true;
+    Lobby.countdown({ title: m.title || 'Get Ready!', done: function () {
+      counting = false;
+      if (waitingPaint && state) { waitingPaint = false; cardKey = ''; onState(state); }
+    } });
+  }
+  function removed() {
+    if (conn) conn.close(); conn = null;
+    store('me', null); store('card', null);
+    state = null; cardKey = '';
+    root.textContent = '';
+    root.className = 'join-main is-over';
+    root.append(h('div', { class: 'join-card join-wait' },
+      h('h1', { text: 'You Left the Game' }),
+      h('p', { class: 'join-lead', text: 'Your teacher took you out of this game. Ask your teacher, then join again with your first name.' }),
+      h('button', { type: 'button', class: 'btn primary big', onclick: function () { me = null; paintEnter(); }, text: 'Join Again' })));
+  }
+
   function onState(s) {
     if (!s || !Array.isArray(s.cards)) return;
     clearTimeout(findTimer);
-    var first = !state, key = s.g + ':' + s.round, prev = state;
-    state = s; hostHere = true;
-    if (key !== cardKey) {
+    if (s.phase === 'lobby') {
+      var fresh = !state || state.phase !== 'lobby' || state.g !== s.g;
+      state = s; hostHere = true;
+      if (fresh || !root.querySelector('.lb-in')) paintLobby();
+      return;
+    }
+    // A countdown is running: the card deals in right after "Go!".
+    if (counting) { state = s; waitingPaint = true; return; }
+    var first = !state || state.phase === 'lobby', key = s.g + ':' + s.round, prev = state && state.phase !== 'lobby' ? state : null;
+    state = s; hostHere = true; room = null;
+    if (key !== cardKey || first) {
       cardKey = key;
       cells = B.makeCard(s.cards.length, s.size, s.free, me.id + ':' + s.g + ':' + s.round);
       var saved = recall('card');
       marks = saved && saved.key === key ? saved.marks : cells.map(function () { return false; });
       lastN = -1;
-      paintPlay(first || (prev && prev.round !== s.round));
-      if (prev && prev.round !== s.round) toast('New round! Here’s a fresh card.');
+      paintPlay(true);
+      if (prev && prev.round !== s.round) toast('Round ' + s.round + '! Here’s a fresh card.');
     }
     paintCall();
     paintCalled();
@@ -193,7 +265,7 @@
     var drawer = h('details', { class: 'join-drawer' }, h('summary', { text: 'Called So Far' }), calledEl);
     root.append(
       h('div', { class: 'join-bar' },
-        h('span', { class: 'join-who' }, h('span', { class: 'join-dot', 'aria-hidden': 'true' }), me.name),
+        h('span', { class: 'join-who' }, window.Lobby ? h('span', { class: 'join-ava', 'aria-hidden': 'true', style: '--ac:' + Lobby.avatar(me.av).c, text: Lobby.avatar(me.av).e }) : h('span', { class: 'join-dot', 'aria-hidden': 'true' }), me.name),
         h('span', { class: 'join-rule', text: B.PATTERNS[state.pattern] + ' Wins' })),
       hostEl, callEl, gridBox, bingoBtn, drawer);
     drawCard();
