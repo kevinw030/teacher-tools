@@ -82,6 +82,9 @@ Supabase's built-in email sends only a few sign-in emails an hour and won't let 
 3. **Payment Links**: make one link for each price. Under After Payment, choose "Don't show confirmation page" and
    redirect to `https://edsidekick.com/#account`.
    Put the links in `premiumMonthlyLink` and `premiumYearlyLink`.
+   For **Early Access**, add two more prices to the same product, $2.99 monthly and $21.75 yearly (25% off), make a Payment Link
+   for each, and put them in `earlyMonthlyLink` and `earlyYearlyLink`. The Early Access column hides itself on January 1, 2027
+   (`earlyUntil`); people who already joined keep their discounted price in Stripe.
 4. **Settings > Billing > Customer portal**: turn it on and copy its link into `manageLink`, so members can cancel or switch.
 5. In Supabase, **Edge Functions > Deploy a new function > Via Editor**, name it `stripe-webhook`, paste
    `supabase/functions/stripe-webhook/index.ts`, and turn **off** "Verify JWT" (Stripe signs its messages instead).

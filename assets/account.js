@@ -424,43 +424,87 @@
         h('div', { class: 'row' }, outBtn, outConfirm));
     }
 
+    var billing = 'month';
+    function money(n) { return '$' + (Math.round(n * 100) / 100).toFixed(n % 1 ? 2 : 0); }
     function plansCard() {
       var plan = TT.account.plan(), prem = plan === 'premium' || plan === 'owner';
-      var F = PLANS.free;
-      var buy;
-      if (prem) {
-        buy = plan === 'owner' ? h('p', { class: 'muted', text: 'Your account has everything, free.' })
-          : CFG.manageLink ? h('a', { class: 'btn', href: CFG.manageLink, target: '_blank', rel: 'noopener' }, 'Manage My Plan') : h('p', { class: 'muted', text: 'You’re on Premium. Thank you!' });
-      } else if (!user) {
-        buy = h('p', { class: 'muted', text: 'Sign in first, then choose Premium here.' });
-      } else if (CFG.premiumMonthlyLink || CFG.premiumYearlyLink) {
-        buy = h('div', { class: 'row' },
-          CFG.premiumMonthlyLink ? h('a', { class: 'btn primary', href: payLink(CFG.premiumMonthlyLink) }, 'Monthly · ' + CFG.priceMonthly) : null,
-          CFG.premiumYearlyLink ? h('a', { class: 'btn primary', href: payLink(CFG.premiumYearlyLink) }, 'Yearly · ' + CFG.priceYearly) : null);
-      } else {
-        buy = h('p', { class: 'muted', text: 'Premium is coming soon.' });
+      var F = PLANS.free, P = PLANS.premium;
+      var mo = parseFloat(String(CFG.priceMonthly).replace(/[^0-9.]/g, '')) || 0;
+      var yr = parseFloat(String(CFG.priceYearly).replace(/[^0-9.]/g, '')) || 0;
+      var off = CFG.earlyDiscount || 0.25;
+      var until = new Date((CFG.earlyUntil || '2027-01-01') + 'T00:00:00');
+      var earlyOpen = new Date() < until;
+      var untilText = new Date(until.getTime() - 86400000).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+      var save = mo && yr ? Math.round((1 - yr / (mo * 12)) * 100) : 0;
+      var yearly = billing === 'year';
+
+      function startFree() { mode = 'signup'; msgText = ''; paint(); scrollToForm(); }
+      function needAccount() { mode = 'signup'; msgText = 'Create your free account first, then choose your plan.'; paint(); scrollToForm(); }
+      function scrollToForm() { setTimeout(function () { var f = document.getElementById('acctName') || document.getElementById('acctEmail'); if (f) { f.scrollIntoView({ behavior: 'smooth', block: 'center' }); f.focus({ preventScroll: true }); } }, 0); }
+      function cta(label, kind, opts) {
+        opts = opts || {};
+        if (opts.href) return h('a', { class: 'btn plan-cta ' + kind, href: opts.href, target: opts.blank ? '_blank' : null, rel: opts.blank ? 'noopener' : null }, label);
+        var b = h('button', { type: 'button', class: 'btn plan-cta ' + kind, onclick: opts.onclick, disabled: opts.disabled }, label);
+        return b;
       }
-      return h('section', { class: 'plans' },
-        h('div', { class: 'plan-card' + (!prem ? ' current' : '') },
-          h('h3', { text: 'Free' }), h('p', { class: 'price', text: '$0' }),
-          h('ul', null,
-            feature('Every tool and game', true),
-            feature('Saves to your account', true),
-            feature(F.screens + ' saved board screen', true),
-            feature(F.classes + ' class lists', true),
-            feature(F.questions + ' of your own questions', true),
-            feature('Your own photo backgrounds', false)),
-          !prem && user ? h('p', { class: 'plan-current', text: 'Your Plan' }) : null),
-        h('div', { class: 'plan-card premium' + (prem ? ' current' : '') },
-          h('h3', { text: 'Premium' }),
-          h('p', { class: 'price' }, h('b', { text: CFG.priceMonthly }), ' a month, or ' + CFG.priceYearly + ' a year'),
-          h('ul', null,
-            feature('Everything in Free', true),
-            feature(PLANS.premium.screens + ' saved board screens', true),
-            feature('Unlimited class lists', true),
-            feature('Unlimited questions and escape rooms', true),
-            feature('Your own photo backgrounds', true)),
-          buy));
+      function paidCta(monthly, yearlyLink, label) {
+        if (plan === 'owner') return cta('Included With Your Account', '', { disabled: true });
+        if (plan === 'premium') return CFG.manageLink ? cta('Manage My Plan', '', { href: CFG.manageLink, blank: true }) : cta('Your Plan', '', { disabled: true });
+        if (!user) return cta(label, 'primary', { onclick: needAccount });
+        var linkUrl = yearly ? yearlyLink : monthly;
+        return linkUrl ? cta(label, 'primary', { href: payLink(linkUrl) }) : cta('Coming Soon', '', { disabled: true });
+      }
+      function list(lead, items) {
+        return h('div', { class: 'plan-list' }, h('p', { class: 'plan-lead', text: lead }),
+          h('ul', null, items.map(function (t) { return h('li', null, h('span', { class: 'tick', 'aria-hidden': 'true', text: '✓' }), h('span', null, t[0], t[1] ? h('small', { text: t[1] }) : null)); })));
+      }
+      function priceBlock(amount, was) {
+        return h('div', { class: 'plan-price' },
+          h('span', { class: 'plan-from' + (was ? '' : ' empty'), text: was ? 'Was ' + was : '' }),
+          h('div', null, h('b', { text: amount }), h('span', { class: 'per', text: amount === '$0' ? ' / forever' : yearly ? ' / year' : ' / month' })));
+      }
+
+      var cols = [];
+      cols.push(h('div', { class: 'plan-col' },
+        h('div', { class: 'plan-top' }, h('h3', { text: 'Free' })),
+        h('p', { class: 'plan-desc', text: 'Everything you need to run your classroom board, free.' }),
+        priceBlock('$0'),
+        !user ? cta('Start for Free', '', { onclick: startFree }) : cta(prem ? 'Included' : 'Your Plan', '', { disabled: true }),
+        h('p', { class: 'plan-note', text: 'No card needed. Works without an account too, saving on that computer.' }),
+        list('Get started with:', [
+          ['Every tool and game'],
+          ['Saves to your account', 'Use it on any computer'],
+          [F.screens + ' saved board screen'],
+          [F.classes + ' class lists'],
+          [F.questions + ' of your own questions and rooms']])));
+      cols.push(h('div', { class: 'plan-col featured' },
+        h('div', { class: 'plan-top' }, h('h3', { text: 'Premium' }), h('span', { class: 'plan-tag', text: 'Recommended' })),
+        h('p', { class: 'plan-desc', text: 'More room for every class, and your own photos on the board.' }),
+        priceBlock(yearly ? money(yr) : money(mo)),
+        paidCta(CFG.premiumMonthlyLink, CFG.premiumYearlyLink, 'Get Premium'),
+        h('p', { class: 'plan-note', text: yearly ? 'Billed once a year. Cancel anytime.' : 'Billed monthly. Cancel anytime.' }),
+        list('Everything in Free, plus:', [
+          [P.screens + ' saved board screens'],
+          ['Unlimited class lists'],
+          ['Unlimited questions and escape rooms'],
+          ['Your own photo backgrounds']])));
+      if (earlyOpen) cols.push(h('div', { class: 'plan-col early' },
+        h('div', { class: 'plan-top' }, h('h3', { text: 'Early Access' }), h('span', { class: 'plan-tag early-tag', text: Math.round(off * 100) + '% Off' })),
+        h('p', { class: 'plan-desc', text: 'Premium for early members who join before ' + untilText + '.' }),
+        priceBlock(yearly ? money(yr * (1 - off)) : money(mo * (1 - off)), yearly ? money(yr) : money(mo)),
+        paidCta(CFG.earlyMonthlyLink, CFG.earlyYearlyLink, 'Get Early Access'),
+        h('p', { class: 'plan-note', text: 'Only until ' + untilText + '. Cancel anytime.' }),
+        list('Everything in Premium, plus:', [
+          [Math.round(off * 100) + '% off Premium', 'For members who join before ' + untilText]])));
+
+      var toggle = h('div', { class: 'segmented bill-toggle', role: 'group', 'aria-label': 'Billing' },
+        [['month', 'Monthly'], ['year', 'Yearly' + (save > 0 ? ' (Save ' + save + '%)' : '')]].map(function (o) {
+          return h('button', { type: 'button', class: 'seg' + (billing === o[0] ? ' on' : ''), 'aria-pressed': billing === o[0], onclick: function () { billing = o[0]; paint(); } }, o[1]);
+        }));
+      return h('section', { class: 'pricing' },
+        h('div', { class: 'pricing-head' }, h('h2', { text: 'Plans and Pricing' }),
+          h('p', { class: 'muted', text: 'Start for free. Upgrade when you want more room.' }), toggle),
+        h('div', { class: 'pricing-grid cols-' + cols.length }, cols));
     }
 
     function paint() {
