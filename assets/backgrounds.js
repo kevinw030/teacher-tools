@@ -32,7 +32,7 @@
       { id: 'plum', name: 'Plum', dark: true, css: 'linear-gradient(135deg,#4A1D6E 0%,#9D3C8F 100%)' },
       { id: 'deepsea', name: 'Deep Sea', dark: true, css: 'linear-gradient(180deg,#0F2027 0%,#203A43 50%,#2C5364 100%)' }
     ] },
-    { group: 'Solid colors', items: [
+    { group: 'Solid Colors', items: [
       { id: 'paper', name: 'Paper', css: '#F4F2EC' },
       { id: 'white', name: 'White', css: '#FFFFFF' },
       { id: 'cloud', name: 'Cloud', css: '#E8EDF5' },

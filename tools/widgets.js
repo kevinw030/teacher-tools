@@ -170,7 +170,7 @@
           var bar = h('span', { class: 'poll-bar' });
           bar.style.width = (total ? o.n / total * 100 : 0) + '%'; bar.style.background = POLL_COLORS[i % 6];
           list.append(h('div', { class: 'poll-row' },
-            h('button', { type: 'button', class: 'poll-opt', title: 'Tap to add a vote', onclick: function () { o.n++; save(); paint(); } }, bar, h('span', { class: 'poll-t', text: o.t || 'Choice ' + (i + 1) }), h('b', { text: String(o.n) })),
+            h('button', { type: 'button', class: 'poll-opt', title: 'Tap to Add a Vote', onclick: function () { o.n++; save(); paint(); } }, bar, h('span', { class: 'poll-t', text: o.t || 'Choice ' + (i + 1) }), h('b', { text: String(o.n) })),
             wb('−', 'round', function () { if (o.n > 0) { o.n--; save(); paint(); } }, 'Take one vote away')));
         });
         box.append(list, h('div', { class: 'wx-row' }, h('span', { class: 'wx-note', text: total + (total === 1 ? ' vote' : ' votes') }),

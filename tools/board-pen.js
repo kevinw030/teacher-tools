@@ -79,7 +79,7 @@
         })),
       h('div', { class: 'pen2-end' }, foldBtn, TT.button('Done', { kind: 'small primary', onclick: function () { setPen(false); } })));
     var bar = h('div', { class: 'pen2', hidden: true, role: 'toolbar', 'aria-label': 'Drawing tools' }, shapeRow, main);
-    var penBtn = h('button', { type: 'button', class: 'dock-btn dock-pen', title: 'Draw on the board', 'aria-pressed': 'false', onclick: function () { setPen(!pen.on); } },
+    var penBtn = h('button', { type: 'button', class: 'dock-btn dock-pen', title: 'Draw on the Board', 'aria-pressed': 'false', onclick: function () { setPen(!pen.on); } },
       h('span', { class: 'dock-icon', style: 'background:#0E1120', html: svg('0 0 24 24', '<path d="M17 3l4 4L8 20l-5 1 1-5z"/><path d="M14 6l4 4"/>') }),
       h('span', { class: 'dock-label', text: 'Draw' }));
     env.dock.append(penBtn);

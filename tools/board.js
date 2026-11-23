@@ -609,7 +609,7 @@
           return h('button', { type: 'button', class: 'tb', 'data-al': al, 'aria-label': 'Align ' + al, title: 'Align ' + al,
             html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">' + alignIcons[al] + '</svg>', onclick: function () { set('align', al); } });
         });
-        var midBtn = h('button', { type: 'button', class: 'tb', 'aria-label': 'Center up and down', title: 'Center up and down',
+        var midBtn = h('button', { type: 'button', class: 'tb', 'aria-label': 'Center up and down', title: 'Center Up and Down',
           html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 12h16M12 3v5M9.5 5.5 12 8l2.5-2.5M12 21v-5M9.5 18.5 12 16l2.5 2.5"/></svg>',
           onclick: function () { set('middle', !d.middle); } });
 

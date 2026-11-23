@@ -9,7 +9,7 @@
     var now = TT.clock(), hr = now.hour;
     $('homeDate').textContent = now.text;
     var who = TT.settings.name ? ', ' + TT.settings.name : '';
-    $('greeting').textContent = (hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening') + who + '!';
+    $('greeting').textContent = (hr < 12 ? 'Good Morning' : hr < 17 ? 'Good Afternoon' : 'Good Evening') + who + '!';
     // The window shows the teacher's own time of day, and the sill shows the season.
     var season = TT.season ? TT.season() : null, key = TT.dayPhase(hr) + (hr < 12 ? 'a' : 'p') + (season ? season.id : '');
     if (key !== shownScene) { shownScene = key; $('homeWindow').innerHTML = TT.homeWindow(hr, season); }

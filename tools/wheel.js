@@ -147,7 +147,7 @@
       removedBox.textContent = '';
       if (!state.removed.length) removedBox.append(h('span', { class: 'muted', text: 'Nobody yet.' }));
       state.removed.forEach(function (n) {
-        removedBox.append(h('button', { type: 'button', class: 'chip', title: 'Put back on the wheel', onclick: function () {
+        removedBox.append(h('button', { type: 'button', class: 'chip', title: 'Put Back on the Wheel', onclick: function () {
           state.removed.splice(state.removed.indexOf(n), 1); save(); draw(); paintSide();
         } }, n + ' ↺'));
       });

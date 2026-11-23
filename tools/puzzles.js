@@ -187,7 +187,7 @@
       if (!over) board.append(pegRow(cur, null, true));
       for (var i = rows.length + (over ? 0 : 1); i < MAX; i++) board.append(pegRow([], null));
       var won = over && rows[rows.length - 1].s[0] === LEN;
-      if (over && !won) board.append(h('div', { class: 'cb-row reveal' }, h('div', { class: 'cb-pegs' }, secret.map(function (v) { return h('span', { class: 'cb-peg', style: 'background:' + COLORS[v][1] }); })), h('b', { text: 'The code' })));
+      if (over && !won) board.append(h('div', { class: 'cb-row reveal' }, h('div', { class: 'cb-pegs' }, secret.map(function (v) { return h('span', { class: 'cb-peg', style: 'background:' + COLORS[v][1] }); })), h('b', { text: 'The Code' })));
       checkBtn.disabled = over || cur.length < LEN;
       st.textContent = won ? 'Code cracked in ' + rows.length + (rows.length === 1 ? ' guess!' : ' guesses!') : over ? 'Out of guesses. Here is the secret code.' :
         'Guess ' + (rows.length + 1) + ' of ' + MAX + '. Pick four colors. Colors can repeat.';
