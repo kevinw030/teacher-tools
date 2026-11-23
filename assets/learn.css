@@ -126,3 +126,44 @@
 .er-art { transition: filter .25s ease; }
 .er-stage:has(.er-over.show) .er-art { filter: blur(4px); }
 .er-stage.dark:has(.er-over.show) .er-art { filter: brightness(.3) saturate(.7) blur(3px); }
+
+/* Escape Room: the key-found moment (tools/escape-reward.js). 1em = 1% of the room's width. */
+.er-reward { position: absolute; inset: 0; z-index: 6; pointer-events: none; overflow: hidden; border-radius: inherit; transition: opacity .4s ease; }
+.er-reward.out { opacity: 0; }
+.er-reward > span { position: absolute; left: 50%; top: 46%; }
+.er-reward .er-rw-dim { inset: 0; left: 0; top: 0; background: radial-gradient(circle at 50% 46%, rgba(14,17,32,.35), rgba(14,17,32,.78)); animation: er-fade .3s ease both; }
+.er-rw-wave { width: 6em; height: 6em; margin: -3em 0 0 -3em; border-radius: 50%; border: .5em solid var(--k); box-shadow: 0 0 2em var(--k); animation: er-rw-wave .7s cubic-bezier(.2, .7, .3, 1) both; }
+@keyframes er-rw-wave { from { transform: scale(.2); opacity: 1; } to { transform: scale(5); opacity: 0; } }
+.er-rw-rays { width: 46em; height: 46em; margin: -23em 0 0 -23em; border-radius: 50%; background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--k) 60%, #fff) 0 9deg, transparent 9deg 30deg); -webkit-mask: radial-gradient(circle, #000 12%, transparent 68%); mask: radial-gradient(circle, #000 12%, transparent 68%); opacity: .55; animation: er-rw-rays-in .5s .35s cubic-bezier(.3, 1.4, .5, 1) both, er-rw-spin 9s linear infinite; }
+@keyframes er-rw-rays-in { from { scale: .2; opacity: 0; } }
+@keyframes er-rw-spin { to { rotate: 360deg; } }
+.er-rw-glow { width: 26em; height: 26em; margin: -13em 0 0 -13em; border-radius: 50%; background: radial-gradient(circle, #fff 0, color-mix(in srgb, var(--k) 70%, #fff) 30%, transparent 68%); opacity: .8; animation: er-rw-rays-in .5s .3s cubic-bezier(.3, 1.4, .5, 1) both; }
+.er-rw-key { width: 22em; height: 11em; margin: -5.5em 0 0 -11em; color: var(--k); filter: drop-shadow(0 .5em .6em rgba(0,0,0,.45)) drop-shadow(0 0 .25em #fff); animation: er-rw-key 1.5s cubic-bezier(.3, 1.3, .5, 1) both; }
+.er-rw-key svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.er-rw-key svg * { stroke-width: 4.5; }
+@keyframes er-rw-key {
+  0% { transform: translate(var(--dx), var(--dy)) scale(.08) rotate(-200deg); opacity: 0; }
+  12% { opacity: 1; }
+  45% { transform: translate(0, 0) scale(1.18) rotate(12deg); }
+  60% { transform: translate(0, 0) scale(.95) rotate(-8deg); }
+  74% { transform: translate(0, 0) scale(1.04) rotate(4deg); }
+  100% { transform: translate(0, 0) scale(1) rotate(0); }
+}
+.er-rw-bits { width: 0; height: 0; }
+.er-rw-bits span { position: absolute; left: 0; top: 0; font-size: 3.2em; line-height: 1; margin: -.5em 0 0 -.5em; opacity: 0; animation: er-rw-bit 1.2s cubic-bezier(.15, .7, .3, 1) both; }
+@keyframes er-rw-bit { 0% { transform: translate(0, 0) scale(.2) rotate(0); opacity: 0; } 15% { opacity: 1; } 75% { opacity: 1; } 100% { transform: translate(var(--bx), var(--by)) scale(1) rotate(var(--br)); opacity: 0; } }
+.er-reward .er-rw-text { top: 68%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: .4em; white-space: nowrap; color: #fff; text-align: center; text-shadow: 0 .15em .5em rgba(0,0,0,.6); animation: er-rw-text .5s .7s cubic-bezier(.3, 1.5, .5, 1) both; }
+.er-rw-text b { font-family: var(--display); font-weight: 900; font-size: 5.2em; line-height: 1; }
+.er-rw-text small { font-family: var(--display); font-weight: 800; font-size: 2.3em; padding: .2em .8em; border-radius: 99em; background: var(--k); color: #fff; text-shadow: none; }
+@keyframes er-rw-text { from { opacity: 0; transform: translateX(-50%) translateY(1.5em) scale(.8); } }
+.er-reward.calm * { animation-duration: .01s !important; animation-delay: 0s !important; }
+.er-reward.calm .er-rw-bits, .er-reward.calm .er-rw-wave { display: none; }
+/* the key lands in its slot */
+.er-keys .er-key { position: relative; }
+.er-slot-ring { position: absolute; inset: -4px; border-radius: 14px; border: 3px solid currentColor; pointer-events: none; animation: er-slot-ring .65s ease-out both; }
+@keyframes er-slot-ring { from { transform: scale(1); opacity: .9; } to { transform: scale(1.9); opacity: 0; } }
+/* the puzzle card flashes green when the answer is right */
+.er-card-panel.open { animation: er-right .6s cubic-bezier(.3, 1.5, .5, 1); box-shadow: 0 0 0 8px rgba(20,184,132,.25), var(--shadow-lg); }
+.er-card-panel.open .er-key.big { animation: er-turn .6s cubic-bezier(.3, 1.5, .5, 1); }
+@keyframes er-right { 0% { transform: scale(1); } 40% { transform: scale(1.04); } 100% { transform: scale(1); } }
+@keyframes er-turn { 0% { transform: rotate(0); } 50% { transform: rotate(90deg) scale(1.2); } 100% { transform: rotate(0); } }

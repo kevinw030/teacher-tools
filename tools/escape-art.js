@@ -350,6 +350,14 @@
     { name: 'The Message in a Bottle', x: 1316, y: 526, w: 258, h: 105 }
   ], { name: 'The Treasure Chest', x: 878, y: 536, w: 404, h: 306 }, '#FFE08A', false);
 
+  pictureScene('museum', [
+    { name: 'The Dinosaur Painting', x: 1247, y: 120, w: 332, h: 254 },
+    { name: 'The Giant Skeleton', x: 550, y: 263, w: 690, h: 311 },
+    { name: 'The Fossil Case', x: 29, y: 536, w: 316, h: 258 },
+    { name: 'The Tour Clock', x: 383, y: 225, w: 139, h: 392 },
+    { name: 'The Night Guard’s Book', x: 1287, y: 550, w: 292, h: 140 }
+  ], { name: 'The Exit Doors', x: 57, y: 215, w: 280, h: 321 }, '#FFE08A', false);
+
   TT.escapeArt = function (id, prefix) {
     var s = SCENES[id] || SCENES.classroom;
     return '<svg class="ea" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">' + s.art(prefix || ('ea' + id)) + '</svg>';

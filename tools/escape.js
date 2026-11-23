@@ -115,8 +115,16 @@
         if (!v) return;
         if (L.a.indexOf(v) >= 0) {
           TT.chime(); solved[i] = true; panel.classList.add('open');
-          msg.textContent = 'Click! You found a key.'; input.disabled = true;
-          setTimeout(function () { closeCard(); paint(); flyKey(i); if (left() === 0) setTimeout(allFound, 900); }, 1100);
+          msg.textContent = 'Click! That is correct.'; input.disabled = true;
+          var r0 = room;
+          setTimeout(function () {
+            if (room !== r0) return;
+            closeCard(); paint(); keyRow.children[i].classList.add('wait');
+            TT.escapeReward(stage, { spot: s, color: KEYS[i % KEYS.length], svg: KEY_SVG, room: base.id, n: solved.length - left(), of: solved.length }, function (bigKey) {
+              if (room !== r0) return;
+              flyKey(i, bigKey); if (left() === 0) setTimeout(allFound, 900);
+            });
+          }, 750);
         } else {
           TT.tick(); panel.classList.remove('shake'); void panel.offsetWidth; panel.classList.add('shake');
           msg.textContent = 'Not quite. Talk it over and try again.'; input.select();
@@ -134,18 +142,22 @@
       setTimeout(function () { input.focus(); }, 50);
     }
     // The new key flies from the object down to its slot.
-    function flyKey(i) {
-      var from = spotBtns[i], to = keyRow.children[i];
-      if (!from || !to || !from.animate) return;
+    function flyKey(i, fromEl) {
+      var from = fromEl || spotBtns[i], to = keyRow.children[i];
+      if (!from || !to || !from.animate) { if (to) to.classList.remove('wait'); return; }
       var a = from.getBoundingClientRect(), b = to.getBoundingClientRect(), r = root.getBoundingClientRect(), k = root.offsetWidth / r.width || 1;
       var fly = h('span', { class: 'er-key fly' }); fly.innerHTML = KEY_SVG; fly.style.color = KEYS[i % KEYS.length];
       root.append(fly);
       var x0 = (a.left + a.width / 2 - r.left) * k, y0 = (a.top + a.height / 2 - r.top) * k, x1 = (b.left + b.width / 2 - r.left) * k, y1 = (b.top + b.height / 2 - r.top) * k;
       to.classList.add('wait');
-      fly.animate([{ transform: 'translate(' + x0 + 'px,' + y0 + 'px) translate(-50%,-50%) scale(.4) rotate(-40deg)', opacity: 0 },
-        { transform: 'translate(' + x0 + 'px,' + (y0 - 50) + 'px) translate(-50%,-50%) scale(2.4) rotate(10deg)', opacity: 1, offset: 0.35 },
-        { transform: 'translate(' + x1 + 'px,' + y1 + 'px) translate(-50%,-50%) scale(1) rotate(0)', opacity: 1 }], { duration: 950, easing: 'ease-in-out' })
-        .onfinish = function () { fly.remove(); to.classList.remove('wait'); to.classList.add('pop'); TT.tick(); };
+      var big = Math.max(1, a.width * k / 58);
+      fly.animate([{ transform: 'translate(' + x0 + 'px,' + y0 + 'px) translate(-50%,-50%) scale(' + big.toFixed(2) + ') rotate(0deg)', opacity: 1 },
+        { transform: 'translate(' + ((x0 + x1) / 2) + 'px,' + (Math.min(y0, y1) - 30) + 'px) translate(-50%,-50%) scale(' + (big * 0.6 + 0.4).toFixed(2) + ') rotate(200deg)', opacity: 1, offset: 0.5 },
+        { transform: 'translate(' + x1 + 'px,' + y1 + 'px) translate(-50%,-50%) scale(1) rotate(360deg)', opacity: 1 }], { duration: 800, easing: 'cubic-bezier(.5, 0, .3, 1)' })
+        .onfinish = function () {
+          fly.remove(); to.classList.remove('wait'); to.classList.add('pop'); TT.tick();
+          var ring = h('span', { class: 'er-slot-ring' }); ring.style.color = KEYS[i % KEYS.length]; to.append(ring); setTimeout(function () { ring.remove(); }, 700);
+        };
     }
     function allFound() { if (!room || escaped) return; TT.chime(); paint(); }
     function tryExit() {
