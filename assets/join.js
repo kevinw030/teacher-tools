@@ -358,7 +358,7 @@
     paintHost();
     // Someone else got Bingo
     var before = prev && prev.round === s.round ? (prev.winners || []).length : (s.winners || []).length;
-    (s.winners || []).slice(before).forEach(function (n) { if (n !== me.name) toast(n + ' got Bingo!'); });
+    (s.winners || []).slice(before).forEach(function (n) { if (n !== me.name) friendWon(n); });
   }
   function paintPlay(deal) {
     var fl = document.querySelector('.lb-floaties'); if (fl) fl.remove();
@@ -388,10 +388,24 @@
     el.classList.toggle('on', marks[p]);
     el.classList.remove('wrong');
     el.setAttribute('aria-pressed', marks[p] ? 'true' : 'false');
-    if (marks[p] && !still) { el.classList.remove('stamp'); void el.offsetWidth; el.classList.add('stamp'); }
-    beep(marks[p] ? 520 : 360, 0.09, 'triangle', 0.07);
+    if (marks[p] && !still) { el.classList.remove('stamp'); void el.offsetWidth; el.classList.add('stamp'); splat(el); }
+    if (marks[p]) el.classList.remove('hot');
+    // Each mark sounds a little higher than the last: the card "fills up" musically.
+    var n = marks.filter(Boolean).length;
+    if (marks[p]) { beep(440 + n * 28, 0.1, 'triangle', 0.08); setTimeout(function () { beep(660 + n * 28, 0.08, 'sine', 0.05); }, 60); }
+    else beep(330, 0.09, 'triangle', 0.06);
     store('card', { key: cardKey, marks: marks });
     paintBingo();
+  }
+  // A burst of color dots out of the square you just marked.
+  function splat(el) {
+    var c = getComputedStyle(el).getPropertyValue('--dc') || '#F2643D';
+    for (var i = 0; i < 8; i++) {
+      var d = h('i', { class: 'bc-splat', 'aria-hidden': 'true' });
+      var a = (i / 8) * Math.PI * 2 + Math.random() * .5, r = 30 + Math.random() * 26;
+      d.style.setProperty('--dx', Math.cos(a) * r + 'px'); d.style.setProperty('--dy', Math.sin(a) * r + 'px'); d.style.setProperty('--c', c);
+      el.append(d); setTimeout(function (x) { x.remove(); }.bind(null, d), 700);
+    }
   }
   function ready() { return !!B.winLine(marks.map(function (m, p) { return m || cells[p] === -1; }), state.size, state.pattern); }
   function paintBingo() {
@@ -399,9 +413,12 @@
     bingoBtn.classList.toggle('ready', r);
     bingoBtn.disabled = !r;
     var togo = B.toGo(marks.map(function (m, p) { return m || cells[p] === -1; }), state.size, state.pattern);
-    bingoBtn.querySelector('.jb-hint').textContent = r ? 'Tap to tell your teacher!' : (state.pattern === 'full' ? 'Mark every square' : state.pattern === 'corners' ? 'Mark all four corners' : 'Mark a full line') + ' · ' + togo + ' to go';
+    bingoBtn.querySelector('.jb-hint').textContent = r ? 'Tap to tell your teacher!' : togo === 1 ? 'So close! Just 1 more to go 👀' : (state.pattern === 'full' ? 'Mark every square' : state.pattern === 'corners' ? 'Mark all four corners' : 'Mark a full line') + ' · ' + togo + ' to go';
+    bingoBtn.classList.toggle('close', !r && togo === 1);
+    if (!r && togo === 1 && nearKey !== cardKey) { nearKey = cardKey; toast('One more and it’s Bingo! 👀'); beep(880, 0.12, 'sine', 0.06); }
     bingoBtn.setAttribute('aria-label', r ? 'Bingo! Tap to tell your teacher' : 'Bingo button. ' + togo + ' more to go');
   }
+  var nearKey = '';
   function paintCall() {
     var L = state.last;
     if (!L) { callEl.className = 'join-call idle'; callEl.textContent = 'Get ready! Your teacher will call the first one soon.'; return; }
@@ -411,7 +428,18 @@
     callEl.textContent = '';
     callEl.className = 'join-call' + (fresh && !still ? ' pop' : '');
     callEl.append(h('span', { class: 'join-call-n', text: 'Call ' + L.n }), h('span', { class: 'join-call-text' + (L.text.length > 50 ? ' long' : ''), text: L.text }));
-    if (fresh) beep(740, 0.12, 'sine', 0.06);
+    // Is it on my card? Light up that square and say so.
+    var grid = gridBox ? gridBox.querySelectorAll('.bc-cell') : [], at = cells ? cells.indexOf(L.i) : -1;
+    Array.prototype.forEach.call(grid, function (c) { c.classList.remove('hot'); });
+    if (at >= 0 && !marks[at]) {
+      if (grid[at]) grid[at].classList.add('hot');
+      callEl.classList.add('have');
+      callEl.append(h('span', { class: 'join-have', text: '🎯 It’s on your card! Find it and tap it!' }));
+      if (fresh) { beep(660, 0.1, 'triangle', 0.08); setTimeout(function () { beep(990, 0.16, 'triangle', 0.08); }, 110); }
+    } else {
+      callEl.append(h('span', { class: 'join-not', text: at >= 0 ? 'Already marked ✓' : 'Not on your card this time' }));
+      if (fresh) beep(740, 0.12, 'sine', 0.06);
+    }
   }
   function paintCalled() {
     if (!calledEl) return;
@@ -464,6 +492,19 @@
     document.body.append(layer);
     setTimeout(function () { var b = layer.querySelector('button'); if (b) b.focus(); }, 50);
     cheer();
+  }
+  // Someone else got Bingo: their animal pops up with a little confetti.
+  function friendWon(name) {
+    var who = seatedPlayers().filter(function (p) { return Lobby.safeName(p.name, p.av) === name; })[0];
+    var box = h('div', { class: 'join-friend', role: 'status' },
+      who ? h('span', { class: 'join-friend-ava', style: '--ac:' + Lobby.avatar(who.av).c }, Lobby.img(who.av)) : null,
+      h('span', null, h('b', { text: name }), ' got Bingo! 🎉'));
+    if (!still) for (var i = 0; i < 16; i++) {
+      var bit = h('i', { class: 'join-friend-bit' }); bit.style.setProperty('--a', (i * 22.5) + 'deg'); bit.style.setProperty('--c', B.COLS[i % 5]); box.append(bit);
+    }
+    document.body.append(box);
+    [523, 784].forEach(function (f, i) { setTimeout(function () { beep(f, 0.18, 'triangle', 0.06); }, i * 120); });
+    setTimeout(function () { box.classList.add('out'); setTimeout(function () { box.remove(); }, 400); }, 3200);
   }
   function toast(text) {
     if (toastEl) toastEl.remove();

@@ -429,6 +429,13 @@
       else if (!ok) toast(name + ' called Bingo, but not yet!');
     }
 
+    function winAva(name) {
+      if (!game || !game.live) return null;
+      var p = people.filter(function (x) { return x.name === name; })[0];
+      if (!p) return null;
+      var av = game.avs && game.avs[p.id] != null ? game.avs[p.id] : p.av;
+      return h('div', { class: 'bgo-win-ava', style: '--ac:' + Lobby.avatar(av).c, 'aria-hidden': 'true' }, Lobby.img(av));
+    }
     function celebrate(name, line) {
       stopAuto();
       if (celebrating) celebrating.remove();
@@ -444,6 +451,7 @@
       celebrating = h('div', { class: 'bgo-win', role: 'dialog', 'aria-modal': 'true', 'aria-label': name + ' has Bingo' }, conf,
         h('div', { class: 'bgo-win-card' },
           mas ? h('div', { class: 'bgo-win-mascot' }, mas) : null,
+          winAva(name),
           h('p', { class: 'bgo-win-kicker', text: 'Bingo!' }),
           h('h2', { text: name + (game.live ? ' Has Bingo!' : '') }),
           h('div', { class: 'row center' }, keep, again)));
@@ -548,7 +556,17 @@
         card.append(h('div', { class: 'bgo-reveal-row' },
           TT.button(game.reveal ? 'Hide Answer' : 'Show Answer', { kind: 'small', onclick: function () { game.reveal = !game.reveal; persist(); paintCall(false); } }), ans));
       }
+      // Live game: how many players have it, and their animals hop.
+      if (game.live && people.length) {
+        var has = whoHas(game.last.i);
+        card.append(h('p', { class: 'bgo-have' + (has.length ? '' : ' none') }, has.length ? '🎯 ' + has.length + (has.length === 1 ? ' player has it!' : ' players have it!') : 'Nobody has this one!'));
+        if (fresh && gameRoom) has.forEach(function (id, k) { setTimeout(function () { if (gameRoom) gameRoom.poke(id); }, 250 + k * 70); });
+      }
       callEl.append(card);
+    }
+    function whoHas(i) {
+      var n = game.items.length;
+      return people.filter(function (p) { return B.makeCard(n, game.size, game.free, p.id + ':' + game.g + ':' + game.round).indexOf(i) >= 0; }).map(function (p) { return p.id; });
     }
     function paintBoard(fresh) {
       if (!boardEl) return;
