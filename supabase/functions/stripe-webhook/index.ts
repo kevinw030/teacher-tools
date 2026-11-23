@@ -1,10 +1,12 @@
 // Stripe tells this function when someone pays for Premium or cancels, and it updates their plan.
-// Secrets it needs (Supabase: Edge Functions > Secrets): STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET.
-// SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided by Supabase automatically.
+// The one secret it needs (Supabase: Edge Functions > Secrets): STRIPE_WEBHOOK_SECRET, the webhook's signing secret (whsec_...).
+// It never calls Stripe back, so no Stripe secret key is needed. SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided by Supabase automatically.
+// Deploy with "Verify JWT" turned OFF: Stripe proves each message with its signature instead.
 import Stripe from 'npm:stripe@14.25.0';
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4';
 
-const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2023-10-16' });
+const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || 'sk_not_needed', { apiVersion: '2023-10-16', httpClient: Stripe.createFetchHttpClient() });
+const cryptoProvider = Stripe.createSubtleCryptoProvider();
 const admin = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
 
 async function setPlanByCustomer(customer: string, plan: 'free' | 'premium') {
@@ -12,10 +14,11 @@ async function setPlanByCustomer(customer: string, plan: 'free' | 'premium') {
 }
 
 Deno.serve(async (req) => {
+  if (req.method !== 'POST') return new Response('ok');
   const body = await req.text();
   let event: Stripe.Event;
   try {
-    event = await stripe.webhooks.constructEventAsync(body, req.headers.get('stripe-signature') ?? '', Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? '');
+    event = await stripe.webhooks.constructEventAsync(body, req.headers.get('stripe-signature') ?? '', Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? '', undefined, cryptoProvider);
   } catch {
     return new Response('Bad signature', { status: 400 });
   }

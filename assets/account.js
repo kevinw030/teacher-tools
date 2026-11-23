@@ -227,8 +227,27 @@
     if (!sb || !user) return;
     sb.from('profiles').select('plan').eq('id', user.id).maybeSingle().then(function (res) {
       if (res.error || !res.data) return;
-      if (meta.plan !== res.data.plan) { meta.plan = res.data.plan; saveMeta(); emit(); }
+      if (meta.plan !== res.data.plan) {
+        meta.plan = res.data.plan;
+        if (res.data.plan !== 'free' && paying()) { try { sessionStorage.removeItem('tt-paid'); } catch (e) {} TT.account.justPaid = true; }
+        saveMeta(); emit();
+      }
     });
+  }
+  // Coming back from Stripe: the plan turns on a few seconds later, when Stripe tells the server.
+  function paying() {
+    try { var t = +sessionStorage.getItem('tt-paid'); return !!t && Date.now() - t < 3 * 60 * 1000; } catch (e) { return false; }
+  }
+  TT.account.paying = function () { return paying() && TT.account.plan() === 'free'; };
+  var paidTimer = null;
+  function watchPaid() {
+    if (paidTimer || !paying()) return;
+    var tries = 0;
+    paidTimer = setInterval(function () {
+      tries++;
+      if (!paying() || TT.account.plan() !== 'free' || tries > 30) { clearInterval(paidTimer); paidTimer = null; emit(); return; }
+      loadPlan();
+    }, 3000);
   }
 
   // ---------- Sign in and out ----------
@@ -244,6 +263,10 @@
       history.replaceState(null, '', base + '#account');
     }
     if (/[?&]reset=1/.test(location.search)) { try { sessionStorage.setItem('tt-reset', '1'); } catch (e) {} }
+    if (/[?&]paid=1/.test(location.search)) {
+      try { sessionStorage.setItem('tt-paid', String(Date.now())); } catch (e) {}
+      history.replaceState(null, '', base + '#account');
+    }
   })();
   function resetting() { try { return sessionStorage.getItem('tt-reset') === '1'; } catch (e) { return false; } }
   function friendly(err) {
@@ -302,7 +325,7 @@
     user = u || null;
     if (user) { meta.email = user.email; meta.firstName = TT.account.firstName(); saveMeta(); }
     emit();
-    if (user && user.id !== was) { loadPlan(); check(true); }
+    if (user && user.id !== was) { loadPlan(); check(true); watchPaid(); }
   }
 
   function start() {
@@ -342,6 +365,10 @@
     function payLink(url) {
       if (!url || !user) return '';
       return url + (url.indexOf('?') < 0 ? '?' : '&') + 'client_reference_id=' + encodeURIComponent(user.id) + '&prefilled_email=' + encodeURIComponent(user.email || '');
+    }
+    function manageUrl() {
+      var u = CFG.manageLink;
+      return u && user && user.email ? u + (u.indexOf('?') < 0 ? '?' : '&') + 'prefilled_email=' + encodeURIComponent(user.email) : u;
     }
     function go(m) { mode = m; msgText = ''; fPass = ''; paint(); }
     function link(text, m) { return h('button', { type: 'button', class: 'linkish', onclick: function () { go(m); } }, text); }
@@ -520,7 +547,10 @@
           h('div', null, h('h2', { text: TT.account.firstName() ? 'Hi, ' + TT.account.firstName() + '!' : TT.account.email() }),
             TT.account.firstName() ? h('p', { class: 'muted acct-email', text: TT.account.email() }) : null,
             h('span', { class: 'plan-badge p-' + plan, text: label + ' Plan' }),
-            plan === 'free' ? h('button', { type: 'button', class: 'linkish plan-see', onclick: function () { tab = 'plans'; paint(); } }, 'See Plans') : null)),
+            plan === 'free' && !TT.account.paying() ? h('button', { type: 'button', class: 'linkish plan-see', onclick: function () { tab = 'plans'; paint(); } }, 'See Plans') : null,
+            plan === 'premium' && CFG.manageLink ? h('a', { class: 'linkish plan-see', href: manageUrl(), target: '_blank', rel: 'noopener' }, 'Manage My Plan') : null)),
+        TT.account.paying() ? h('p', { class: 'sync-status s-syncing', role: 'status', text: 'Thank you! Your Premium plan is turning on. This only takes a few seconds.' }) : null,
+        TT.account.justPaid && plan !== 'free' ? h('p', { class: 'sync-status s-saved', role: 'status', text: 'Welcome to Premium! Everything is unlocked.' }) : null,
         picking ? avatarPicker() : null,
         realPlan() === 'owner' ? h('div', { class: 'acct-owner' },
           h('div', null, h('h3', { text: 'Owner Dashboard' }),
@@ -552,7 +582,7 @@
       }
       function paidCta(monthly, yearlyLink, label) {
         if (plan === 'owner') return cta('Included With Your Account', '', { disabled: true });
-        if (plan === 'premium') return CFG.manageLink ? cta('Manage My Plan', '', { href: CFG.manageLink, blank: true }) : cta('Your Plan', '', { disabled: true });
+        if (plan === 'premium') return CFG.manageLink ? cta('Manage My Plan', '', { href: manageUrl(), blank: true }) : cta('Your Plan', '', { disabled: true });
         if (!user) return cta(label, 'primary', { onclick: needAccount });
         var linkUrl = yearly ? yearlyLink : monthly;
         return linkUrl ? cta(label, 'primary', { href: payLink(linkUrl) }) : cta('Coming Soon', '', { disabled: true });
@@ -727,7 +757,7 @@
       item(I.user, 'My Account', function () { TT.account.wantPlans = false; location.hash = '#account'; }),
       item(I.plans, 'Plans and Pricing', goPlans),
       item(TT.icon('gear'), 'Settings', function () { location.hash = '#settings'; }),
-      plan === 'owner' && document.getElementById('view-owner') ? item(I.dash, 'Owner Dashboard', function () { location.hash = '#owner'; }) : null,
+      realPlan() === 'owner' && document.getElementById('view-owner') ? item(I.dash, 'Owner Dashboard', function () { location.hash = '#owner'; }) : null,
       h('div', { class: 'acct-menu-sep' }),
       item(I.out, 'Sign Out', TT.account.signOut, 'danger'));
     return m;
