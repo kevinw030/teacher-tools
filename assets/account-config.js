@@ -11,7 +11,7 @@ window.TT_ACCOUNT_CONFIG = {
   emailCode: false,
 
   // Show "Continue with Google" (turn on after setting up Google sign-in in Supabase).
-  google: false,
+  google: true,
 
   // From Stripe: Payment Links for the Premium plan. Leave empty until payments are ready.
   premiumMonthlyLink: '',
