@@ -110,6 +110,7 @@
     ['Shoulder rolls and neck stretches. Nice and slow.', 60], ['Pretend to jump rope', 60], ['Stand up and name 5 things you can see, 4 you can hear, 3 you can touch', 90],
     ['Sky reaches: reach high with one hand, then the other, like picking apples', 45], ['Animal walk: choose bear, crab or penguin and walk to the door and back', 90], ['Close your eyes and listen. How many sounds can you count?', 60]
   ];
+  TT.BREAKS = BREAKS; // also used by the stage version in tools/breaks2.js
   TT.mountBreaks = function (el) {
     var state = TT.load('breaks', { seen: [] });
     var cur = null, left = 0, total = 0, iv = 0, running = false, spinning = false;
