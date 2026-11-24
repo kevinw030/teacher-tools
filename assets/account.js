@@ -340,6 +340,43 @@
       sb.from('user_data').upsert({ user_id: user.id, data: collect() }).then(done, done);
     } else done();
   };
+  // Deletes the signed-in account and everything saved in it (supabase/delete-account.sql).
+  // Resolves to '' when done, or a short reason: 'plus', 'owner', 'setup' or 'error'.
+  TT.account.deleteAccount = function () {
+    if (!sb || !user) return Promise.resolve('error');
+    return sb.rpc('delete_my_account').then(function (res) {
+      var err = res && res.error;
+      if (err) {
+        var m = String(err.message || '') + ' ' + String(err.code || '');
+        if (/cancel_plus_first/.test(m)) return 'plus';
+        if (/owner_account/.test(m)) return 'owner';
+        if (/PGRST202|does not exist|Could not find/i.test(m)) return 'setup';
+        return 'error';
+      }
+      try {
+        var drop = [];
+        for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (synced(k) || k === 'tt:avatar') drop.push(k); }
+        drop.forEach(function (k) { localStorage.removeItem(k); });
+        sessionStorage.setItem('tt-deleted', '1');
+      } catch (e) {}
+      meta = {}; saveMeta();
+      var after = function () { location.href = '/'; };
+      sb.auth.signOut({ scope: 'local' }).then(after, after);
+      return '';
+    }, function () { return 'error'; });
+  };
+  // After an account is deleted, say so once on the next page.
+  (function () {
+    var gone = false;
+    try { gone = sessionStorage.getItem('tt-deleted') === '1'; if (gone) sessionStorage.removeItem('tt-deleted'); } catch (e) {}
+    if (!gone) return;
+    function show() {
+      var n = h('div', { class: 'acct-gone', role: 'status' }, 'Your account and everything saved in it have been deleted.');
+      document.body.append(n);
+      setTimeout(function () { n.classList.add('out'); setTimeout(function () { n.remove(); }, 400); }, 6000);
+    }
+    if (document.body) show(); else document.addEventListener('DOMContentLoaded', show);
+  })();
   TT.account.ready = function () { return !!sb; };
   // True once the site knows for sure whether someone is signed in (or the sign-in library could not load).
   TT.account.known = function () { return known; };
@@ -585,7 +622,52 @@
         sync,
         TT.backupControls ? h('div', { class: 'acct-backup' }, h('h3', { text: 'Backup File' }),
           h('p', { class: 'muted', text: 'Download everything to a file you keep, or bring a backup back in.' }), TT.backupControls()) : null,
-        h('div', { class: 'row' }, outBtn, outConfirm));
+        h('div', { class: 'row' }, outBtn, outConfirm),
+        deleteBox());
+    }
+
+    // ---------- Delete My Account ----------
+    var delOpen = false, delText = '', delBusy = false, delMsg = '';
+    function deleteBox() {
+      if (realPlan() === 'owner') return null;
+      var mail = h('a', { href: 'mailto:hello@edsidekick.com', text: 'hello@edsidekick.com' });
+      if (!delOpen) {
+        return h('div', { class: 'acct-delete' },
+          h('div', null, h('h3', { text: 'Delete My Account' }),
+            h('p', { class: 'muted', text: 'Remove your account and everything saved in it.' })),
+          h('button', { type: 'button', class: 'btn small del-open', onclick: function () { delOpen = true; delText = ''; delMsg = ''; paint(); var f = document.getElementById('delConfirm'); if (f) f.focus(); } }, 'Delete My Account'));
+      }
+      if (realPlan() === 'premium') {
+        return h('div', { class: 'acct-delete open', role: 'region', 'aria-label': 'Delete My Account' },
+          h('h3', { text: 'Cancel Plus First' }),
+          h('p', null, 'Your Plus plan is still active. Cancel it in Manage My Plan first so you are not charged again. When your Plus time runs out you can delete your account here, or email ', mail, ' and we will delete it right away.'),
+          h('div', { class: 'row' },
+            CFG.manageLink ? h('a', { class: 'btn primary small', href: manageUrl(), target: '_blank', rel: 'noopener' }, 'Manage My Plan') : null,
+            TT.button('Keep My Account', { kind: 'small', onclick: function () { delOpen = false; paint(); } })));
+      }
+      var input = h('input', { type: 'text', id: 'delConfirm', class: 'del-input', autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false', placeholder: 'Type DELETE', 'aria-label': 'Type DELETE to confirm' });
+      input.value = delText;
+      var go = h('button', { type: 'button', class: 'btn small del-go', disabled: delBusy || delText.trim().toUpperCase() !== 'DELETE' }, delBusy ? 'Deleting...' : 'Delete Forever');
+      input.addEventListener('input', function () { delText = input.value; go.disabled = delBusy || delText.trim().toUpperCase() !== 'DELETE'; });
+      go.addEventListener('click', function () {
+        if (delText.trim().toUpperCase() !== 'DELETE' || delBusy) return;
+        delBusy = true; delMsg = ''; paint();
+        TT.account.deleteAccount().then(function (why) {
+          if (!why) return;
+          delBusy = false;
+          delMsg = why === 'plus' ? 'Your Plus plan is still active. Cancel it in Manage My Plan first.'
+            : why === 'setup' ? 'Deleting accounts is not switched on yet. Email hello@edsidekick.com and we will delete it for you.'
+            : 'Something went wrong, so nothing was deleted. Try again, or email hello@edsidekick.com.';
+          paint();
+        });
+      });
+      return h('div', { class: 'acct-delete open', role: 'region', 'aria-label': 'Delete My Account' },
+        h('h3', { text: 'Delete Your Account?' }),
+        h('p', { text: 'This deletes your account and everything saved in it: boards, class lists, questions, schedules, seating charts and settings. It can’t be undone. Save a backup file first if you might want any of it.' }),
+        h('label', { class: 'del-label', for: 'delConfirm', text: 'Type DELETE to confirm' }),
+        h('div', { class: 'row' }, input, go,
+          TT.button('Cancel', { kind: 'small', onclick: function () { delOpen = false; delText = ''; delMsg = ''; paint(); } })),
+        delMsg ? h('p', { class: 'del-msg', role: 'alert', text: delMsg }) : null);
     }
 
     var billing = 'month';
@@ -694,6 +776,8 @@
     TT.account.onChange(function () {
       var box = root.querySelector('.acct-settings');
       if (tab === 'settings' && box && box.contains(document.activeElement)) return;
+      var del = root.querySelector('.acct-delete.open');
+      if (del && del.contains(document.activeElement) && !delBusy) return;
       paint();
     });
     TT.account.openPlans = function () { tab = 'plans'; paint(); };
