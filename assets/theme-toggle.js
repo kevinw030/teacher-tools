@@ -32,9 +32,19 @@
   var apply = TT.applyTheme;
   TT.applyTheme = function () { apply(); paint(); };
   if (media && media.addEventListener) media.addEventListener('change', paint);
-  document.querySelectorAll('.site-foot').forEach(function (f) {
-    var first = f.querySelector('a');
-    f.insertBefore(make(), first);
-  });
+  function feet() {
+    // Every page gets the footer (Kevin, 2026-11-24), in case a new visitor lands on one from a search.
+    var model = document.querySelector('.site-foot');
+    if (model) document.querySelectorAll('main.page').forEach(function (m) {
+      if (!m.querySelector('.site-foot')) { var f = model.cloneNode(true); f.classList.add('added'); m.append(f); }
+    });
+    document.querySelectorAll('.site-foot').forEach(function (f) {
+      var first = f.querySelector('a');
+      f.insertBefore(make(), first);
+    });
+    paint();
+  }
+  // Game pages are built by app.js, which loads after this file, so wait for the whole page.
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', feet); else feet();
   paint();
 })();

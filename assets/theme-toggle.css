@@ -15,3 +15,6 @@
 .theme-toggle[aria-checked="true"] .tg-track { background: #2B2560; border-color: #3D3680; }
 .theme-toggle[aria-checked="true"] .tg-knob { transform: translateX(0); background: #EDE9FF; }
 @media (prefers-reduced-motion: reduce) { .tg-knob, .tg-track { transition: none; } }
+
+/* Footer added to every other page: a little more room above it. */
+.site-foot.added { margin-top: 32px; }
