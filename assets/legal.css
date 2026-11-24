@@ -26,3 +26,19 @@
 .site-foot a { color: var(--muted); text-decoration: none; font-weight: 600; }
 .site-foot a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
 .acct-fine a { color: inherit; text-underline-offset: 2px; }
+
+/* Help page (help/index.html) */
+.help .lead { font-size: 18px; line-height: 1.5; margin: 8px 0 16px; }
+.help-jump { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 8px; }
+.help-jump a { padding: 8px 14px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--line); color: var(--ink); font-weight: 700; font-size: 14.5px; text-decoration: none; }
+.help-jump a:hover { border-color: var(--ink); }
+.help h2[id] { scroll-margin-top: 80px; }
+.faq { border: 1px solid var(--line); border-radius: 16px; background: var(--surface); margin: 0 0 8px; }
+.faq summary { list-style: none; cursor: pointer; padding: 14px 48px 14px 18px; font-family: var(--display); font-weight: 700; font-size: 17px; position: relative; border-radius: 16px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-size: 24px; font-weight: 700; color: var(--muted); transition: transform .3s; }
+.faq[open] summary::after { transform: translateY(-50%) rotate(45deg); }
+.faq summary:focus-visible { outline: 3px solid var(--cobalt); outline-offset: 2px; }
+.faq-a { padding: 0 18px 6px; }
+.faq-a ol { margin: 0 0 12px; padding-left: 22px; }
+.faq-a li { margin-bottom: 6px; }
