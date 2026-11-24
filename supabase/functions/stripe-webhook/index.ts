@@ -44,16 +44,30 @@ Deno.serve(async (req) => {
     let { data: who } = await admin.from('profiles').select('id').eq('stripe_customer', customer ?? '').maybeSingle();
     // The very first invoice can arrive before checkout links the customer, so fall back to the email.
     if (!who && inv.customer_email) ({ data: who } = await admin.from('profiles').select('id').eq('email', inv.customer_email).maybeSingle());
-    const line = inv.lines?.data?.[0];
+    // Newer Stripe API versions no longer put the price on the invoice line, so fall back to the billing period's length.
+    const line: any = inv.lines?.data?.[0];
+    const days = line?.period ? (line.period.end - line.period.start) / 86400 : 0;
+    const billing = line?.price?.recurring?.interval ?? (days > 60 ? 'year' : days > 0 ? 'month' : null);
     await admin.from('payments').upsert({
       user_id: who?.id ?? null, stripe_invoice: inv.id, amount_cents: inv.amount_paid ?? 0, currency: inv.currency,
-      billing: line?.price?.recurring?.interval ?? null, status: 'paid',
+      billing, status: 'paid',
       paid_at: new Date((inv.status_transitions?.paid_at ?? inv.created) * 1000).toISOString(),
     }, { onConflict: 'stripe_invoice' });
   } else if (event.type === 'charge.refunded') {
-    const ch = event.data.object as Stripe.Charge;
+    const ch: any = event.data.object;
     const invoice = typeof ch.invoice === 'string' ? ch.invoice : ch.invoice?.id;
-    if (invoice) await admin.from('payments').update({ status: 'refunded' }).eq('stripe_invoice', invoice);
+    if (invoice) {
+      await admin.from('payments').update({ status: 'refunded' }).eq('stripe_invoice', invoice);
+    } else if (ch.customer) {
+      // Newer Stripe API versions leave the invoice off the charge: mark this customer's latest paid payment of the same amount.
+      const customer = typeof ch.customer === 'string' ? ch.customer : ch.customer.id;
+      const { data: who } = await admin.from('profiles').select('id').eq('stripe_customer', customer).maybeSingle();
+      if (who) {
+        const { data: pay } = await admin.from('payments').select('stripe_invoice').eq('user_id', who.id).eq('status', 'paid')
+          .eq('amount_cents', ch.amount ?? -1).order('paid_at', { ascending: false }).limit(1).maybeSingle();
+        if (pay) await admin.from('payments').update({ status: 'refunded' }).eq('stripe_invoice', pay.stripe_invoice);
+      }
+    }
   }
   return new Response('ok');
 });
