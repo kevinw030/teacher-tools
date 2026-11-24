@@ -538,18 +538,14 @@
       if (celebrating && celebrating.isConnected && celebrating.addWinner) { celebrating.addWinner(name); return; }
       if (celebrating) celebrating.remove();
       var conf = h('div', { class: 'bgo-confetti', 'aria-hidden': 'true' });
-      if (!still) for (var i = 0; i < 70; i++) {
-        var bit = h('i', { class: 'cf cf-' + (i % 8) }); bit.style.setProperty('--f', (Math.random() * 1080 - 540) + 'deg'); bit.style.setProperty('--x', Math.random() * 100 + '%'); bit.style.setProperty('--d', (Math.random() * 0.9) + 's');
-        bit.style.setProperty('--r', (Math.random() * 720 - 360) + 'deg'); bit.style.setProperty('--c', B.COLS[i % 5]); bit.style.setProperty('--s', (0.6 + Math.random() * 0.8));
-        conf.append(bit);
-      }
+      if (!still && TT.confetti) TT.confetti(conf);   // Kevin's paper shapes, fired once the layer is on screen
       var mas = TT.mascot ? TT.mascot({ mood: 'party' }) : null;
       var list = h('div', { class: 'bgo-winners', role: 'list', 'aria-live': 'polite' });
       var head = h('h2', { class: 'bgo-winners-t' });
       function addWinner(n) {
         var av = game.live ? winnerAv(n) : null;
         list.append(h('div', { class: 'bgo-winner', role: 'listitem' },
-          av != null ? h('span', { class: 'bgo-win-ava', style: '--ac:' + Lobby.avatar(av).c, 'aria-hidden': 'true' }, Lobby.img(av)) : h('span', { class: 'bgo-win-star', 'aria-hidden': 'true', text: '⭐' }),
+          av != null ? h('span', { class: 'bgo-win-ava', style: '--ac:' + Lobby.avatar(av).c, 'aria-hidden': 'true' }, Lobby.img(av)) : h('span', { class: 'bgo-win-star cf cf-2', 'aria-hidden': 'true' }),
           h('span', { class: 'bgo-winner-n', text: n })));
         list.classList.toggle('many', goWinners.length > 1);
         head.textContent = goWinners.length === 1 ? n + (game.live ? ' Has Bingo!' : '') : goWinners.length + ' Bingos!';

@@ -136,15 +136,14 @@
     return { el: el, update: update, poke: poke };
   };
 
-  // A happy jump with a little burst of sparkles.
+  // A happy jump with a little burst of Kevin's confetti shapes.
   L.JUMP_MS = 800;   // matches the lb-jump animation in lobby.css
-  var SPARKS = ['✨', '⭐', '💖', '🎉', '💫'];
   L.poke = function (node, loud) {
     if (!node) return;
     var ava = node.querySelector('.lb-ava') || node;
     ava.classList.remove('jump'); void ava.offsetWidth; ava.classList.add('jump');
     if (!still) for (var i = 0; i < (loud ? 6 : 3); i++) {
-      var s = h('span', { class: 'lb-spark', 'aria-hidden': 'true', text: SPARKS[Math.floor(Math.random() * SPARKS.length)] });
+      var s = h('span', { class: 'lb-spark cf cf-' + Math.floor(Math.random() * 8), 'aria-hidden': 'true' });
       s.style.setProperty('--dx', (Math.random() * 120 - 60) + 'px'); s.style.setProperty('--dy', (-50 - Math.random() * 60) + 'px');
       s.style.setProperty('--r', (Math.random() * 80 - 40) + 'deg');
       node.append(s);

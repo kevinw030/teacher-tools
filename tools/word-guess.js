@@ -131,7 +131,7 @@
       if (solved) {
         over = true; stage.classList.add('won');
         talk(any(SAY.win)); mood('party', 3200);
-        later(function () { TT.chime(); if (TT.celebrate) TT.celebrate(stage, ['🎈', '⭐', '🎉', '✨']); }, 450);
+        later(function () { TT.chime(); if (TT.celebrate) TT.celebrate(stage); }, 450);
       } else if (misses >= MAX) {
         over = true; stage.classList.add('lost');
         talk(SAY.lose[0]); mood('think', 2600);
