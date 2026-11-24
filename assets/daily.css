@@ -1,0 +1,121 @@
+/* Class Points and Daily Schedule: 2026-11-24 look. Code in tools/points.js and tools/schedule.js. */
+
+/* ================= Class Points ================= */
+.cp { display: flex; flex-direction: column; gap: var(--s5, 24px); }
+.cp-tabs { display: flex; flex-wrap: wrap; gap: var(--s2, 8px); }
+.cp-tab { appearance: none; font: 700 16px var(--body, inherit); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 10px; padding: 8px 18px 8px 8px; border-radius: 16px;
+  border: 1.5px solid var(--line); background: var(--surface); transition: transform .45s var(--spring), border-color .15s ease, background .15s ease; }
+.cp-tab:hover { transform: translateY(-2px); border-color: var(--rose); }
+.cp-tab:active { transform: scale(.96); }
+.cp-tab-ico { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: color-mix(in srgb, var(--rose) 15%, var(--surface)); color: var(--rose); }
+.cp-tab-ico svg { width: 21px; height: 21px; }
+.cp-tab.on { background: var(--rose); border-color: var(--rose); color: #fff; box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--rose) 70%, transparent); }
+.cp-tab.on .cp-tab-ico { background: rgba(255, 255, 255, .22); color: #fff; }
+.cp-body { display: flex; flex-direction: column; gap: var(--s4, 16px); }
+
+/* ----- The jar ----- */
+.cp-stage { display: grid; grid-template-columns: minmax(280px, 5fr) 6fr; gap: clamp(24px, 4vw, 56px); align-items: center; padding: clamp(20px, 3vw, 40px); border-radius: 28px;
+  background: radial-gradient(120% 120% at 0% 0%, color-mix(in srgb, var(--amber) 20%, var(--surface)) 0%, transparent 60%), radial-gradient(120% 120% at 100% 100%, color-mix(in srgb, var(--rose) 20%, var(--surface)) 0%, transparent 60%), var(--surface-2);
+  border: 1px solid color-mix(in srgb, var(--rose) 22%, var(--line)); transition: border-color .3s ease; }
+.cp-stage.full { border-color: var(--amber); }
+.cp-scene { position: relative; display: flex; align-items: flex-end; justify-content: center; padding-right: 22%; }
+.cp-jar { width: 100%; max-width: 300px; display: flex; flex-direction: column; align-items: center; filter: drop-shadow(0 18px 18px rgba(14, 17, 32, .16)); }
+.cp-lid { width: 66%; height: 30px; border-radius: 12px 12px 6px 6px; background: linear-gradient(180deg, #F7C76B, #E19A2E); border: 3px solid #B8741B; box-shadow: inset 0 4px 0 rgba(255, 255, 255, .45); position: relative; z-index: 1; margin-bottom: -4px; }
+.cp-glass { position: relative; width: 100%; aspect-ratio: 5 / 6; border: 5px solid color-mix(in srgb, var(--sky) 45%, var(--surface)); border-top-width: 4px; border-radius: 30px 30px 64px 64px; overflow: hidden; display: flex; align-items: flex-end; padding: 12px;
+  background: linear-gradient(105deg, color-mix(in srgb, var(--sky) 22%, var(--surface)) 0%, color-mix(in srgb, var(--surface) 92%, transparent) 42%, color-mix(in srgb, var(--sky) 16%, var(--surface)) 100%); transition: border-color .3s ease, box-shadow .3s ease; }
+.cp-jar.full .cp-glass { border-color: var(--amber); box-shadow: 0 0 0 8px color-mix(in srgb, var(--amber) 28%, transparent); animation: cp-glow 1.6s ease-in-out infinite; }
+.cp-shine { position: absolute; left: 9%; top: 8%; width: 9%; height: 58%; border-radius: 999px; background: linear-gradient(180deg, rgba(255, 255, 255, .85), rgba(255, 255, 255, 0)); pointer-events: none; }
+.cp-marbles { display: grid; grid-template-columns: repeat(var(--per, 4), 1fr); gap: 4px; width: 100%; direction: rtl; transform: scaleY(-1); }
+.cp-marbles i { aspect-ratio: 1; border-radius: 50%; box-shadow: inset -4px -5px 8px rgba(0, 0, 0, .24), inset 4px 4px 6px rgba(255, 255, 255, .55); }
+/* The pile is flipped upside down so it fills from the bottom, which makes "up" a positive move here. */
+.cp-marbles i.drop { animation: cp-drop .7s cubic-bezier(.3, 0, .5, 1) both; }
+@keyframes cp-drop { 0% { transform: translateY(360px); opacity: 0; } 10% { opacity: 1; } 62% { transform: translateY(0); } 76% { transform: translateY(14px); } 90% { transform: translateY(0); } 96% { transform: translateY(4px); } 100% { transform: none; } }
+@keyframes cp-glow { 50% { box-shadow: 0 0 0 14px color-mix(in srgb, var(--amber) 16%, transparent); } }
+.cp-buddy { position: absolute; right: 0; bottom: -2%; width: 34%; max-width: 150px; }
+.cp-side { display: flex; flex-direction: column; gap: var(--s3, 12px); min-width: 0; }
+.cp-count { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.cp-num { display: inline-block; font-family: var(--display); font-size: clamp(80px, 10vw, 136px); line-height: .85; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.cp-num.bump, .cp-score.bump { animation: cp-bump .5s var(--spring); }
+@keyframes cp-bump { 0% { transform: scale(1); } 35% { transform: scale(1.22) rotate(-3deg); } 100% { transform: none; } }
+.cp-of { font-family: var(--display); font-weight: 700; font-size: clamp(20px, 2.4vw, 30px); color: var(--muted); }
+.cp-bar { position: relative; height: 16px; border-radius: 999px; background: color-mix(in srgb, var(--ink) 9%, var(--surface)); margin: var(--s2, 8px) 14px var(--s1, 4px) 0; }
+.cp-bar-fill { display: block; height: 100%; min-width: 16px; border-radius: 999px; background: linear-gradient(90deg, var(--amber), var(--coral), var(--rose)); transition: width .6s var(--spring); }
+.cp-bar-star { position: absolute; right: -14px; top: 50%; width: 36px; height: 36px; transform: translateY(-50%); display: grid; place-items: center; border-radius: 50%; background: var(--surface); color: var(--amber); box-shadow: var(--shadow-sm); }
+.cp-bar-star svg { width: 22px; height: 22px; }
+.cp-stage.full .cp-bar-star { background: var(--amber); color: #fff; animation: cp-spin 1.2s var(--spring); }
+@keyframes cp-spin { from { transform: translateY(-50%) rotate(-180deg) scale(.6); } to { transform: translateY(-50%); } }
+.cp-title { margin: 0; font-size: clamp(26px, 3.2vw, 42px); }
+.cp-reward { align-self: flex-start; display: inline-flex; align-items: center; gap: 12px; padding: 8px 20px 8px 8px; border-radius: 18px; background: color-mix(in srgb, var(--surface) 78%, transparent); border: 1px solid var(--line); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); max-width: 100%; }
+.cp-reward-ico { flex: none; width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: linear-gradient(135deg, var(--amber), var(--coral)); color: #fff; }
+.cp-reward-ico svg { width: 24px; height: 24px; }
+.cp-reward-text { display: flex; flex-direction: column; min-width: 0; }
+.cp-reward-text span { font-size: 12px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.cp-reward-text b { font-family: var(--display); font-size: 21px; line-height: 1.15; overflow-wrap: anywhere; }
+.cp-acts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s3, 12px); margin-top: var(--s2, 8px); }
+.cp-add { appearance: none; border: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 12px; padding: 12px 26px 12px 12px; border-radius: 20px; color: #fff; font: 800 20px var(--display);
+  background: linear-gradient(135deg, var(--coral), var(--rose)); box-shadow: 0 6px 0 color-mix(in srgb, var(--rose) 70%, #000), 0 16px 28px -10px color-mix(in srgb, var(--rose) 70%, transparent); transition: transform .4s var(--spring), box-shadow .15s ease; }
+.cp-add:hover { transform: translateY(-2px); }
+.cp-add:active { transform: translateY(4px); box-shadow: 0 2px 0 color-mix(in srgb, var(--rose) 70%, #000); }
+.cp-add-ico { width: 40px; height: 40px; border-radius: 13px; display: grid; place-items: center; background: rgba(255, 255, 255, .24); }
+.cp-add-ico svg { width: 22px; height: 22px; }
+.cp-btn { appearance: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 18px; border-radius: 16px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); font: 700 16px var(--body, inherit); transition: transform .4s var(--spring), border-color .15s ease; }
+.cp-btn:hover { transform: translateY(-2px); border-color: var(--ink); }
+.cp-btn:active { transform: scale(.95); }
+.cp-btn svg { width: 18px; height: 18px; display: block; }
+.cp-btn.quiet { background: none; color: var(--muted); }
+.cp-btn.warn { border-color: var(--rose); color: var(--rose); }
+.cp-link { appearance: none; border: 0; background: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; padding: 8px 4px; font: 700 15px var(--body, inherit); color: var(--muted); }
+.cp-link:hover { color: var(--ink); }
+.cp-link svg { width: 18px; height: 18px; display: block; }
+.cp-set-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--s3, 12px); padding: var(--s4, 16px); border-radius: 20px; background: var(--surface-2); }
+.cp-set-row .cq-field { flex: 1 1 220px; }
+.cp-set-row .cq-field.small { flex: 0 0 150px; }
+.cp-set-row input { font: inherit; font-weight: 600; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); width: 100%; }
+
+/* ----- Teams ----- */
+.cp-teams { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: var(--s4, 16px); }
+.cp-team { position: relative; display: flex; flex-direction: column; align-items: center; gap: var(--s3, 12px); padding: 0 var(--s4, 16px) var(--s5, 20px); border-radius: 24px; overflow: hidden;
+  background: color-mix(in srgb, var(--c) 9%, var(--surface)); border: 2px solid color-mix(in srgb, var(--c) 32%, var(--line)); box-shadow: 0 6px 0 color-mix(in srgb, var(--c) 30%, var(--surface));
+  animation: cp-in .55s var(--spring) calc(var(--i, 0) * 60ms) both; transition: border-color .25s ease, box-shadow .25s ease; }
+@keyframes cp-in { from { opacity: 0; transform: translateY(16px) scale(.95); } to { opacity: 1; transform: none; } }
+.cp-team.lead { border-color: var(--c); box-shadow: 0 6px 0 var(--c), 0 0 0 5px color-mix(in srgb, var(--c) 20%, transparent); }
+.cp-team-head { align-self: stretch; display: flex; align-items: center; gap: 8px; margin: 0 calc(var(--s4, 16px) * -1); padding: 10px 14px; background: color-mix(in srgb, var(--c) 20%, var(--surface)); }
+.cp input.cp-name { flex: 1; width: auto; min-width: 0; font: 800 19px var(--display); text-align: left; border: 1.5px solid transparent; background: none; color: var(--ink); border-radius: 10px; padding: 6px 8px; }
+.cp input.cp-name:hover, .cp input.cp-name:focus-visible { box-shadow: none; border-color: color-mix(in srgb, var(--c) 45%, var(--line)); background: var(--surface); outline: none; }
+.cp-crown { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--amber); color: #fff; transform: scale(0) rotate(-40deg); transition: transform .5s var(--spring); }
+.cp-crown svg { width: 20px; height: 20px; }
+.cp-team.lead .cp-crown { transform: none; }
+.cp-score { display: block; font-family: var(--display); font-size: clamp(68px, 8vw, 112px); line-height: 1; letter-spacing: -.04em; font-variant-numeric: tabular-nums; color: color-mix(in srgb, var(--c) 55%, var(--ink)); }
+.cp-race { align-self: stretch; height: 10px; border-radius: 999px; background: color-mix(in srgb, var(--c) 14%, var(--surface)); overflow: hidden; }
+.cp-race span { display: block; height: 100%; border-radius: 999px; background: var(--c); transition: width .6s var(--spring); }
+.cp-team-acts { display: flex; align-items: center; gap: var(--s2, 8px); }
+.cp-round { appearance: none; cursor: pointer; width: 48px; height: 48px; border-radius: 16px; border: 1.5px solid color-mix(in srgb, var(--c) 30%, var(--line)); background: var(--surface); color: var(--ink); font: 800 16px var(--body, inherit); display: grid; place-items: center; transition: transform .4s var(--spring); }
+.cp-round svg { width: 18px; height: 18px; }
+.cp-round:active, .cp-plus:active { transform: scale(.9); }
+.cp-plus { appearance: none; cursor: pointer; border: 0; display: inline-flex; align-items: center; gap: 4px; height: 56px; padding: 0 26px; border-radius: 18px; background: var(--c); color: #fff; font: 800 24px var(--display); box-shadow: 0 5px 0 color-mix(in srgb, var(--c) 65%, #000); transition: transform .4s var(--spring), box-shadow .12s ease; }
+.cp-plus svg { width: 22px; height: 22px; stroke-width: 3; }
+.cp-plus:hover { transform: translateY(-2px); }
+.cp-plus:active { transform: translateY(3px); box-shadow: 0 2px 0 color-mix(in srgb, var(--c) 65%, #000); }
+.cp-foot { display: flex; flex-wrap: wrap; gap: var(--s2, 8px); }
+.cp-foot .quiet { margin-left: auto; }
+
+@media (max-width: 760px) {
+  .cp-tab { flex: 1 1 auto; padding-right: 14px; font-size: 15px; }
+  .cp-stage { grid-template-columns: 1fr; padding: 20px 16px; gap: 20px; }
+  .cp-scene { padding-right: 24%; max-width: 330px; margin: 0 auto; width: 100%; }
+  .cp-add { flex: 1 1 100%; justify-content: center; }
+  .cp-btn { flex: 1 1 auto; justify-content: center; }
+  .cp-foot .quiet { margin-left: 0; }
+  .cp-teams { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .cp-team { padding: 0 8px 16px; }
+  .cp-team-head { margin: 0 -8px; padding: 8px; }
+  .cp input.cp-name { font-size: 16px; padding: 4px 6px; }
+  .cp-crown { width: 28px; height: 28px; } .cp-crown svg { width: 16px; height: 16px; }
+  .cp-team-acts { gap: 6px; }
+  .cp-round { width: 40px; height: 44px; border-radius: 13px; font-size: 14px; }
+  .cp-plus { height: 48px; padding: 0 14px; font-size: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cp-team, .cp-num.bump, .cp-score.bump, .cp-jar.full .cp-glass, .cp-stage.full .cp-bar-star { animation: none; }
+  .cp-tab, .cp-add, .cp-btn, .cp-bar-fill, .cp-race span, .cp-crown { transition: none; }
+}
