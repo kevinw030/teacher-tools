@@ -3,7 +3,7 @@
   var TT = window.TT, h = TT.h;
 
   // ---------- Settings ----------
-  TT.mountSettings = function (el) {
+  TT.mountSettings = function (el, opts) {
     var s = TT.settings;
     function seg(options, key, after) {
       var wrap = h('div', { class: 'segmented', role: 'group' });
@@ -36,7 +36,7 @@
     function row(title, desc, control) {
       return h('div', { class: 'set-row' }, h('div', null, h('h3', { text: title }), h('p', { class: 'muted', text: desc })), h('div', { class: 'set-control' }, control));
     }
-    var acct = TT.account && TT.account.enabled
+    var acct = TT.account && TT.account.enabled && !(opts && opts.inAccount)
       ? row('My Account', TT.account.signedIn() ? 'Signed in as ' + TT.account.email() + '. Everything saves to your account.' : 'Sign in to save everything to your account and use it on any computer.',
           h('a', { class: 'btn', href: '/account' }, TT.account.signedIn() ? 'Open My Account' : 'Sign In'))
       : null;

@@ -1233,6 +1233,11 @@ button.cb-peg.big:hover { transform: scale(1.1); }
   .acct-row .acct-switch { margin-top: 8px; }
   .acct-tab { padding: 8px 16px; font-size: 15px; }
 }
+@media (max-width: 480px) {
+  .acct-tabs { display: flex; width: 100%; }
+  .acct-tab { flex: 1 1 auto; padding: 8px 10px; font-size: 14.5px; }
+  .acct-tab .tab-long { display: none; }
+}
 
 /* Account icon */
 .nav-avatar.has-img { background-size: cover; background-position: center; color: transparent; }
