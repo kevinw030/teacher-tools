@@ -1,5 +1,5 @@
 // The student join page (/join). A student types the class code their teacher shows and gets their own
-// Class Bingo card, or an Exit Ticket question to answer (the teacher's screen says which). No account and no password. A first name or nickname is optional: it is kept in this
+// Class Bingo card, an Exit Ticket question to answer, or a Fact Fluency quiz (the teacher's screen says which). No account and no password. A first name or nickname is optional: it is kept in this
 // browser tab only and sent live to the teacher's open screen, never saved online.
 (function () {
   var B = window.Bingo, TT = window.TT = window.TT || {};
@@ -119,6 +119,7 @@
 
   // ---------- Connecting ----------
   function connect() {
+    if (window.JoinQuiz) JoinQuiz.stop();
     avMap = {}; pending = null; picker = null; ticket = null; ticketKey = ''; ticketSent = null;
     paintWaiting('Finding your class…');
     if (conn) conn.close();
@@ -127,6 +128,7 @@
       on: {
         state: onState,
         ticket: onTicket,
+        quiz: onQuiz,
         verdict: onVerdict,
         countdown: onCountdown,
         poke: function (m) { if (m && room) room.poke(m.id); },
@@ -177,6 +179,7 @@
   }
   function leave() {
     if (conn) conn.close(); conn = null; clearTimeout(findTimer);
+    if (window.JoinQuiz) JoinQuiz.stop(); store('quiz', null);
     var keepName = me && !me.auto ? me.name : '';
     state = null; cells = null; ticket = null; ticketKey = ''; store('me', null); store('card', null); store('ticket', null);
     me = keepName ? { name: keepName } : null;
@@ -187,7 +190,8 @@
     clearTimeout(goneTimer);
     if (conn) conn.close(); conn = null;
     store('me', null); store('card', null);
-    var wasTicket = !!ticket && !state;
+    var wasTicket = !!ticket && !state, wasQuiz = !!(ticket && ticket.quiz);
+    if (window.JoinQuiz) JoinQuiz.stop(); store('quiz', null);
     state = null; ticket = null; ticketKey = ''; clearTimeout(sendTimer);
     root.textContent = '';
     root.className = 'join-main is-over';
@@ -195,8 +199,18 @@
     root.append(h('div', { class: 'join-card join-wait' },
       mas ? h('div', { class: 'join-mascot small', 'aria-hidden': 'true' }, mas) : null,
       h('h1', { text: wasTicket ? 'All Done!' : 'Thanks for Playing!' }),
-      h('p', { class: 'join-lead', text: wasTicket ? 'Thanks for answering. You can close this page now.' : wins ? 'You got Bingo ' + (wins === 1 ? 'once' : wins + ' times') + '. Nice work!' : 'Your teacher ended the game.' }),
+      h('p', { class: 'join-lead', text: wasQuiz ? 'Great math practice today! You can close this page now.' : wasTicket ? 'Thanks for answering. You can close this page now.' : wins ? 'You got Bingo ' + (wins === 1 ? 'once' : wins + ' times') + '. Nice work!' : 'Your teacher ended the game.' }),
       h('button', { type: 'button', class: 'btn primary big', onclick: function () { me = null; wins = 0; paintEnter(); }, text: 'Join Another Game' })));
+  }
+
+  // ---------- Fact Fluency quiz (assets/join-fluency.js draws it) ----------
+  function onQuiz(m) {
+    if (!m || !window.JoinQuiz) return;
+    clearTimeout(findTimer);
+    hostHere = true; state = null; ticketKey = '';
+    var fl = document.querySelector('.lb-floaties'); if (fl) fl.remove();
+    ticket = { quiz: true };
+    JoinQuiz.on(m, { root: root, me: me, conn: conn, h: h, beep: beep, cheer: cheer, store: store, recall: recall, who: who });
   }
 
   // ---------- Exit Ticket: one question from the teacher, answered once on this screen ----------

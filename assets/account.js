@@ -140,7 +140,7 @@
     return !!TT.settings.syncClasses;
   }
   // Keys that can hold students' names: class lists, class jobs, seating charts, named exit tickets.
-  var CLASS_KEYS = { 'tt:classes': 1, 'tt:roster': 1, 'tt:jobs': 1, 'tt:seating': 1, 'tt:tickets': 1 };
+  var CLASS_KEYS = { 'tt:classes': 1, 'tt:roster': 1, 'tt:jobs': 1, 'tt:seating': 1, 'tt:tickets': 1, 'tt:fluency-log': 1 };
   var NEVER = { 'tt:space-test': 1 };
   function synced(k) { return k.indexOf('tt:') === 0 && !NEVER[k] && (classSync() || !CLASS_KEYS[k]); }
   function collect() {
