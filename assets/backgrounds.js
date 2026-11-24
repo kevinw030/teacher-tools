@@ -22,6 +22,25 @@
       { id: 'scene-canyon', name: 'Canyon', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/canyon.webp"), #7b7f84', thumb: 'center / cover no-repeat url("/assets/scenes/canyon-thumb.webp"), #7b7f84' },
       { id: 'scene-autumn-forest', name: 'Autumn Forest', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/autumn-forest.webp"), #5e533c', thumb: 'center / cover no-repeat url("/assets/scenes/autumn-forest-thumb.webp"), #5e533c' }
     ] },
+    { group: 'Winter Photos', items: [
+      { id: 'scene-snowy-road', name: 'Snowy Road', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/snowy-road.webp"), #7f7f7f', thumb: 'center / cover no-repeat url("/assets/scenes/snowy-road-thumb.webp"), #7f7f7f' },
+      { id: 'scene-snowy-valley', name: 'Snowy Valley', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/snowy-valley.webp"), #8e9bad', thumb: 'center / cover no-repeat url("/assets/scenes/snowy-valley-thumb.webp"), #8e9bad' },
+      { id: 'scene-frosted-pines', name: 'Frosted Pines', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/frosted-pines.webp"), #707888', thumb: 'center / cover no-repeat url("/assets/scenes/frosted-pines-thumb.webp"), #707888' },
+      { id: 'scene-snow-cabin', name: 'Snowy Cabin', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/snow-cabin.webp"), #555c5a', thumb: 'center / cover no-repeat url("/assets/scenes/snow-cabin-thumb.webp"), #555c5a' },
+      { id: 'scene-winter-field', name: 'Winter Field', photo: true, dark: false, css: 'center / cover no-repeat url("/assets/scenes/winter-field.webp"), #cbccd0', thumb: 'center / cover no-repeat url("/assets/scenes/winter-field-thumb.webp"), #cbccd0' }
+    ] },
+    { group: 'Spring and Summer Photos', items: [
+      { id: 'scene-tulip-field', name: 'Tulip Field', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/tulip-field.webp"), #9c4c4b', thumb: 'center / cover no-repeat url("/assets/scenes/tulip-field-thumb.webp"), #9c4c4b' },
+      { id: 'scene-mountain-meadow', name: 'Mountain Meadow', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/mountain-meadow.webp"), #687772', thumb: 'center / cover no-repeat url("/assets/scenes/mountain-meadow-thumb.webp"), #687772' }
+    ] },
+    { group: 'Famous Places', items: [
+      { id: 'scene-golden-gate-sunset', name: 'Golden Gate Sunset', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/golden-gate-sunset.webp"), #82728d', thumb: 'center / cover no-repeat url("/assets/scenes/golden-gate-sunset-thumb.webp"), #82728d' },
+      { id: 'scene-golden-gate', name: 'Golden Gate Bridge', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/golden-gate.webp"), #829eb7', thumb: 'center / cover no-repeat url("/assets/scenes/golden-gate-thumb.webp"), #829eb7' },
+      { id: 'scene-paris-dusk', name: 'Paris at Dusk', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/paris-dusk.webp"), #545558', thumb: 'center / cover no-repeat url("/assets/scenes/paris-dusk-thumb.webp"), #545558' },
+      { id: 'scene-castle', name: 'Neuschwanstein Castle', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/castle.webp"), #7c828e', thumb: 'center / cover no-repeat url("/assets/scenes/castle-thumb.webp"), #7c828e' },
+      { id: 'scene-colosseum', name: 'The Colosseum', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/colosseum.webp"), #556066', thumb: 'center / cover no-repeat url("/assets/scenes/colosseum-thumb.webp"), #556066' },
+      { id: 'scene-machu-picchu', name: 'Machu Picchu', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/machu-picchu.webp"), #6e726b', thumb: 'center / cover no-repeat url("/assets/scenes/machu-picchu-thumb.webp"), #6e726b' }
+    ] },
     { group: 'Gradients', items: [
       { id: 'morning', name: 'Warm Morning', css: 'radial-gradient(circle at 10% 8%,#FFE2A6 0%,transparent 52%),radial-gradient(circle at 92% 96%,#FFC3A0 0%,transparent 55%),radial-gradient(circle at 85% 10%,#FFE9D2 0%,transparent 45%),#FBEFDD' },
       { id: 'sky', name: 'Sky', css: 'linear-gradient(135deg,#8EC5FF 0%,#C9B8FF 100%)' },

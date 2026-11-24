@@ -15,3 +15,16 @@ Photos for the Classroom Board, from Wikimedia Commons. All are public domain or
 - **Aurora Lake** (`aurora-lake.webp`): Yuliya, CC0. https://commons.wikimedia.org/wiki/File:PIXNIO-1094468-aurora_borealis.jpg
 - **Canyon** (`canyon.webp`): Yourusernamewillbepublic2, CC0. https://commons.wikimedia.org/wiki/File:Grand_Canyon_USA.jpg
 - **Autumn Forest** (`autumn-forest.webp`): Vovogov90, CC0. https://commons.wikimedia.org/wiki/File:Autumn_Forest_Path_with_Tall_Trees.jpg
+- **Snowy Road** (`snowy-road.webp`): George Chernilevsky, Public domain. https://commons.wikimedia.org/wiki/File:Forest_road_Slavne_2017_BW_G9.jpg
+- **Snowy Valley** (`snowy-valley.webp`): Emily Morter emilymorter, CC0. https://commons.wikimedia.org/wiki/File:Snow_covered_forest_in_Austria_(Unsplash).jpg
+- **Frosted Pines** (`frosted-pines.webp`): U.S. Forest Service- Pacific Northwest Region, Public domain. https://commons.wikimedia.org/wiki/File:Snow_Covered_Trees,_Mt_Hood_National_Forest_(36795929710).jpg
+- **Snowy Cabin** (`snow-cabin.webp`): Ryan Graybill graybill_, CC0. https://commons.wikimedia.org/wiki/File:Classic_winter_cabin_(Unsplash).jpg
+- **Winter Field** (`winter-field.webp`): USFWSAlaska, Public domain. https://commons.wikimedia.org/wiki/File:Engineer_Lake_public_use_cabin_in_the_snow_(51080465756).jpg
+- **Tulip Field** (`tulip-field.webp`): Filio, CC0. https://commons.wikimedia.org/wiki/File:Tulip_Field_Tulips_Red_Holland_Nature_Flowers.jpg
+- **Mountain Meadow** (`mountain-meadow.webp`): Mount Rainier National Park from Ashford, WA, United States, Public domain. https://commons.wikimedia.org/wiki/File:Wildflower_Meadow_(6997737191).jpg
+- **Golden Gate Sunset** (`golden-gate-sunset.webp`): Umer Sayyam, CC0. https://commons.wikimedia.org/wiki/File:Golden_Gate_Bridge_at_Purple_sunset.jpg
+- **Golden Gate Bridge** (`golden-gate.webp`): Choinowski, CC0. https://commons.wikimedia.org/wiki/File:Golden_Gate_Bridge_in_2012_as_seen_from_Battery_Spencer.jpg
+- **Paris at Dusk** (`paris-dusk.webp`): Pierre Blaché from Paris, France, CC0. https://commons.wikimedia.org/wiki/File:Light_trails_near_Paris,_27_May_2022.jpg
+- **Neuschwanstein Castle** (`castle.webp`): Wilfredor, CC0. https://commons.wikimedia.org/wiki/File:Exterior_of_Neuschwanstein_Castle_21_80.jpg
+- **The Colosseum** (`colosseum.webp`): Wilfredor, CC0. https://commons.wikimedia.org/wiki/File:Colosseum_of_Rome_and_Roman_forum.jpg
+- **Machu Picchu** (`machu-picchu.webp`): Scott Umstattd scott_umstattd, CC0. https://commons.wikimedia.org/wiki/File:Machu_Picchu_Through_Clouds_(Unsplash).jpg
