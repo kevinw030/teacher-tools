@@ -689,7 +689,13 @@
       root.style.minHeight = '';
       if (window.scrollY !== y) window.scrollTo(0, y);
     }
-    TT.account.onChange(paint);
+    // Typing in the Settings tab saves (and syncs) on every key. Don't rebuild the page then,
+    // or the box loses focus after one letter.
+    TT.account.onChange(function () {
+      var box = root.querySelector('.acct-settings');
+      if (tab === 'settings' && box && box.contains(document.activeElement)) return;
+      paint();
+    });
     TT.account.openPlans = function () { tab = 'plans'; paint(); };
     if (TT.account.wantPlans) { tab = 'plans'; TT.account.wantPlans = false; }
     // The sign-in gate (assets/signin-gate.js) can ask for the Log In or Create an Account form.
