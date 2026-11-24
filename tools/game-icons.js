@@ -6,7 +6,7 @@
     'checkers': 1, 'memory-match': 1, 'word-guess': 1, 'riddle': 1, 'escape-room': 1, 'code-breaker': 1 };
   // Kevin's tool stickers (same day), in assets/tool-icons/.
   var TOOLS = { 'board': 1, 'timer': 1, 'name-picker': 1, 'name-wheel': 1, 'groups': 1, 'sound-level': 1, 'brain-breaks': 1, 'exit-tickets': 1, 'seating': 1, 'fact-fluency': 1,
-    'prompts': 1, 'games': 1, 'my-questions': 1 };
+    'prompts': 1, 'games': 1, 'my-questions': 1, 'morning-meeting': 1, 'schedule': 1, 'jobs': 1, 'points': 1, 'would-you-rather': 1 };
   function idOf(icon) {
     var a = icon.closest('a[href], [data-id], [data-tile]');
     if (!a) return '';

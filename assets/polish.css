@@ -54,3 +54,5 @@
 #gamesList .tool-icon { transition: transform .5s var(--spring); }
 #view-home .home-tools .tool-icon.art { width: 60px; height: 60px; }
 #view-home .home-tools .tool-icon.art img { transform: none; }
+#view-home .home-daily .tool-icon.art { width: 72px; height: 72px; }
+#view-home .home-daily .tool-icon.art img { transform: none; }
