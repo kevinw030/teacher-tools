@@ -44,6 +44,7 @@
       ['Trivia Showdown', 'Quiz-show game for 1 to 4 teams, with your own questions too'],
       ['Your Own Bingo Word Lists', 'Any words you teach, with clues, saved for next time'],
       ['Customize Your Home Page', 'Your own categories, with tiles in your order'],
+      ['Customize Morning Meeting', 'Move the tiles and add extra widgets'],
       ['The Last ' + PLANS.premium.tickets + ' Exit Tickets']
     ],
     // The Premium plan (Coming Soon): shown on the pricing tab only.
