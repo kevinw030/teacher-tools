@@ -337,3 +337,17 @@ button.bc-cell:focus-visible { outline: 4px solid var(--focus); outline-offset: 
 .join-name-tip p { margin: 0 0 var(--s2); }
 .join-name-tip .join-name-tip-t { font: 900 18px var(--display); margin-bottom: 4px; }
 .join-name-tip.shake { animation: bc-shake .45s ease; }
+
+/* Picture words (Thanksgiving Pictures): a sticker with its name under it */
+.bc-cell.bc-pic { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2%; padding: 3% 2%; line-height: 1.02; }
+.bc-img { position: relative; z-index: 1; flex: 1 1 0; min-height: 0; width: 82%; object-fit: contain; pointer-events: none; transition: opacity .2s ease, transform .45s var(--spring); }
+.bc-pic .bc-txt { flex: none; font-weight: 700; text-wrap: balance; }
+.bc-pic.on .bc-img { opacity: .5; transform: scale(.9); }
+.bc-pic .bc-dab { z-index: 0; }
+.bgo-call-pic { width: clamp(120px, 24vh, 260px); aspect-ratio: 1; object-fit: contain; filter: drop-shadow(0 10px 18px rgba(14, 17, 32, .18)); }
+.bgo-call-card.has-pic .bgo-call-big { font-size: clamp(32px, 5vw, 72px); }
+.bgo-cell-pic { width: 1.5em; height: 1.5em; object-fit: contain; vertical-align: middle; margin-right: 4px; }
+.join-call.has-pic { flex-direction: row; flex-wrap: wrap; column-gap: 12px; }
+.join-call.has-pic .join-call-n { flex-basis: 100%; }
+.join-call-pic { width: clamp(52px, 15vw, 84px); aspect-ratio: 1; object-fit: contain; }
+@media print { .bc-img { width: 78%; } }

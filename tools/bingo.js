@@ -615,6 +615,9 @@
       var card = h('div', { class: 'bgo-call-card' + (fresh && !still ? ' pop' : '') + ' ' + (short ? 'is-word' : 'is-clue') },
         h('p', { class: 'bgo-call-kicker', text: 'Call ' + game.called.length }),
         h('p', { class: 'bgo-call-big' + (game.last.text.length > 60 ? ' long' : ''), text: game.last.text }));
+      // Picture words: the call shows the picture (with a clue call, only once the answer is shown).
+      var callPic = (!clue || game.reveal) ? B.picEl(item.card, 'bgo-call-pic') : null;
+      if (callPic) { card.classList.add('has-pic'); card.insertBefore(callPic, card.children[1]); }
       if (clue) {
         var ans = h('p', { class: 'bgo-answer' + (game.reveal ? ' shown' : ''), text: game.reveal ? item.card : '' });
         card.append(h('div', { class: 'bgo-reveal-row' },
@@ -641,7 +644,7 @@
       idx.forEach(function (i) {
         var on = !!order[i];
         boardEl.append(h('span', { class: 'bgo-cell' + (on ? ' on' : '') + (fresh === i ? ' fresh' : ''), title: on ? 'Called #' + order[i] : 'Not called yet' },
-          on ? h('i', { text: order[i] }) : null, game.items[i].card));
+          on ? h('i', { text: order[i] }) : null, B.picEl(game.items[i].card, 'bgo-cell-pic'), game.items[i].card));
       });
     }
     function paintCounts() {

@@ -450,6 +450,9 @@
     callEl.textContent = '';
     callEl.className = 'join-call' + (fresh && !still ? ' pop' : '');
     callEl.append(h('span', { class: 'join-call-n', text: 'Call ' + L.n }), h('span', { class: 'join-call-text' + (L.text.length > 50 ? ' long' : ''), text: L.text }));
+    // Picture words show their picture beside the call (not for a clue, which would give the answer away).
+    var callPic = state.cards[L.i] === L.text ? B.picEl(L.text, 'join-call-pic') : null;
+    if (callPic) { callEl.classList.add('has-pic'); callEl.insertBefore(callPic, callEl.firstChild); }
     // Is it on my card? Light up that square and say so.
     var grid = gridBox ? gridBox.querySelectorAll('.bc-cell') : [], at = cells ? cells.indexOf(L.i) : -1;
     Array.prototype.forEach.call(grid, function (c) { c.classList.remove('hot'); });

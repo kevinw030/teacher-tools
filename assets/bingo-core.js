@@ -86,6 +86,68 @@
     return String(s).replace(/×/g, ' times ').replace(/÷/g, ' divided by ').replace(/−/g, ' minus ').replace(/\+/g, ' plus ').replace(/\s+/g, ' ').trim();
   };
 
+  // ---------- Picture words ----------
+  // Words that have a picture (Kevin's Thanksgiving stickers, assets/bingo/thanksgiving/). A card square or a
+  // call with one of these words shows the picture with the word under it. Both screens use this same list.
+  B.PIC_SETS = { thanksgiving: {
+    'pumpkin pie': 'pumpkin-pie',
+    'roast turkey': 'roast-turkey',
+    'mashed potatoes': 'mashed-potatoes',
+    'cranberry sauce': 'cranberry-sauce',
+    'green beans': 'green-bean-casserole',
+    'dinner rolls': 'dinner-rolls',
+    'gravy': 'gravy',
+    'cornbread': 'cornbread',
+    'scarecrow': 'scarecrow',
+    'barn': 'barn',
+    'tractor': 'tractor',
+    'hay bale': 'hay-bale',
+    'wheelbarrow': 'wheelbarrow',
+    'rake': 'rake',
+    'rain boots': 'rain-boots',
+    'cornucopia': 'cornucopia',
+    'pear': 'pear',
+    'grapes': 'grapes',
+    'pomegranate': 'pomegranate',
+    'carrot': 'carrot',
+    'beet': 'beet',
+    'sunflower seeds': 'sunflower-seeds',
+    'wheat': 'wheat',
+    'mushrooms': 'mushrooms',
+    'turkey': 'turkey',
+    'pumpkin': 'pumpkin',
+    'corn': 'corn',
+    'apple': 'apple',
+    'acorn': 'acorn',
+    'maple leaf': 'maple-leaf',
+    'sunflower': 'sunflower',
+    'pinecone': 'pinecone',
+    'squirrel': 'squirrel',
+    'fox': 'fox',
+    'deer': 'deer',
+    'owl': 'owl',
+    'hedgehog': 'hedgehog',
+    'raccoon': 'raccoon',
+    'goose': 'goose',
+    'bear': 'bear',
+    'thank-you note': 'thank-you-note',
+    'quilt': 'quilt',
+    'scarf': 'scarf',
+    'candle': 'candle',
+    'apple cider': 'apple-cider',
+    'wooden spoon': 'wooden-spoon',
+    'place setting': 'place-setting',
+    'dinner bell': 'dinner-bell'
+  } };
+  var PIC = {};
+  Object.keys(B.PIC_SETS).forEach(function (set) { Object.keys(B.PIC_SETS[set]).forEach(function (w) { PIC[w] = '/assets/bingo/' + set + '/' + B.PIC_SETS[set][w] + '.webp'; }); });
+  B.pic = function (word) { return PIC[String(word || '').trim().toLowerCase()] || ''; };
+  B.picEl = function (word, cls) {
+    var src = B.pic(word); if (!src) return null;
+    var im = document.createElement('img'); im.className = cls || 'bc-img'; im.src = src; im.alt = ''; im.draggable = false; im.decoding = 'async';
+    return im;
+  };
+
   // ---------- Cards ----------
   B.cellsNeeded = function (size, free) { return size * size - (free && size % 2 ? 1 : 0); };
   // A card is a list of item numbers, row by row. -1 is the free space in the middle.
@@ -186,7 +248,9 @@
       var dab = document.createElement('span'); dab.className = 'bc-dab'; dab.setAttribute('aria-hidden', 'true');
       var tx = document.createElement('span'); tx.className = 'bc-txt'; tx.textContent = text;
       if (free) { var st = document.createElement('span'); st.className = 'bc-star'; st.setAttribute('aria-hidden', 'true'); st.textContent = '★'; el.append(st); el.setAttribute('aria-label', 'Free space'); }
-      el.append(dab, tx);
+      var pim = free ? null : B.picEl(text);
+      if (pim) { el.classList.add('bc-pic'); el.classList.remove('hy'); el.style.setProperty('--k', text.length > 12 ? '0.1' : '0.12'); el.append(dab, pim, tx); }
+      else el.append(dab, tx);
       grid.append(el);
     });
     card.append(grid);
