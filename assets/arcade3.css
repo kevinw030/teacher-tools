@@ -1,0 +1,9 @@
+/* The older games on the shared game stage (tools/arcade3.js). Stage base styles are in assets/arcade.css. */
+
+/* ---------- Checkers ---------- */
+.ar-ck { background: linear-gradient(180deg, #BDEBDD 0%, #D8F0C8 55%, #FFF0C9 100%); }
+.ar-ck .ck { width: min(560px, 100%, calc(100vh - 330px)); min-width: min(300px, 100%); margin-block: clamp(10px, 2.4%, 18px); }
+.ar-ck .ck-sq.last:not(.sel):not(.target) { background: rgba(255, 213, 74, .22); }
+.ar-ck .ck-pc { transition: transform .35s var(--spring), filter .2s; animation: ck-land .35s var(--spring); }
+@keyframes ck-land { from { transform: scale(.82); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .ar-ck .ck-pc { animation: none; transition: none; } }
