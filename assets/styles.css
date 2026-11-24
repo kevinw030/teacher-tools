@@ -857,12 +857,15 @@ button.cb-peg.big:hover { transform: scale(1.1); }
 .poll-edit-row { display: flex; gap: 6px; align-items: center; }
 .wm { align-items: stretch; gap: 10px; }
 .wm-big { flex: 1; min-height: 0; border-radius: 16px; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2cqh; transition: background .25s ease; }
-.wm-emoji { font-size: min(34cqw, 38cqh); line-height: 1; }
+.wm-emoji { display: block; width: min(40cqw, 44cqh); height: auto; aspect-ratio: 1; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,.18)); user-select: none; }
 .wm-big b { font-family: var(--display); font-size: min(11cqw, 13cqh); letter-spacing: -.02em; line-height: 1.05; }
 .wm-btn { appearance: none; width: 46px; height: 42px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); font-size: 20px; line-height: 1; cursor: pointer; }
+.wm-btn { display: grid; place-items: center; padding: 3px; }
+.wm-ico { width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; }
 .wm-btn.on { border-color: var(--ink); box-shadow: 0 0 0 2px var(--ink); }
 .cd { gap: 1.5cqh; }
 .cd-num { font-family: var(--display); font-weight: 800; font-size: min(40cqw, 46cqh); line-height: .95; letter-spacing: -.04em; color: var(--amber); font-variant-numeric: tabular-nums; }
+.cd-ico { display: block; width: min(34cqw, 38cqh); height: auto; aspect-ratio: 1; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,.15)); user-select: none; }
 .cd-label { font-family: var(--display); font-weight: 700; font-size: max(15px, min(8cqw, 10cqh)); line-height: 1.1; overflow-wrap: anywhere; }
 .cd-form { display: flex; gap: 6px; width: 100%; flex: none; margin-top: 1cqh; }
 .cd-form input[type="date"] { flex: 0 0 auto; width: auto; }
