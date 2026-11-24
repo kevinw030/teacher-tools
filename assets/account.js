@@ -124,7 +124,11 @@
   };
 
   function emit() { listeners.forEach(function (fn) { try { fn(); } catch (e) {} }); paintNav(); }
-  function setStatus(s) { status = s; emit(); }
+  function setStatus(s) { if (s === status) return; status = s; emit(); }
+  // True while a fresh sign-in is fetching what the account has saved (the page reloads once when it
+  // arrives), and on a page load before the site has heard back about who is signed in.
+  var syncing = false, reloading = false;
+  TT.account.loading = function () { return syncing || reloading || (!known && !!meta.userId); };
 
   // ---------- Which keys go online ----------
   function classSync() {
@@ -214,7 +218,8 @@
   function check(firstLoad) {
     if (!sb || !user) return;
     sb.from('user_data').select('data, updated_at').eq('user_id', user.id).maybeSingle().then(function (res) {
-      if (res.error) { setStatus('offline'); return; }
+      var wasSyncing = syncing; syncing = false;
+      if (res.error) { setStatus('offline'); if (wasSyncing) emit(); return; }
       var row = res.data;
       if (meta.userId !== user.id) {
         // First time this account is used on this computer.
@@ -222,16 +227,17 @@
         if (!row) { meta.dirty = true; saveMeta(); push(); return; } // new account: upload what's here
         try { localStorage.setItem('tt-before-signin', JSON.stringify(collect())); } catch (e) {}
         apply(row.data); meta.pulledAt = row.updated_at; meta.dirty = false; saveMeta();
-        location.reload(); return;
+        reloading = true; location.reload(); return;
       }
       if (!row || meta.dirty) { if (meta.dirty || !row) push(); return; }
       if (row.updated_at !== meta.pulledAt) {
-        if (firstLoad) { apply(row.data); meta.pulledAt = row.updated_at; saveMeta(); location.reload(); return; }
+        if (firstLoad) { apply(row.data); meta.pulledAt = row.updated_at; saveMeta(); reloading = true; emit(); location.reload(); return; }
         newerWaiting = row; showNewer();
         return;
       }
       setStatus('saved');
-    }, function () { setStatus('offline'); });
+      if (wasSyncing) emit();
+    }, function () { syncing = false; setStatus('offline'); emit(); });
   }
   var banner = null;
   function showNewer() {
@@ -385,6 +391,8 @@
     var was = user && user.id;
     user = u || null; known = true;
     if (user) { meta.email = user.email; meta.firstName = TT.account.firstName(); saveMeta(); }
+    // Signing in on this computer: wait for the saved things before showing the account.
+    if (user && user.id !== was && sb && meta.userId !== user.id) syncing = true;
     emit();
     if (user && user.id !== was) { loadPlan(); check(true); watchPaid(); }
   }
@@ -751,7 +759,14 @@
             onclick: function () { if (tab !== t[0]) { tab = t[0]; paint(); } } }, t[1]);
         }));
     }
+    var lastSig = '';
+    function sig() {
+      var av = ''; try { av = localStorage.getItem('tt:avatar') || ''; } catch (e) {}
+      return [known, user && user.id, user && user.email, TT.account.firstName(), TT.account.plan(), TT.account.realPlan(), TT.account.viewAs(), status,
+        TT.account.loading(), paying(), !!TT.account.justPaid, classSync(), av, resetting(), tab, mode].join('|');
+    }
     function paint() {
+      lastSig = sig();
       // Rebuilding the page must not jump the scroll position.
       var y = window.scrollY;
       root.style.minHeight = root.offsetHeight + 'px';
@@ -765,7 +780,8 @@
         if (TT.mountSettings) TT.mountSettings(setBox, { inAccount: true });
       } else {
         if (user && resetting()) root.append(resetCard());
-        if (user) root.append(accountCard());
+        if (TT.account.loading()) root.append(h('section', { class: 'acct-card acct-loading', role: 'status' }, h('h2', { text: 'Getting Your Things Ready…' }), h('p', { class: 'muted', text: 'Loading what you saved in your account. This only takes a moment.' })));
+        else if (user) root.append(accountCard());
         else root.append(h('div', { class: 'acct-row' }, signInCard(), sideCard()));
       }
       root.style.minHeight = '';
@@ -778,6 +794,10 @@
       if (tab === 'settings' && box && box.contains(document.activeElement)) return;
       var del = root.querySelector('.acct-delete.open');
       if (del && del.contains(document.activeElement) && !delBusy) return;
+      // Several things report in after a sign-in (who you are, your plan, saving). Only rebuild the
+      // page when one of them changes what it shows, so it doesn't flicker.
+      var now = sig();
+      if (now === lastSig) return;
       paint();
     });
     TT.account.openPlans = function () { tab = 'plans'; paint(); };
