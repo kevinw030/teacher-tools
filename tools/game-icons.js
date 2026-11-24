@@ -1,9 +1,12 @@
-// Kevin's game sticker icons (2026-11-24) on every game tile: the Games page, the home page and Customize.
+// Kevin's sticker icons (2026-11-24) on every game tile and Classroom Tools tile: the Games page, the home page and Customize.
 // Pictures are in assets/game-icons/<name>.webp (256px). Any tile whose link matches gets its picture in
 // place of the line icon. To add one: drop the picture in that folder and add the page name below.
 (function () {
   var ART = { 'trivia': 1, 'addition-race': 1, 'subtraction-race': 1, 'trail-race': 'multiplication-race', 'division-race': 1, 'bingo': 1, 'four-in-a-row': 1, 'tic-tac-toe': 1,
     'checkers': 1, 'memory-match': 1, 'word-guess': 1, 'riddle': 1, 'escape-room': 1, 'code-breaker': 1 };
+  // Kevin's tool stickers (same day), in assets/tool-icons/.
+  var TOOLS = { 'board': 1, 'timer': 1, 'name-picker': 1, 'name-wheel': 1, 'groups': 1, 'sound-level': 1, 'brain-breaks': 1, 'exit-tickets': 1, 'seating': 1, 'fact-fluency': 1,
+    'prompts': 1, 'games': 1, 'my-questions': 1 };
   function idOf(icon) {
     var a = icon.closest('a[href], [data-id], [data-tile]');
     if (!a) return '';
@@ -12,10 +15,11 @@
   }
   function dress(icon) {
     if (icon.classList.contains('art')) return;
-    var id = idOf(icon), f = ART[id];
+    var id = idOf(icon), f = ART[id], dir = 'game-icons';
+    if (!f && TOOLS[id]) { f = 1; dir = 'tool-icons'; }
     if (!f) return;
     icon.classList.add('art');
-    icon.innerHTML = '<img src="/assets/game-icons/' + (f === 1 ? id : f) + '.webp?v=1" alt="" draggable="false" decoding="async">';
+    icon.innerHTML = '<img src="/assets/' + dir + '/' + (f === 1 ? id : f) + '.webp?v=1" alt="" draggable="false" decoding="async">';
   }
   function scan(root) {
     if (!root || root.nodeType !== 1) return;
