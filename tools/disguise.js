@@ -2,7 +2,8 @@
 // of the year. It shows on every mascot on the site, then comes off by itself when its dates are over.
 // To add one: call TT.disguise.add({ id, from: [month, day], to: [month, day], parts: [...] }), ideally from
 // its own file loaded right after this one (see tools/disguise-elf.js).
-// Each part is { layer: 'back' | 'front', svg, at, origin }. Drawings use the mascot's own 420 x 576 box.
+// Each part is { layer: 'back' | 'front' | 'ground', svg, at, origin }. 'ground' parts stand on the floor
+// beside him (they don't hop or breathe with him). Drawings use the mascot's own 420 x 576 box.
 // `at` places the part in each pose: { pose: [dx, dy, scale, degrees] }. A pose left out of `at` hides the
 // part (so most parts are hidden in the "work" pose, the back view). `origin` is the scale/turn point (px).
 (function () {
@@ -75,7 +76,9 @@
       var s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       s.setAttribute('class', 'mascot-dis ' + p.layer + ' dp' + i + (p.cls ? ' ' + p.cls : ''));
       s.setAttribute('viewBox', '0 0 420 576'); s.setAttribute('aria-hidden', 'true'); s.innerHTML = '<g class="dis-pop">' + p.svg + '</g>';  // dis-pop squashes with his picture when he changes pose
-      if (p.layer === 'back') body.insertBefore(s, body.firstChild); else body.appendChild(s);
+      if (p.layer === 'back') body.insertBefore(s, body.firstChild);
+      else if (p.layer === 'ground') el.insertBefore(s, body);
+      else body.insertBefore(s, body.querySelector('.mascot-glow.shine'));   // keeps his bulb's shine on top
     });
     return el;
   };
