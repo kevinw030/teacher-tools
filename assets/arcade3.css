@@ -38,29 +38,69 @@
   .game.trail > * { grid-column: 2; }
   .game.trail > .ar-race { grid-column: 1; grid-row: 1; align-self: stretch; justify-content: space-between; padding: 18px 16px 20px; }
   .game.trail > .tr-wrap { grid-row: 1; width: 100%; }
-  .rc-teams { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 18px; }
-  .ar-team.rc-team { grid-template-columns: auto 1fr auto; }
-  .rc-team .ar-team-name { font-size: 18px; white-space: normal; }
-  .rc-team .ar-team-score { font-size: 26px; }
-  .rc-hud { flex-direction: column; flex-wrap: nowrap; gap: 20px; }
-  .rc-buddy { flex-direction: column-reverse; gap: 10px; }
-  .rc-buddy .mascot { width: 128px; }
-  .ar-bubble.rc-say { width: 100%; min-height: 3.2em; display: grid; place-items: center; font-size: 18px; }
-  .ar-bubble.rc-say::after { left: 50%; bottom: -9px; margin: 0 0 0 -7px; transform: rotate(45deg); }
-  .rc-roll { flex-direction: column; gap: 22px; }
+  .trail .rc-teams { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 18px; }
+  .trail .ar-team.rc-team { grid-template-columns: auto 1fr auto; }
+  .trail .rc-team .ar-team-name { font-size: 18px; white-space: normal; }
+  .trail .rc-team .ar-team-score { font-size: 26px; }
+  .trail .rc-hud { flex-direction: column; flex-wrap: nowrap; gap: 20px; }
+  .trail .rc-buddy { flex-direction: column-reverse; gap: 10px; }
+  .trail .rc-buddy .mascot { width: 128px; }
+  .trail .ar-bubble.rc-say { width: 100%; min-height: 3.2em; display: grid; place-items: center; font-size: 18px; }
+  .trail .ar-bubble.rc-say::after { left: 50%; bottom: -9px; margin: 0 0 0 -7px; transform: rotate(45deg); }
+  .trail .rc-roll { flex-direction: column; gap: 22px; }
 }
 
 .page.fs .game.trail { display: grid; grid-template-columns: 280px minmax(0, 1fr); column-gap: 20px; align-items: start; max-width: 1260px; }
 .page.fs .game.trail > * { grid-column: 2; }
 .page.fs .game.trail > .ar-race { grid-column: 1; grid-row: 1; align-self: stretch; justify-content: space-between; padding: 18px 16px 20px; }
 .page.fs .game.trail > .tr-wrap { grid-row: 1; width: 100%; }
-.page.fs .rc-teams { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 18px; }
-.page.fs .ar-team.rc-team { grid-template-columns: auto 1fr auto; }
-.page.fs .rc-team .ar-team-name { font-size: 18px; white-space: normal; }
-.page.fs .rc-team .ar-team-score { font-size: 26px; }
-.page.fs .rc-hud { flex-direction: column; flex-wrap: nowrap; gap: 20px; }
-.page.fs .rc-buddy { flex-direction: column-reverse; gap: 10px; }
-.page.fs .rc-buddy .mascot { width: 128px; }
-.page.fs .ar-bubble.rc-say { width: 100%; min-height: 3.2em; display: grid; place-items: center; font-size: 18px; }
-.page.fs .ar-bubble.rc-say::after { left: 50%; bottom: -9px; margin: 0 0 0 -7px; transform: rotate(45deg); }
-.page.fs .rc-roll { flex-direction: column; gap: 22px; }
+.page.fs .trail .rc-teams { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 18px; }
+.page.fs .trail .ar-team.rc-team { grid-template-columns: auto 1fr auto; }
+.page.fs .trail .rc-team .ar-team-name { font-size: 18px; white-space: normal; }
+.page.fs .trail .rc-team .ar-team-score { font-size: 26px; }
+.page.fs .trail .rc-hud { flex-direction: column; flex-wrap: nowrap; gap: 20px; }
+.page.fs .trail .rc-buddy { flex-direction: column-reverse; gap: 10px; }
+.page.fs .trail .rc-buddy .mascot { width: 128px; }
+.page.fs .trail .ar-bubble.rc-say { width: 100%; min-height: 3.2em; display: grid; place-items: center; font-size: 18px; }
+.page.fs .trail .ar-bubble.rc-say::after { left: 50%; bottom: -9px; margin: 0 0 0 -7px; transform: rotate(45deg); }
+.page.fs .trail .rc-roll { flex-direction: column; gap: 22px; }
+
+/* ---------- Trivia Showdown (tools/puzzles.js): a quiz-show stage ---------- */
+.ar-tv { --deep: #0E0A2E; background: linear-gradient(180deg, #1A1A5C 0%, #37288A 55%, #6A3EAE 100%); }
+.ar-tv .ar-scene i { background: rgba(255, 255, 255, .07); }
+.ar-tv .ar-scene .b { background: radial-gradient(circle, rgba(255, 216, 74, .32) 0 30%, rgba(255, 216, 74, .1) 31% 62%, transparent 63%); width: 40%; right: 22%; top: -16%; animation: none; }
+.tv-mid { display: grid; grid-template-columns: clamp(110px, 13vw, 170px) minmax(0, 1fr); gap: clamp(10px, 1.6vw, 22px); align-items: end; }
+.tv-buddy { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.tv-buddy .mascot { width: 100%; }
+.tv-buddy .mascot-shadow { background: rgba(0, 0, 0, .35); }
+.ar-bubble.tv-say { margin: 0; width: 100%; box-shadow: 0 3px 0 var(--deep); }
+.tv-play { min-width: 0; }
+.ar-tv .rc-team { box-shadow: 0 4px 0 var(--deep); }
+.ar-tv .rc-team.active { box-shadow: 0 7px 0 var(--deep), 0 0 0 5px color-mix(in srgb, var(--c) 55%, transparent); }
+.tv-team .tv-team-n { grid-column: 1; grid-row: 1; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--c); color: #fff; border: 2px solid var(--ink); font-family: var(--display); font-weight: 800; font-size: 16px; }
+.tv-team .ar-team-score { background: none; color: var(--ink); min-width: 2.2em; padding: 0 4px; }
+.ar-tv .tv-grid { gap: clamp(6px, 1vw, 12px); }
+.ar-tv .tv-cat { display: grid; place-items: center; background: #fff; color: var(--ink); border: 3px solid var(--ink); border-radius: 14px; box-shadow: 0 3px 0 var(--deep); padding: 10px 6px; }
+.ar-tv .tv-tile { background: linear-gradient(180deg, #4A84FF 0%, #2553DD 100%); color: #FFD84A; border: 3px solid var(--deep); border-radius: 16px; box-shadow: 0 5px 0 var(--deep), inset 0 2px 0 rgba(255, 255, 255, .28);
+  text-shadow: 0 2px 0 rgba(14, 10, 46, .45); transition: transform .45s var(--spring), filter .2s ease; }
+.ar-tv .tv-tile:hover:not(:disabled) { transform: translateY(-3px) scale(1.03); filter: brightness(1.1); }
+.ar-tv .tv-tile:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 2px 0 var(--deep); transition-duration: .08s; }
+.ar-tv .tv-tile.done { background: rgba(255, 255, 255, .07); border-color: rgba(255, 255, 255, .12); box-shadow: none; }
+.tv-card { background: #fff; border: 3px solid var(--ink); border-radius: 24px; box-shadow: 0 5px 0 var(--deep); padding: clamp(16px, 2.4vw, 30px) !important; animation: tv-in .5s var(--spring) both; }
+@keyframes tv-in { from { transform: scale(.94) translateY(10px); opacity: 0; } }
+.tv-card .tv-grades { margin: var(--s4, 16px) 0; }
+.tv-card .tv-teams { margin-bottom: 0; }
+.tv-card.tv-question { gap: 18px; min-height: min(46vh, 420px); justify-content: center; }
+.tv-q-tag { padding: 5px 14px; border-radius: 99px; background: #FFD84A; border: 2px solid var(--ink); font-family: var(--display); font-weight: 800; font-size: 15px; }
+.btn.tv-give { background: var(--c); color: #fff; border: 3px solid var(--ink); box-shadow: 0 4px 0 var(--ink); }
+.btn.tv-give:hover { background: var(--c); filter: brightness(1.08); }
+.ar-tv ~ .ar-controls .tv-grade-chip { align-self: center; }
+@media (max-width: 720px) {
+  .tv-mid { grid-template-columns: 1fr; }
+  .tv-buddy { flex-direction: row-reverse; justify-content: flex-end; gap: 12px; }
+  .tv-buddy .mascot { width: 64px; flex: none; }
+  .ar-bubble.tv-say { width: auto; flex: 1; }
+  .ar-bubble.tv-say::after { left: -8px; bottom: 50%; margin: 0 0 -7px; transform: rotate(135deg); }
+  .ar-tv .tv-cat { font-size: 11px; padding: 6px 2px; border-width: 2px; } .ar-tv .tv-tile { border-radius: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .tv-card { animation: none; } }

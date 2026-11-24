@@ -227,13 +227,39 @@
   var GRADE_COLORS = { 1: 'emerald', 2: 'sky', 3: 'amber', 4: 'coral', 5: 'violet' };
   var GRADE_HINTS = { 1: 'Counting, letters and helpers', 2: 'Adding, nouns and seasons', 3: 'Multiplying, continents and life cycles', 4: 'Bigger facts, history and homophones', 5: 'Fractions, government and photosynthesis' };
 
+  // The quiz-show stage (same family as the other games): team score cards on top, the mascot hosting on the
+  // left, and the board, a question or the grade picker in the middle. Styles in assets/arcade3.css.
   function trivia(el) {
     var POINTS = [100, 200, 300, 400];
-    var TEAM_COLORS = ['cobalt', 'coral', 'emerald', 'amber'];
+    var TEAM_COLORS = ['#2F6BFF', '#F2643D', '#0FA974', '#E89A00'];
     var state = TT.load('trivia', null);
     var teams = Math.max(1, Math.min(4, (state && state.scores && state.scores.length) || 2));
-    var root = h('div', { class: 'game trivia' });
-    el.append(root);
+    var buddy = TT.mascot ? TT.mascot() : h('span');
+    var bubble = h('p', { class: 'ar-bubble on tv-say', 'aria-live': 'polite' });
+    var cards = h('div', { class: 'rc-teams' });
+    var play = h('div', { class: 'tv-play' });
+    var stage = h('div', { class: 'ar-stage ar-tv' },
+      h('div', { class: 'ar-scene', 'aria-hidden': 'true' }, h('i', { class: 'a' }), h('i', { class: 'b' })),
+      cards, h('div', { class: 'tv-mid' }, h('div', { class: 'tv-buddy' }, bubble, buddy), play));
+    var controls = h('div', { class: 'row center ar-controls' });
+    el.append(h('div', { class: 'game trivia ar' }, stage, controls));
+    function say(text, mood, ms) {
+      if (bubble.textContent !== text) { bubble.textContent = text; bubble.classList.remove('pop'); void bubble.offsetWidth; bubble.classList.add('pop'); }
+      if (mood && buddy.mood) buddy.mood(mood, ms || 2200);
+    }
+    function show(node, btns) { play.textContent = ''; play.append(node); controls.textContent = ''; (btns || []).forEach(function (b) { if (b) controls.append(b); }); }
+    function paintTeams(winners) {
+      cards.textContent = ''; cards.hidden = !winners;
+      if (!winners || !state) return;
+      state.scores.forEach(function (pts, t) {
+        var won = winners.indexOf(t) >= 0;
+        var c = h('div', { class: 'ar-team rc-team tv-team' + (won ? ' active winner' : '') },
+          h('span', { class: 'tv-team-n', text: String(t + 1) }), h('span', { class: 'ar-team-name', text: 'Team ' + (t + 1) }), h('b', { class: 'ar-team-score', text: pts }),
+          won ? h('span', { class: 'ar-team-turn', text: winners.length > 1 ? 'Tie!' : 'Winner!' }) : null);
+        c.style.setProperty('--c', TEAM_COLORS[t]);
+        cards.append(c);
+      });
+    }
     // Four questions from a category, kept easiest to hardest so 100 is the easiest tile.
     function pick4(list) {
       var idx = TT.shuffle(list.map(function (_, i) { return i; })).slice(0, 4).sort(function (a, b) { return a - b; });
@@ -252,73 +278,73 @@
       state = { grade: grade, cats: cats.map(function (c) {
         return { name: c, items: TT.shuffle(mine[c] || []).concat(pool[c] ? pick4(pool[c]) : []).slice(0, 4), done: [0, 0, 0, 0] };
       }), scores: Array.apply(null, Array(teams)).map(function () { return 0; }) };
-      save(); board();
+      save(); board(); say('Welcome to the show! Pick a category.', 'wave', 2400);
     }
     // Every game starts here: choose the grade level the questions come from.
     function chooseGrade() {
       var playing = state && state.cats && state.cats.some(function (c) { return c.done.indexOf(0) >= 0; });
-      root.textContent = '';
       var row = h('div', { class: 'tv-grades' });
       [1, 2, 3, 4, 5].forEach(function (g) {
         row.append(h('button', { type: 'button', class: 'tv-grade c-' + GRADE_COLORS[g] + (state && state.grade === g ? ' last' : ''), onclick: function () { newBoard(g); } },
           h('b', { text: String(g) }), h('span', { text: GRADE_NAMES[g] }), h('small', { text: GRADE_HINTS[g] })));
       });
-      root.append(h('div', { class: 'tv-start' },
-        h('span', { class: 'eyebrow', text: 'New Game' }),
+      paintTeams(null);
+      show(h('div', { class: 'tv-card tv-start' },
         h('h2', { class: 'tv-start-h', text: 'Choose a Grade Level' }),
         h('p', { class: 'muted', text: 'Every question on the board comes from the grade you pick. Your own categories are always added first.' }),
         row,
         h('div', { class: 'tv-teams' }, h('span', { class: 'tv-teams-label', text: 'How Many Teams?' }),
           h('div', { class: 'segmented', role: 'group', 'aria-label': 'Number of teams' }, [1, 2, 3, 4].map(function (n) {
             return h('button', { type: 'button', class: 'seg' + (n === teams ? ' on' : ''), 'aria-pressed': n === teams ? 'true' : 'false', text: n === 1 ? '1 Team' : n + ' Teams', onclick: function () { teams = n; chooseGrade(); } });
-          }))),
-        h('div', { class: 'row center' },
-          playing ? TT.button('Back to Game', { kind: 'big', onclick: board }) : null,
-          TT.button('Write Your Own', { icon: 'plus', kind: 'big', onclick: function () { TT.custom.open('trivia'); } }))));
+          })))),
+        [playing ? TT.button('Back to Game', { onclick: board }) : null, TT.button('Write Your Own', { icon: 'plus', onclick: function () { TT.custom.open('trivia'); } })]);
+      say('Pick a grade to start the show!', 'wave', 2400);
     }
     function save() { TT.save('trivia', state); }
+    function tops(s) { var top = Math.max.apply(null, s), who = []; s.forEach(function (v, t) { if (v === top) who.push(t); }); return who; }
     function overText(s) {
       if (s.length === 1) return 'Game over. You scored ' + s[0] + ' points!';
-      var top = Math.max.apply(null, s), who = [];
-      s.forEach(function (v, t) { if (v === top) who.push(t + 1); });
+      var who = tops(s).map(function (t) { return t + 1; });
       return who.length > 1 ? 'Game over. It’s a tie between Teams ' + who.slice(0, -1).join(', ') + ' and ' + who[who.length - 1] + '!' : 'Game over. Team ' + who[0] + ' wins!';
     }
     function board() {
-      root.textContent = '';
       var left = 0;
       var grid = h('div', { class: 'tv-grid', style: 'grid-template-columns:repeat(' + state.cats.length + ',1fr)' });
       state.cats.forEach(function (c) { grid.append(h('div', { class: 'tv-cat', text: c.name })); });
       POINTS.forEach(function (p, r) {
         state.cats.forEach(function (c, ci) {
           var done = !!c.done[r]; if (!done) left++;
-          grid.append(h('button', { type: 'button', class: 'tv-tile' + (done ? ' done' : ''), disabled: done, 'aria-label': c.name + ' for ' + p, onclick: function () { question(ci, r); } }, done ? '' : String(p)));
+          grid.append(h('button', { type: 'button', class: 'tv-tile' + (done ? ' done' : ''), disabled: done, 'aria-label': c.name + ' for ' + p, onclick: function () { TT.tick(); question(ci, r); } }, done ? '' : String(p)));
         });
       });
-      var s = state.scores;
-      root.append(
-        h('div', { class: 'scorebar' },
-          s.map(function (pts, t) { return h('div', { class: 'team active' }, h('span', { class: 'team-dot', style: 'background:var(--' + TEAM_COLORS[t] + ')' }), h('span', { text: 'Team ' + (t + 1) }), h('b', { text: pts })); }),
-          h('span', { class: 'tv-grade-chip', text: GRADE_NAMES[state.grade] || 'Mixed' }),
-          TT.button('New Game', { icon: 'reset', kind: 'small', onclick: chooseGrade }),
-          TT.button('Write Your Own', { icon: 'plus', kind: 'small', onclick: function () { TT.custom.open('trivia'); } })),
-        h('p', { class: 'game-status', text: left ? 'Pick a category and a point value.' : overText(s) }),
-        grid);
-      if (!left) (TT.fx ? TT.fx.win() : TT.chime());
+      paintTeams(left ? [] : tops(state.scores));
+      show(grid, [h('span', { class: 'tv-grade-chip', text: GRADE_NAMES[state.grade] || 'Mixed' }),
+        TT.button('New Game', { icon: 'reset', onclick: chooseGrade }),
+        TT.button('Write Your Own', { icon: 'plus', onclick: function () { TT.custom.open('trivia'); } })]);
+      if (left) say('Pick a category and a point value.');
+      else { say(overText(state.scores), 'party', 4600); TT.chime(); if (TT.celebrate) TT.celebrate(stage); }
+      return left;
     }
     function question(ci, r) {
-      var c = state.cats[ci], q = c.items[r], p = POINTS[r];
+      var c = state.cats[ci], q = c.items[r], p = POINTS[r], solo = state.scores.length === 1;
       var ans = h('div', { class: 'riddle-answer', hidden: true, text: q[1] });
-      var award = h('div', { class: 'row center', hidden: true },
-        h('span', { class: 'muted', text: state.scores.length === 1 ? 'Did the team get it?' : 'Who got it?' }),
-        state.scores.map(function (_, t) { return TT.button('Team ' + (t + 1) + ' +' + p, { kind: 'primary big', onclick: function () { give(t); } }); }),
-        TT.button(state.scores.length === 1 ? 'Not This Time' : 'Nobody', { kind: 'big', onclick: function () { give(-1); } }));
-      var reveal = TT.button('Show Answer', { kind: 'primary big', onclick: function () { ans.hidden = false; award.hidden = false; reveal.hidden = true; TT.tick(); } });
-      function give(t) { if (t >= 0) state.scores[t] += p; c.done[r] = 1; save(); board(); }
-      root.textContent = '';
-      root.append(h('div', { class: 'tv-question' },
-        h('span', { class: 'eyebrow', text: c.name + ' · ' + p + ' Points' }),
+      var award = h('div', { class: 'row center tv-award', hidden: true },
+        state.scores.map(function (_, t) {
+          var b = TT.button((solo ? 'Got It!' : 'Team ' + (t + 1)) + ' +' + p, { kind: 'primary big tv-give', onclick: function () { give(t); } });
+          b.style.setProperty('--c', TEAM_COLORS[t]); return b;
+        }),
+        TT.button(solo ? 'Not This Time' : 'Nobody', { kind: 'big', onclick: function () { give(-1); } }));
+      var reveal = TT.button('Show Answer', { kind: 'primary big', onclick: function () { ans.hidden = false; award.hidden = false; reveal.hidden = true; back.hidden = true; TT.tick(); say(solo ? 'Did the team get it?' : 'Who got it?', 'point', 2200); } });
+      var back = TT.button('Back to Board', { kind: 'big', onclick: board });
+      function give(t) {
+        if (t >= 0) state.scores[t] += p; c.done[r] = 1; save();
+        if (board()) { if (t >= 0) { say('+' + p + (solo ? ' points. Nice!' : ' for Team ' + (t + 1) + '!'), 'cheer', 2200); if (TT.fx) TT.fx.sound('good'); } else say('That was a tricky one. Pick again!', 'think', 2000); }
+      }
+      show(h('div', { class: 'tv-card tv-question' },
+        h('span', { class: 'tv-q-tag', text: c.name + ' · ' + p + ' Points' }),
         h('h2', { class: 'riddle-q', text: q[0] }), ans,
-        h('div', { class: 'row center' }, reveal, TT.button('Back to Board', { kind: 'big', onclick: board })), award));
+        h('div', { class: 'row center' }, reveal, back), award));
+      say('Read it out loud. Think it over!', 'think', 2600);
     }
     // Pick up a game already in progress; otherwise start by choosing a grade.
     if (state && state.grade && state.cats && state.cats.every(function (c) { return c.items && c.items.length === 4; }) && state.cats.some(function (c) { return c.done.indexOf(0) >= 0; })) board(); else chooseGrade();
