@@ -1,0 +1,17 @@
+/* Light/dark switch in the footer (assets/theme-toggle.js). */
+.theme-toggle { display: inline-flex; align-items: center; gap: 10px; padding: 4px 8px 4px 4px; margin-right: 8px; border: 0; border-radius: 999px;
+  background: none; color: var(--muted); font: 600 14px/1 var(--body); cursor: pointer; }
+.theme-toggle:hover { color: var(--ink); }
+.theme-toggle:focus-visible { outline: 3px solid var(--cobalt, #2F6BFF); outline-offset: 2px; }
+.tg-track { position: relative; width: 58px; height: 30px; border-radius: 999px; flex: none;
+  background: #FFD58A; border: 1px solid #F2BE62; transition: background .3s ease, border-color .3s ease; }
+.tg-icon { position: absolute; top: 50%; width: 16px; height: 16px; margin-top: -8px; display: grid; place-items: center; }
+.tg-icon svg { width: 16px; height: 16px; }
+.tg-sun { left: 8px; color: #B86A00; }
+.tg-moon { right: 8px; color: #C9C2FF; }
+.tg-knob { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .25); transition: transform .5s var(--spring, cubic-bezier(.34, 1.56, .64, 1)); }
+.theme-toggle[aria-checked="false"] .tg-knob { transform: translateX(28px); }
+.theme-toggle[aria-checked="true"] .tg-track { background: #2B2560; border-color: #3D3680; }
+.theme-toggle[aria-checked="true"] .tg-knob { transform: translateX(0); background: #EDE9FF; }
+@media (prefers-reduced-motion: reduce) { .tg-knob, .tg-track { transition: none; } }

@@ -224,7 +224,7 @@
     else if (!$('view-home').hidden) paintDate();   // keeps the greeting and the window in step with the clock
   }, 60000);
 
-  document.querySelector('.nav-gear').innerHTML = TT.icon('gear');
+  // Settings live in the account menu (Kevin, 2026-11-24), so the top bar has no gear button.
   $('homeBackup').append(TT.backupControls());
   var petMini = TT.mountPetMini ? TT.mountPetMini($('petMini')) : null;
   paintDate();
