@@ -21,9 +21,9 @@ window.TT_ACCOUNT_CONFIG = {
   // Live Stripe links (tested in the sandbox 2026-11-23).
   // Plus. From Stripe: Payment Links for the four Plus prices. Leave empty until payments are ready.
   premiumMonthlyLink: 'https://buy.stripe.com/28E9AS0Nv1CX58pd7a57W00',  // Plus monthly, $3.99
-  premiumYearlyLink: 'https://buy.stripe.com/dRm00i0Nv2H10S9ffi57W05',   // Plus yearly, $34.99
+  premiumYearlyLink: 'https://buy.stripe.com/7sY00ibs9a9t9oF7MQ57W07',   // Plus yearly, $34.99
   earlyMonthlyLink: 'https://buy.stripe.com/eVqcN4gMt2H158p6IM57W01',    // Plus Early Access monthly, $2.99
-  earlyYearlyLink: 'https://buy.stripe.com/8x28wO7bT3L5bwN8QU57W04',     // Plus Early Access yearly, $29.99
+  earlyYearlyLink: 'https://buy.stripe.com/dRm4gy0Nv0yTdEV8QU57W06',     // Plus Early Access yearly, $29.99
   priceMonthly: '$3.99',
   priceYearly: '$34.99',
   earlyPriceMonthly: '$2.99',
