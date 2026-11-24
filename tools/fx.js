@@ -93,7 +93,7 @@
   }
   // The mascot pops up from the bottom corner to cheer, on pages that don't already have him on stage.
   function cheer(el) {
-    if (!el || still || !TT.mascot || el.closest('.ar-stage, .board, .widget') || el.querySelector('.mascot') || el.getBoundingClientRect().width < 420) return;
+    if (!el || still || !TT.mascot || el.closest('.ar-stage, .board, .widget, .trail') || el.querySelector('.mascot') || el.getBoundingClientRect().width < 420) return;
     var old = el.querySelector(':scope > .fx-cheer'); if (old) old.remove();
     var m = TT.mascot({ mood: 'party' }), box = document.createElement('div');
     box.className = 'fx-cheer'; box.setAttribute('aria-hidden', 'true'); box.append(m);

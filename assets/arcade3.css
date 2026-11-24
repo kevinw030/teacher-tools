@@ -7,3 +7,60 @@
 .ar-ck .ck-pc { transition: transform .35s var(--spring), filter .2s; animation: ck-land .35s var(--spring); }
 @keyframes ck-land { from { transform: scale(.82); } to { transform: none; } }
 @media (prefers-reduced-motion: reduce) { .ar-ck .ck-pc { animation: none; transition: none; } }
+
+/* ---------- Math Races (tools/trail.js): the race stage above the board ---------- */
+.ar-race { gap: clamp(16px, 1.8vw, 22px); padding-bottom: clamp(10px, 1.4vw, 16px); background: linear-gradient(180deg, #C6D2FF 0%, #E0D5FF 55%, #FFE1F1 100%); }
+.th-garden .ar-race { background: linear-gradient(180deg, #BFEBCB 0%, #E0F3B4 55%, #FFF1BE 100%); }
+.th-desert .ar-race { background: linear-gradient(180deg, #FFE6AE 0%, #FFD1A1 55%, #FFBBA6 100%); }
+.th-sea .ar-race { background: linear-gradient(180deg, #B4ECF2 0%, #BEDDFF 55%, #D6D2FF 100%); }
+.rc-teams { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px clamp(10px, 1.6vw, 20px); }
+.ar-team.rc-team { grid-template-columns: auto auto auto; column-gap: 10px; padding: 6px 8px 6px 10px; justify-self: auto; }
+.rc-team .rc-pawn { grid-column: 1; grid-row: 1; height: 46px; width: auto; margin: -12px 0 -2px; filter: drop-shadow(0 2px 0 rgba(27, 23, 64, .25)); }
+.rc-team .ar-team-name { grid-column: 2; grid-row: 1; }
+.rc-team .ar-team-score { grid-column: 3; grid-row: 1; min-width: 1.7em; height: 1.45em; border-radius: 12px; font-size: clamp(20px, 2.2vw, 28px); }
+.rc-team.winner .ar-team-turn { background: #FFD43B; color: var(--ink); }
+.rc-hud { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px clamp(16px, 3vw, 44px); }
+.rc-buddy { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.rc-buddy .mascot { width: clamp(72px, 7.5vw, 100px); flex: none; }
+.rc-buddy .mascot-shadow { background: rgba(27, 23, 64, .22); }
+.ar-bubble.rc-say { margin: 0; width: clamp(210px, 30vw, 360px); padding: 10px 16px; font-size: clamp(15px, 1.5vw, 19px); }
+.ar-bubble.rc-say::after { left: -8px; bottom: 50%; margin: 0 0 -7px; transform: rotate(135deg); }
+.rc-roll { display: flex; align-items: center; gap: 18px; }
+@media (max-width: 720px) {
+  .rc-team .rc-pawn { height: 36px; margin-top: -8px; }
+  .ar-team.rc-team { column-gap: 6px; padding: 5px 6px 5px 8px; }
+  .rc-buddy { width: 100%; } .ar-bubble.rc-say { width: auto; flex: 1; }
+  .rc-buddy .mascot { width: 64px; }
+}
+/* Wide screens and full screen: the stage stands beside the board, so the board gets the room. */
+@media (min-width: 1100px) {
+  .game.trail { display: grid; grid-template-columns: 280px minmax(0, 1fr); column-gap: 20px; align-items: start; max-width: 1260px; }
+  .game.trail > * { grid-column: 2; }
+  .game.trail > .ar-race { grid-column: 1; grid-row: 1; align-self: stretch; justify-content: space-between; padding: 18px 16px 20px; }
+  .game.trail > .tr-wrap { grid-row: 1; width: 100%; }
+  .rc-teams { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 18px; }
+  .ar-team.rc-team { grid-template-columns: auto 1fr auto; }
+  .rc-team .ar-team-name { font-size: 18px; white-space: normal; }
+  .rc-team .ar-team-score { font-size: 26px; }
+  .rc-hud { flex-direction: column; flex-wrap: nowrap; gap: 20px; }
+  .rc-buddy { flex-direction: column-reverse; gap: 10px; }
+  .rc-buddy .mascot { width: 128px; }
+  .ar-bubble.rc-say { width: 100%; min-height: 3.2em; display: grid; place-items: center; font-size: 18px; }
+  .ar-bubble.rc-say::after { left: 50%; bottom: -9px; margin: 0 0 0 -7px; transform: rotate(45deg); }
+  .rc-roll { flex-direction: column; gap: 22px; }
+}
+
+.page.fs .game.trail { display: grid; grid-template-columns: 280px minmax(0, 1fr); column-gap: 20px; align-items: start; max-width: 1260px; }
+.page.fs .game.trail > * { grid-column: 2; }
+.page.fs .game.trail > .ar-race { grid-column: 1; grid-row: 1; align-self: stretch; justify-content: space-between; padding: 18px 16px 20px; }
+.page.fs .game.trail > .tr-wrap { grid-row: 1; width: 100%; }
+.page.fs .rc-teams { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 18px; }
+.page.fs .ar-team.rc-team { grid-template-columns: auto 1fr auto; }
+.page.fs .rc-team .ar-team-name { font-size: 18px; white-space: normal; }
+.page.fs .rc-team .ar-team-score { font-size: 26px; }
+.page.fs .rc-hud { flex-direction: column; flex-wrap: nowrap; gap: 20px; }
+.page.fs .rc-buddy { flex-direction: column-reverse; gap: 10px; }
+.page.fs .rc-buddy .mascot { width: 128px; }
+.page.fs .ar-bubble.rc-say { width: 100%; min-height: 3.2em; display: grid; place-items: center; font-size: 18px; }
+.page.fs .ar-bubble.rc-say::after { left: 50%; bottom: -9px; margin: 0 0 0 -7px; transform: rotate(45deg); }
+.page.fs .rc-roll { flex-direction: column; gap: 22px; }

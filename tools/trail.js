@@ -38,8 +38,14 @@
     if (!Array.isArray(set.sel)) set.sel = Array.isArray(set.tables) ? set.tables : [];
     set.sel = set.sel.filter(function (v) { return vals.indexOf(v) >= 0; });
     if (!set.sel.length) set.sel = P.def.slice();
-    var teamsBar = h('div', { class: 'scorebar' });
-    var st = h('p', { class: 'game-status', 'aria-live': 'polite' });
+    // The race stage (same family as the other games): team cards on top, the mascot calling the race, the die.
+    var teamsBar = h('div', { class: 'rc-teams' });
+    var st = h('p', { class: 'ar-bubble on rc-say', 'aria-live': 'polite' });
+    var buddy = TT.mascot ? TT.mascot() : h('span');
+    function say(text, mood, ms) {
+      if (st.textContent !== text) { st.textContent = text; st.classList.remove('pop'); void st.offsetWidth; st.classList.add('pop'); }
+      if (mood && buddy.mood) buddy.mood(mood, ms || 2000);
+    }
     var die = TT.dice ? TT.dice() : null;
     var rollBtn = TT.button('Roll the Die', { kind: 'primary big', onclick: roll });
     var board = h('div', { class: 'tr-board', role: 'img', 'aria-label': 'Race track with ' + N + ' spaces' });
@@ -58,8 +64,11 @@
       } }, o[1]));
     });
     function paintTables() { tables.querySelectorAll('.tr-table').forEach(function (b) { var on = set.sel.indexOf(vals[+b.getAttribute('data-n')]) >= 0; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); }); }
-    el.append(h('div', { class: 'game trail' + (cfg.cls ? ' ' + cfg.cls : '') }, teamsBar, st,
-      h('div', { class: 'row center tr-rollrow' }, die && die.el, rollBtn),
+    el.append(h('div', { class: 'game trail' + (cfg.cls ? ' ' + cfg.cls : '') }, 
+      h('div', { class: 'ar-stage ar-race' },
+        h('div', { class: 'ar-scene', 'aria-hidden': 'true' }, h('i', { class: 'a' }), h('i', { class: 'b' })),
+        teamsBar,
+        h('div', { class: 'rc-hud' }, h('div', { class: 'rc-buddy' }, buddy, st), h('div', { class: 'rc-roll' }, die && die.el, rollBtn))),
       wrap,
       h('div', { class: 'tr-legend' }, Object.keys(KINDS).map(function (k) { return h('span', null, art(KINDS[k][0]), h('b', { text: KINDS[k][1] }), ' ' + KINDS[k][2]); })),
       h('div', { class: 'tr-setup' }, h('b', { class: 'tr-setup-h' }, cfg.signArt ? art(cfg.signArt, 'tr-sign') : null, P.label), tables),
@@ -82,8 +91,12 @@
     function paint() {
       teamsBar.textContent = '';
       state.pos.forEach(function (p, t) {
-        teamsBar.append(h('div', { class: 'team tr-team' + (t === state.turn && !state.over ? ' active' : '') },
-          art(TEAMS[t][2]), h('span', { text: name(t) }), h('b', { text: String(Math.min(p, N - 1)) })));
+        var won = state.over && t === state.turn;
+        var c = h('div', { class: 'ar-team rc-team' + (t === state.turn ? (state.over ? ' active winner' : ' active') : '') },
+          art(TEAMS[t][2], 'rc-pawn'), h('span', { class: 'ar-team-name', text: name(t) }), h('b', { class: 'ar-team-score', title: 'Space on the track', text: String(Math.min(p, N - 1)) }),
+          h('span', { class: 'ar-team-turn', text: won ? 'Winner!' : 'Your Turn' }));
+        c.style.setProperty('--c', TEAMS[t][1]);
+        teamsBar.append(c);
       });
       counts.querySelectorAll('.seg').forEach(function (b) { b.classList.toggle('on', +b.getAttribute('data-n') === state.n); });
       board.textContent = '';
@@ -102,8 +115,8 @@
       }
       paintDie(lastRoll); paintTables();
       rollBtn.disabled = busy || state.over;
-      if (state.over) st.textContent = name(state.turn) + ' wins the race!';
-      else if (!busy) st.textContent = name(state.turn) + ', it’s your turn. Roll the die!';
+      if (state.over) say(name(state.turn) + ' wins the race!');
+      else if (!busy) say(name(state.turn) + ', it’s your turn. Roll the die!');
     }
     function show(icon, title, text, buttons, extra) {
       card.textContent = '';
@@ -119,7 +132,7 @@
       var ans = h('span', { class: 'tr-ans', text: '?' });
       var judge = h('div', { class: 'row center', hidden: true },
         artBtn('right', rightLabel, 'primary big', right), artBtn('wrong', 'Not This Time', 'big', wrong));
-      var reveal = TT.button('Show Answer', { kind: 'primary big', onclick: function () { ans.textContent = String(f.ans); ans.classList.add('shown'); judge.hidden = false; reveal.hidden = true; TT.tick(); } });
+      var reveal = TT.button('Show Answer', { kind: 'primary big', onclick: function () { ans.textContent = String(f.ans); ans.classList.add('shown'); judge.hidden = false; reveal.hidden = true; TT.tick(); say('Did ' + name(t) + ' get it?', 'think', 2400); } });
       // longer facts (two- and three-digit numbers) get a smaller font so they stay on one line
       var len = (f.text + String(f.ans)).length;
       show(icon, title, null, [reveal], h('div', { class: 'tr-extra' }, h('div', { class: 'tr-fact' + (len > 13 ? ' xlong' : len > 9 ? ' long' : '') }, f.text + ' = ', ans), judge));
@@ -179,9 +192,9 @@
     function finishOr(t, next) {
       if (state.pos[t] < N - 1) { next(); return; }
       ask(t, 'finish', 'Finish Line Fact for ' + name(t), function () {
-        state.over = true; busy = false; save(); paint(); TT.chime(); if (TT.celebrate) TT.celebrate(wrap);
+        state.over = true; busy = false; save(); paint(); say(name(t) + ' wins the race!', 'party', 4600); TT.chime(); if (TT.celebrate) TT.celebrate(wrap);
         show('finish', name(t) + ' Wins!', cfg.cheer, [TT.button('Play Again', { kind: 'primary big', onclick: function () { newGame(state.n); } })]);
-      }, function () { hide(); walk(t, -2, endTurn); }, 'Got It! Win the Race');
+      }, function () { hide(); say('So close! Back 2 spaces.', 'think'); walk(t, -2, endTurn); }, 'Got It! Win the Race');
     }
     function endTurn() { hide(); state.turn = (state.turn + 1) % state.n; busy = false; save(); paint(); }
     function thenMove(t, n) { hide(); walk(t, n, function () { finishOr(t, endTurn); }); }
@@ -190,9 +203,9 @@
       busy = true; rollBtn.disabled = true;
       var t = state.turn;
       lastRoll = 1 + Math.floor(Math.random() * 6);
-      st.textContent = name(t) + ' is rolling…';
+      say(name(t) + ' is rolling…', 'think', 1400);
       die.roll(lastRoll, function () {
-        st.textContent = name(t) + ' rolled a ' + lastRoll + '!';
+        say(name(t) + ' rolled a ' + lastRoll + '!', 'point', 1800);
         setTimeout(function () { walk(t, lastRoll, function () { finishOr(t, function () { land(t); }); }); }, 380);
       });
     }
@@ -200,8 +213,10 @@
       var k = state.layout[state.pos[t]];
       if (!k) { endTurn(); return; }
       var K = KINDS[k];
+      if (k === 'q') say(name(t) + ', solve this one!', 'point', 1800);
+      else say({ move: 'Everybody up!', boost: 'Zoom zoom!', slip: 'Whoops!', again: 'Lucky! Go again.', swap: 'Switch it up!' }[k], k === 'slip' ? 'think' : 'cheer', 2000);
       if (k === 'q') {
-        ask(t, K[0], 'Fact Check for ' + name(t), function () { thenMove(t, 2); }, endTurn, 'Got It! Move Ahead 2');
+        ask(t, K[0], 'Fact Check for ' + name(t), function () { say(pick(['Nice work, ', 'Way to go, ', 'You got it, ']) + name(t) + '!', 'cheer', 2200); thenMove(t, 2); }, function () { if (buddy.mood) buddy.mood('wave', 1600); endTurn(); }, 'Got It! Move Ahead 2');
       } else if (k === 'move') {
         show(K[0], K[1] + '!', cfg.move(set.sel) + ' while you ' + pick(MOVES) + '.', [TT.button('Done! Move Ahead 1', { kind: 'primary big', onclick: function () { thenMove(t, 1); } })]);
       } else if (k === 'boost') {
