@@ -136,12 +136,13 @@
     'exit-tickets': function () { return TT.mountTickets($('ticketsMount')); },
     seating: function () { return TT.premium.gate('seating', $('seatingMount'), TT.mountSeating); },
     'fact-fluency': function () { return TT.mountFluency($('fluencyMount')); },
+    spelling: function () { return TT.mountSpelling($('spellingMount')); },
     bingo: function () { return TT.premium.gate('bingo', $('bingoMount'), TT.mountBingo); },
     prompts: function () { return TT.premium.gate('prompts', $('promptsMount'), TT.mountPrompts); }
   };
   Object.keys(gameMounters).forEach(function (k) { mounters[k] = gameMounters[k]; });
   var views = document.querySelectorAll('[data-view]:not(a)');
-  var titles = { home: 'ED Sidekick', board: 'Classroom Board', timer: 'Timer', 'name-picker': 'Name Picker', groups: 'Group Maker', 'would-you-rather': 'Would You Rather', pet: 'Classroom Pet', games: 'Games', 'name-wheel': 'Name Wheel', 'morning-meeting': 'Morning Meeting', 'brain-breaks': 'Brain Breaks', settings: 'Settings', account: 'My Account', owner: 'Owner Dashboard', 'my-questions': 'My Questions', 'sound-level': 'Sound Level', schedule: 'Daily Schedule', jobs: 'Class Jobs', points: 'Class Points', 'exit-tickets': 'Exit Tickets', seating: 'Seating Chart', 'fact-fluency': 'Fact Fluency', prompts: 'Prompts', bingo: 'Class Bingo' };
+  var titles = { home: 'ED Sidekick', board: 'Classroom Board', timer: 'Timer', 'name-picker': 'Name Picker', groups: 'Group Maker', 'would-you-rather': 'Would You Rather', pet: 'Classroom Pet', games: 'Games', 'name-wheel': 'Name Wheel', 'morning-meeting': 'Morning Meeting', 'brain-breaks': 'Brain Breaks', settings: 'Settings', account: 'My Account', owner: 'Owner Dashboard', 'my-questions': 'My Questions', 'sound-level': 'Sound Level', schedule: 'Daily Schedule', jobs: 'Class Jobs', points: 'Class Points', 'exit-tickets': 'Exit Tickets', seating: 'Seating Chart', 'fact-fluency': 'Fact Fluency', spelling: 'Spelling Practice', prompts: 'Prompts', bingo: 'Class Bingo' };
   Object.keys(gameTitles).forEach(function (k) { titles[k] = gameTitles[k]; });
 
   // ---------- Menus in the top bar ----------

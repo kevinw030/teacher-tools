@@ -52,6 +52,7 @@
 <link rel="stylesheet" href="/assets/theme-toggle.css?v=ft1124">
 <link rel="stylesheet" href="/assets/signin-gate.css?v=sg1124">
 <link rel="stylesheet" href="/assets/why.css?v=why1124">
+<link rel="stylesheet" href="/assets/spelling.css?v=sp1124">
 <link rel="canonical" href="https://edsidekick.com/word-guess">
 </head>
 <body>
@@ -88,6 +89,7 @@
           <a href="/exit-tickets" data-view="exit-tickets">Exit Tickets</a>
           <a href="/seating" data-view="seating">Seating Chart</a>
           <a href="/fact-fluency" data-view="fact-fluency">Fact Fluency</a>
+          <a href="/spelling" data-view="spelling">Spelling Practice</a>
           <a href="/bingo" data-view="bingo">Class Bingo</a>
           <a href="/prompts" data-view="prompts">Prompts</a>
           <a href="/my-questions" data-view="my-questions">My Questions</a>
@@ -236,6 +238,12 @@
         <h3>Fact Fluency</h3>
         <p>Quick rounds of math facts with a class best to beat.</p>
         <span class="go">Start a Round <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+      </a>
+      <a class="tool c-sky" href="/spelling">
+        <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18 7 6l4 12M4.500 14h5"/><path d="M14 6v12h3.500a3 3 0 0 0 0-6H14h3a3 3 0 0 0 0-6z"/></svg></span>
+        <h3>Spelling Practice</h3>
+        <p>Type this week's spelling words once, then play quick spelling games with the class.</p>
+        <span class="go">Practice Words <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
       </a>
       <a class="tool c-rose" href="/bingo">
         <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="6" cy="6" r="1.6" fill="currentColor"/><circle cx="18" cy="18" r="1.6" fill="currentColor"/></svg></span>
@@ -438,6 +446,15 @@
   <section class="panel" id="fluencyMount"></section>
 </main>
 
+<!-- SPELLING PRACTICE -->
+<main class="page c-sky" id="view-spelling" data-view="spelling" hidden>
+  <header class="tool-head">
+    <div><span class="eyebrow">Classroom Tool</span><h1>Spelling Practice</h1><p>Type this week's spelling words once, then play quick spelling games with the whole class.</p></div>
+    <div class="row js-fs-slot"></div>
+  </header>
+  <section class="panel" id="spellingMount"></section>
+</main>
+
 <!-- CLASS BINGO -->
 <main class="page c-rose" id="view-bingo" data-view="bingo" hidden>
   <header class="tool-head">
@@ -547,6 +564,7 @@
 <script src="/tools/extras.js?v=tp1124"></script>
 <script src="/tools/breaks2.js?v=bb1124"></script>
 <script src="/tools/learn.js?v=rw1124"></script>
+<script src="/tools/spelling.js?v=sp1124"></script>
 <script src="/tools/prompts2.js?v=pr1124"></script>
 <script src="/tools/points.js?v=cp1124"></script>
 <script src="/tools/schedule.js?v=ds1124"></script>
@@ -560,7 +578,7 @@
 <script src="/tools/bingo.js?v=cf1124b"></script>
 <script src="/tools/owner.js?v=oa1124"></script>
 <script src="/assets/theme-toggle.js?v=ft1124b"></script>
-<script src="/assets/app.js?v=nobk1124"></script>
+<script src="/assets/app.js?v=sp1124"></script>
 <script src="/tools/dashboard.js?v=ac1124"></script>
 <script src="/tools/polish.js?v=po1124"></script>
 <script src="/tools/game-icons.js?v=di1124"></script>
