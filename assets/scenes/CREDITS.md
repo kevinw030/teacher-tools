@@ -28,3 +28,14 @@ Photos for the Classroom Board, from Wikimedia Commons. All are public domain or
 - **Neuschwanstein Castle** (`castle.webp`): Wilfredor, CC0. https://commons.wikimedia.org/wiki/File:Exterior_of_Neuschwanstein_Castle_21_80.jpg
 - **The Colosseum** (`colosseum.webp`): Wilfredor, CC0. https://commons.wikimedia.org/wiki/File:Colosseum_of_Rome_and_Roman_forum.jpg
 - **Machu Picchu** (`machu-picchu.webp`): Scott Umstattd scott_umstattd, CC0. https://commons.wikimedia.org/wiki/File:Machu_Picchu_Through_Clouds_(Unsplash).jpg
+- **Autumn Lake** (`fall-lake.webp`): Pseudopanax at English Wikipedia, Public domain. https://commons.wikimedia.org/wiki/File:Autumn_colours_at_Lake_Aviemore.jpg
+- **Fall Forest Path** (`fall-forest-path.webp`): Unknown author, CC0. https://commons.wikimedia.org/wiki/File:Autumn_Lane.jpg
+- **Golden Woods** (`fall-pines.webp`): Vovogov90, CC0. https://commons.wikimedia.org/wiki/File:Autumn_Forest_Path_with_Tall_Trees.jpg
+- **Fall Mountains** (`fall-mountains.webp`): usfs_Eastern_Region, Public domain. https://commons.wikimedia.org/wiki/File:Fall_Colors_2019_(20191016-FS-WhiteMountain-001).jpg
+- **Pumpkin Patch** (`pumpkin-patch.webp`): George Chernilevsky, Public domain. https://commons.wikimedia.org/wiki/File:Cucurbita_pepo_2013_G1.jpg
+- **Woodland Waterfall** (`waterfall-woods.webp`): ThusSprokeMarlin, CC0. https://commons.wikimedia.org/wiki/File:Waterfall_at_Rouken_Glen,_Autumn.jpg
+- **Great Wall of China** (`great-wall.webp`): Dudva, CC0. https://commons.wikimedia.org/wiki/File:The_Great_Wall_of_China_at_Badaling_in_03.2025.jpg
+- **Santorini** (`santorini.webp`): gtgt, CC0. https://commons.wikimedia.org/wiki/File:Santorini_Greece_Island.jpg
+- **Statue of Liberty** (`statue-of-liberty.webp`): Ronile, CC0. https://commons.wikimedia.org/wiki/File:Statue_of_liberty_head_2013-10-28.jpg
+- **Taj Mahal** (`taj-mahal.webp`): Shivansh2401, CC0. https://commons.wikimedia.org/wiki/File:Taj_Mahal_in_the_morning_2023.jpg
+- **Tower Bridge at Night** (`tower-bridge.webp`): HyunJae Park, Public domain. https://commons.wikimedia.org/wiki/File:Tower_Bridge_in_London_at_night.jpg
