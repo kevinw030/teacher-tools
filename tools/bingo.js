@@ -68,6 +68,7 @@
         var b = h('button', { type: 'button', class: 'bgo-pick c-' + (o.color || 'violet') + (o.on ? ' on' : '') + (o.cls ? ' ' + o.cls : ''), 'aria-pressed': o.on ? 'true' : 'false', onclick: o.onclick },
           h('span', { class: 'bgo-pick-art', 'aria-hidden': 'true' }, o.art ? h('img', { src: o.art, alt: '', draggable: 'false' }) : h('span', { class: 'bgo-pick-glyph', text: o.glyph || '' })),
           h('span', { class: 'bgo-pick-text' }, h('strong', { text: o.name }), h('span', { text: o.meta })),
+          o.badge || null,
           o.on ? h('span', { class: 'bgo-pick-check', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' }) : null);
         return b;
       }
@@ -80,6 +81,9 @@
       var isMine = S.kind === 'words' && S.lists.some(function (l) { return l.name === S.listName && l.text === S.text; });
       var isSample = S.kind === 'words' && !isMine && B.SAMPLES.some(function (l) { return l.text === S.text; });
       var isNew = S.kind === 'words' && !isMine && !isSample;
+      // Making and changing your own lists is a Plus feature. Free accounts play the ready-made lists and Math Facts.
+      var plus = !TT.premium || TT.premium.has(), owner = !!(TT.premium && TT.premium.owner());
+      if (!plus && isNew && (!TT.account || !TT.account.known || TT.account.known())) { S.text = B.SAMPLES[0].text; S.listName = B.SAMPLES[0].name; editing = false; isNew = false; isSample = true; list = items(); enough = list.length >= need; }
       B.SAMPLES.forEach(function (l) {
         gallery.append(pick({ name: l.name, meta: metaOf(l.text), art: l.art, glyph: l.glyph, color: l.color, on: isSample && S.text === l.text, onclick: function () { choose(l); } }));
       });
@@ -87,7 +91,9 @@
       S.lists.forEach(function (l) {
         gallery.append(pick({ name: l.name, meta: metaOf(l.text) + ' · My List', glyph: '★', color: 'amber', cls: 'is-mine', on: isMine && S.listName === l.name, onclick: function () { choose(l); } }));
       });
-      gallery.append(pick({ name: 'Make a New List', meta: 'Type or paste your own words', glyph: '+', color: 'rose', cls: 'is-new', on: isNew, onclick: function () {
+      gallery.append(pick({ name: 'Make a New List', meta: 'Type or paste your own words', glyph: '+', color: 'rose', cls: 'is-new' + (plus ? '' : ' pm-locked'), on: isNew,
+        badge: !plus ? TT.premium.badge('mini') : owner ? TT.premium.ownerBadge() : null, onclick: function () {
+        if (!plus) { TT.premium.open('bingoLists'); return; }
         S.kind = 'words'; S.text = ''; S.listName = ''; editing = true; save(); paintSetup();
         setTimeout(function () { var t = root.querySelector('textarea'); if (t) t.focus(); }, 30);
       } }));
@@ -100,6 +106,7 @@
         var ta = h('textarea', { rows: 9, class: 'bgo-text', 'aria-label': 'Words, one per line',
           placeholder: 'Type or paste one word per line.\nAdd a clue after a colon if you like:\nhabitat: The natural home of a plant or animal' });
         ta.value = S.text;
+        if (!plus) { ta.readOnly = true; ta.classList.add('locked'); }
         var count = h('span', { class: 'bgo-badge', 'aria-live': 'polite' });
         var callBox = h('div', { class: 'bgo-call-what' });
         function recount() {
@@ -118,7 +125,7 @@
         });
         recount();
         var headName = isNew ? 'Your New List' : (S.listName || 'Vocabulary');
-        var editBtn = isNew ? null : TT.button(editing ? 'Done' : 'See and Edit the Words', { kind: editing ? 'small primary' : 'small', icon: editing ? null : 'edit', onclick: function () { editing = !editing; paintSetup(); } });
+        var editBtn = isNew ? null : TT.button(editing ? 'Done' : plus ? 'See and Edit the Words' : 'See the Words', { kind: editing ? 'small primary' : 'small', icon: editing ? null : 'edit', onclick: function () { editing = !editing; paintSetup(); } });
         detail.append(h('div', { class: 'bgo-detail-head' }, h('div', null, h('h3', { text: headName }), count), editBtn));
         if (editing) {
           var nameIn = h('input', { type: 'text', class: 'bgo-name', maxlength: 40, placeholder: 'List Name, Like “Unit 3 Words”', 'aria-label': 'List name' });
@@ -136,12 +143,14 @@
             mine >= 0 ? TT.button('Delete', { kind: 'small', icon: 'trash', onclick: function () {
               S.lists.splice(mine, 1); S.text = B.SAMPLES[0].text; S.listName = B.SAMPLES[0].name; editing = false; save(); paintSetup();
             } }) : null);
-          detail.append(ta, h('p', { class: 'bgo-hint', text: 'One word per line. Add a clue after a colon if you like. Save it to use it again another day.' }), saveRow);
+          if (plus) detail.append(ta, h('p', { class: 'bgo-hint', text: 'One word per line. Add a clue after a colon if you like. Save it to use it again another day.' }), saveRow);
+          else detail.append(ta, h('div', { class: 'row bgo-locked-row' }, h('span', { class: 'bgo-hint', text: 'Changing words and making your own lists comes with Plus.' }),
+            TT.premium.button('Make Your Own List', 'bingoLists', function () {})));
         } else {
           // A peek at what is in the list.
           var all = B.fromWords(S.text), peek = h('div', { class: 'bgo-peek' });
           all.slice(0, 10).forEach(function (i) { peek.append(h('span', { class: 'bgo-peek-item' }, B.picEl(i.card, 'bgo-peek-pic'), i.card)); });
-          if (all.length > 10) peek.append(h('button', { type: 'button', class: 'bgo-peek-more', onclick: function () { editing = true; paintSetup(); } }, '+' + (all.length - 10) + ' more'));
+          if (all.length > 10) peek.append(h('button', { type: 'button', class: 'bgo-peek-more', onclick: function () { editing = true; paintSetup(); } }, '+' + (all.length - 10) + ' More'));
           detail.append(peek);
         }
         detail.append(callBox);

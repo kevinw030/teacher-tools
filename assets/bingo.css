@@ -415,3 +415,7 @@ button.bc-cell:focus-visible { outline: 4px solid var(--focus); outline-offset: 
 @media (max-width: 560px) { .bgo-gallery { grid-template-columns: 1fr; } .bgo-detail { padding: var(--s3); } }
 @media (prefers-reduced-motion: reduce) { .bgo-pick, .bgo-pick-art, .bgo-pick-check { transition: none; animation: none; } }
 .bgo-setup.v2 .bgo-card-opts { align-self: stretch; }
+.bgo-pick > .pm-badge { position: absolute; top: -9px; right: 10px; margin: 0; }
+.bgo-pick.pm-locked .bgo-pick-art { filter: saturate(.6); }
+.bgo-text.locked { color: var(--muted); cursor: default; }
+.bgo-locked-row { justify-content: space-between; }

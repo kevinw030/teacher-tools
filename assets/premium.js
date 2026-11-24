@@ -16,6 +16,7 @@
     screens: ['Save More Board Screens', 'Free accounts save 2 board screens. Plus saves as many as you like, one for every part of your day.'],
     classes: ['Add More Class Lists', 'Free accounts keep 2 class lists. Plus keeps as many as you teach.'],
     trivia: ['Trivia Showdown Is a Plus Game', 'A quiz-show board with categories and points for 1 to 4 teams, picked by grade. Write your own trivia questions for it too.'],
+    bingoLists: ['Make Your Own Bingo Lists', 'Type or paste the words you teach, add clues, and save your lists to use again. The ready-made lists and Math Facts stay free.'],
     bingo: ['Class Bingo Is a Plus Game', 'Bingo cards made from your vocabulary words or math facts. Play on the board, print a class set, or let students join on their own devices with a class code.'],
     dashboard: ['Make Your Home Page Your Own', 'Make your own categories, then drag your tools and games into the order you use them. Your layout is saved to your account.'],
     plan: ['ED Sidekick Plus', 'Every escape room, Trivia Showdown, Seating Chart, Prompts and room for every class.']
@@ -23,7 +24,7 @@
 
   // Used only if an older copy of account.js is still in the browser's cache.
   var FALLBACK_FEATURES = [['Unlimited Saved Board Screens'], ['Unlimited Class Lists'], ['All 4 Escape Rooms'], ['Edit the Questions in Any Room'],
-    ['Seating Chart'], ['Prompts'], ['Trivia Showdown'], ['The Last 50 Exit Tickets'], ['Customize Your Home Page']];
+    ['Seating Chart'], ['Prompts'], ['Trivia Showdown'], ['Your Own Bingo Word Lists'], ['The Last 50 Exit Tickets'], ['Customize Your Home Page']];
   function fallbackPrices() {
     var C = window.TT_ACCOUNT_CONFIG || {}, mo = parseFloat(String(C.priceMonthly || '3.99').replace(/[^0-9.]/g, '')), yr = parseFloat(String(C.priceYearly || '34.99').replace(/[^0-9.]/g, ''));
     var until = new Date((C.earlyUntil || '2027-01-01') + 'T00:00:00');

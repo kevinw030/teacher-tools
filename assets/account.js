@@ -42,6 +42,7 @@
       ['Seating Chart', 'Build your room and seat your class'],
       ['Prompts', 'Writing, discussion and This or That by grade'],
       ['Trivia Showdown', 'Quiz-show game for 1 to 4 teams, with your own questions too'],
+      ['Your Own Bingo Word Lists', 'Any words you teach, with clues, saved for next time'],
       ['Customize Your Home Page', 'Your own categories, with tiles in your order'],
       ['The Last ' + PLANS.premium.tickets + ' Exit Tickets']
     ],
