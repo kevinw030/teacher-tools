@@ -284,3 +284,52 @@
 .bb2-btns .btn.small { border: 2.5px solid var(--ink); }
 @media (max-width: 720px) { .bb2 { grid-template-columns: 1fr; justify-items: center; } .bb2-card { width: 100%; } }
 @media (prefers-reduced-motion: reduce) { .bb2-ring.run, .bb2-card.spinning .bb2-text { animation: none !important; } }
+
+/* ---------- Prompts (tools/prompts2.js) ---------- */
+.pr.game.ar { align-items: stretch; gap: 12px; }
+.ar-prompt { background: linear-gradient(170deg, #FFE9B0 0%, #FFCFA0 55%, #FFB3A8 100%); transition: background .3s ease; }
+.ar-prompt[data-kind="talk"] { background: linear-gradient(170deg, #B8F0E4 0%, #9ADCF5 55%, #B9C4FF 100%); }
+.ar-prompt[data-kind="pick"] { background: linear-gradient(170deg, #D9D2FF 0%, #F6C9E6 55%, #FFD9B8 100%); }
+.pr2-subjects .pr-subject.on { background: var(--violet); border-color: var(--violet); color: #fff; }
+.pr2 { width: 100%; display: flex; flex-direction: column; align-items: center; gap: clamp(12px, 1.8vw, 20px); margin-top: 14px; }
+.pr2-card { position: relative; width: 100%; min-height: clamp(170px, 30vh, 280px); display: grid; place-items: center; padding: clamp(32px, 3.8vw, 46px) clamp(18px, 3vw, 40px) clamp(20px, 2.6vw, 30px);
+  background: #FFFDF6; border: 3px solid var(--ink); border-radius: 26px; box-shadow: 0 8px 0 var(--ink); }
+.pr2-card[hidden], .pr2-duel[hidden], .pr2-help[hidden] { display: none; }
+/* Writing: a paper page with a red margin line. */
+.ar-prompt[data-kind="write"] .pr2-card { padding-left: clamp(44px, 6vw, 80px); border-radius: 10px 26px 26px 10px; }
+.ar-prompt[data-kind="write"] .pr2-card::before { content: ""; position: absolute; left: clamp(22px, 3vw, 40px); top: 0; bottom: 0; width: 3px; background: #FF8A8A; }
+/* Discussion: a speech bubble with a tail toward the mascot. */
+.ar-prompt[data-kind="talk"] .pr2-card { border-radius: 40px; }
+.ar-prompt[data-kind="talk"] .pr2-card::after { content: ""; position: absolute; left: -15px; bottom: 22%; width: 26px; height: 26px; background: #FFFDF6; border-left: 3px solid var(--ink); border-bottom: 3px solid var(--ink); transform: rotate(45deg); }
+.pr2-tag { position: absolute; left: 50%; top: -18px; translate: -50% 0; display: inline-flex; align-items: center; gap: 8px; padding: 5px 16px 5px 10px; border-radius: 99px; background: #FFD43B; border: 3px solid var(--ink); font: 800 13.5px var(--body); letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; z-index: 1; }
+.ar-prompt[data-kind="talk"] .pr2-tag { background: #5FE3D0; }
+.pr2-tag svg { width: 18px; height: 18px; }
+.pr2-text { --k: 1; font-family: var(--display); font-weight: 800; font-size: calc(clamp(22px, 3.2vw, 44px) * var(--k)); line-height: 1.16; text-align: center; text-wrap: balance; max-width: 30ch; }
+.pr2-card.reveal { animation: pk2-pop .7s var(--spring, cubic-bezier(.3, 1.5, .5, 1)); }
+.pr2-help { display: flex; align-items: center; gap: 12px; width: min(100%, 720px); padding: 12px 18px; background: #FFF3A6; border: 3px solid var(--ink); border-radius: 6px 18px 18px 18px; box-shadow: 0 5px 0 var(--ink); rotate: -.6deg; text-align: left; }
+.pr2-help.in { animation: arr-in .55s var(--spring, ease) .2s both; }
+.pr2-help-ico { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: #FFD43B; border: 2.5px solid var(--ink); }
+.pr2-help-ico svg { width: 21px; height: 21px; }
+.pr2-help b { display: block; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #8A5A00; }
+.pr2-help span span { font-weight: 700; font-size: clamp(15px, 1.5vw, 19px); line-height: 1.3; }
+.pr2-next.btn.big { border: 3px solid var(--ink); box-shadow: 0 5px 0 var(--ink); border-radius: 99px; }
+.pr2-next.btn.big:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--ink); }
+/* This or That */
+.pr2-duel { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.pr2-duel.in { animation: arr-in .55s var(--spring, ease) both; }
+.pr2-sides { width: 100%; display: grid; grid-template-columns: 1fr auto 1fr; gap: 0; align-items: stretch; }
+.pr2-side { --c: #2F6BFF; appearance: none; cursor: pointer; min-height: clamp(170px, 30vh, 270px); padding: clamp(16px, 2.2vw, 26px); display: flex; flex-direction: column; justify-content: space-between; gap: 12px; text-align: left;
+  background: var(--c); color: #fff; border: 3px solid var(--ink); border-radius: 26px; box-shadow: 0 8px 0 var(--ink); font: inherit; transition: transform .45s var(--spring, ease); }
+.pr2-side.s1 { --c: #FF6B4A; text-align: right; align-items: flex-end; }
+.pr2-side:hover { transform: translateY(-4px) rotate(-1deg); } .pr2-side.s1:hover { transform: translateY(-4px) rotate(1deg); }
+.pr2-side.bump { animation: ar3-thud .35s var(--spring, ease); }
+.pr2-side-text { font: 800 clamp(22px, 3.1vw, 42px)/1.1 var(--display); letter-spacing: -.01em; overflow-wrap: anywhere; }
+.pr2-side-count { display: flex; align-items: center; gap: 10px; } .pr2-side.s1 .pr2-side-count { flex-direction: row-reverse; }
+.pr2-side-count b { min-width: 1.5em; padding: 2px 10px; border-radius: 14px; background: #fff; color: var(--ink); border: 3px solid var(--ink); font: 800 clamp(26px, 3.4vw, 44px)/1.1 var(--display); text-align: center; font-variant-numeric: tabular-nums; }
+.pr2-side-count small { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; opacity: .9; }
+.pr2-or { align-self: center; z-index: 1; margin: 0 -14px; width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; background: #FFD43B; color: var(--ink); border: 3px solid var(--ink); box-shadow: 0 4px 0 var(--ink); font: 800 17px var(--display); text-transform: uppercase; rotate: -6deg; }
+.pr2-duel[data-lead="0"] .s0, .pr2-duel[data-lead="1"] .s1 { box-shadow: 0 8px 0 var(--ink), 0 0 0 6px #FFD43B; }
+.pr2-tug { width: min(100%, 560px); height: 16px; border-radius: 99px; background: #FF6B4A; border: 3px solid var(--ink); overflow: hidden; }
+.pr2-tug i { display: block; height: 100%; width: 50%; background: #2F6BFF; border-right: 3px solid var(--ink); transition: width .6s var(--spring, ease); }
+.pr2-clear { font-size: 14px; color: var(--ink); }
+@media (max-width: 720px) { .pr2-sides { grid-template-columns: 1fr; } .pr2-or { margin: -14px auto; } .pr2-side { min-height: 130px; } .ar-prompt[data-kind="talk"] .pr2-card::after { display: none; } }
