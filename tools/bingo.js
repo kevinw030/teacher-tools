@@ -539,7 +539,7 @@
       if (celebrating) celebrating.remove();
       var conf = h('div', { class: 'bgo-confetti', 'aria-hidden': 'true' });
       if (!still) for (var i = 0; i < 70; i++) {
-        var bit = h('i'); bit.style.setProperty('--x', Math.random() * 100 + '%'); bit.style.setProperty('--d', (Math.random() * 0.9) + 's');
+        var bit = h('i', { class: 'cf cf-' + (i % 8) }); bit.style.setProperty('--f', (Math.random() * 1080 - 540) + 'deg'); bit.style.setProperty('--x', Math.random() * 100 + '%'); bit.style.setProperty('--d', (Math.random() * 0.9) + 's');
         bit.style.setProperty('--r', (Math.random() * 720 - 360) + 'deg'); bit.style.setProperty('--c', B.COLS[i % 5]); bit.style.setProperty('--s', (0.6 + Math.random() * 0.8));
         conf.append(bit);
       }
