@@ -71,3 +71,13 @@
   .ar-team:has(.ar-team-sub:not(:empty)) { padding-bottom: 14px; }
   .ar-team { column-gap: 6px; padding-right: 8px; } .ar-team-name { font-size: 13px; }
 }
+
+/* ---------- Readable text in both modes (contrast check, 2026-11-24) ---------- */
+/* White labels on bright colors were too faint. */
+.xt-setup .xt-preset.on { background: color-mix(in srgb, var(--c) 76%, #000); border-color: color-mix(in srgb, var(--c) 76%, #000); }
+.xt-pv-answer { background: color-mix(in srgb, var(--c) 80%, #000); }
+.bb2-badge { color: #1B1740; }
+.ar-four .ar-team:last-child .ar-team-score { color: #1B1740; }
+/* Dark mode makes the brand colors lighter, so labels sitting on them turn dark. */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ff-op.on, :root:not([data-theme="light"]) .ff-op.on b, :root:not([data-theme="light"]) .cp-tab.on, :root:not([data-theme="light"]) .sc-mode.on, :root:not([data-theme="light"]) .chip.pr-subject.on, :root:not([data-theme="light"]) .mm2-date > span:first-child, :root:not([data-theme="light"]) .bgo-num, :root:not([data-theme="light"]) .xt-step i, :root:not([data-theme="light"]) .tv-grade > b { color: #14121F; } }
+:root[data-theme="dark"] .ff-op.on, :root[data-theme="dark"] .ff-op.on b, :root[data-theme="dark"] .cp-tab.on, :root[data-theme="dark"] .sc-mode.on, :root[data-theme="dark"] .chip.pr-subject.on, :root[data-theme="dark"] .mm2-date > span:first-child, :root[data-theme="dark"] .bgo-num, :root[data-theme="dark"] .xt-step i, :root[data-theme="dark"] .tv-grade > b { color: #14121F; }
