@@ -44,3 +44,11 @@
 .fx-cheer.out { animation: fx-cheer-out .45s ease-in both; }
 @keyframes fx-cheer-in { from { transform: translateY(110%); } to { transform: none; } }
 @keyframes fx-cheer-out { to { transform: translateY(115%); opacity: 0; } }
+
+/* ---------- Kevin's game sticker icons on the tiles (tools/game-icons.js) ---------- */
+.tool-icon.art, #view-home .tool-icon.art { background: none; box-shadow: none; border-radius: 0; overflow: visible; }
+.tool-icon.art img { width: 100%; height: 100%; object-fit: contain; display: block; transform: scale(1.1); filter: drop-shadow(0 3px 5px rgba(14, 17, 32, .16)); }
+#gamesList .tool-icon.art { width: 76px; height: 76px; margin-bottom: 6px; }
+#gamesList .tool-icon.art img { transform: none; }
+#gamesList a.tool:hover .tool-icon.art { transform: rotate(-6deg) scale(1.1); }
+#gamesList .tool-icon { transition: transform .5s var(--spring); }
