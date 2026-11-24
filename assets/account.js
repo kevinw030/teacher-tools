@@ -335,8 +335,14 @@
     return sb.auth.updateUser({ password: password });
   };
   TT.account.firstName = function () {
-    return (user && user.user_metadata && (user.user_metadata.first_name || (user.user_metadata.full_name || user.user_metadata.name || '').split(' ')[0])) || meta.firstName || '';
+    return niceName((user && user.user_metadata && (user.user_metadata.first_name || (user.user_metadata.full_name || user.user_metadata.name || '').split(' ')[0])) || meta.firstName || '');
   };
+  // "KEVIN" or "kevin" reads as "Kevin". Names typed with mixed capitals (like "McKenzie") stay as typed.
+  function niceName(n) {
+    n = String(n || '').trim();
+    if (!n || (n !== n.toUpperCase() && n !== n.toLowerCase())) return n;
+    return n.toLowerCase().replace(/(^|[\s'-])([a-z\u00e0-\u00ff])/g, function (m, a, b) { return a + b.toUpperCase(); });
+  }
   TT.account.sendCode = function (email) {
     return sb.auth.signInWithOtp({ email: email, options: { shouldCreateUser: true, emailRedirectTo: base } });
   };
@@ -654,6 +660,24 @@
         TT.button('Sign Out', { kind: 'primary small', onclick: TT.account.signOut }),
         TT.button('Cancel', { kind: 'small', onclick: function () { outConfirm.hidden = true; outBtn.hidden = false; } }));
       var outBtn = TT.button('Sign Out', { kind: 'small', onclick: function () { outBtn.hidden = true; outConfirm.hidden = false; } });
+      // The full My Account home (tools/account-home.js) lays these same pieces out as a dashboard.
+      if (TT.accountHome) {
+        return TT.accountHome({
+          avatar: h('button', { type: 'button', class: 'avatar-btn', title: 'Change your icon', 'aria-label': 'Change your icon', onclick: function () { picking = !picking; paint(); } },
+            paintAvatar(h('span', { class: 'nav-avatar big' })), h('span', { class: 'avatar-edit', 'aria-hidden': 'true', html: TT.icon('edit') })),
+          name: TT.account.firstName(), email: TT.account.email(), plan: plan, realPlan: realPlan(), viewAs: meta.viewAs || '',
+          joined: user && user.created_at, picker: picking ? avatarPicker() : null,
+          notes: [
+            TT.account.paying() ? h('p', { class: 'sync-status s-syncing', role: 'status', text: 'Thank you! Your Plus plan is turning on. This only takes a few seconds.' }) : null,
+            TT.account.justPaid && plan !== 'free' ? h('p', { class: 'sync-status s-saved', role: 'status', text: 'Welcome to Plus! Everything is unlocked.' }) : null,
+            showSaved ? h('p', { class: 'sync-status s-saved', text: 'Your new password is saved.' }) : null],
+          status: h('p', { class: 'sync-status s-' + status, text: STATUS[status] || '' }),
+          sync: sync, signOut: h('div', { class: 'row' }, outBtn, outConfirm), del: deleteBox(),
+          paying: TT.account.paying(), manageUrl: CFG.manageLink ? manageUrl() : '',
+          openPlans: function () { tab = 'plans'; paint(); window.scrollTo(0, 0); },
+          openSettings: function () { tab = 'settings'; paint(); window.scrollTo(0, 0); }
+        });
+      }
       return h('section', { class: 'acct-card' },
         h('div', { class: 'acct-who' },
           h('div', { class: 'avatar-wrap' },

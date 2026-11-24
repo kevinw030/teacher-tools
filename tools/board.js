@@ -787,6 +787,8 @@
 
     return {
       show: function () {
+        // My Account's Saved Boards chips ask for one screen (tools/account-home.js).
+        if (TT.boardWant) { var want = TT.boardWant; TT.boardWant = null; if (screens.list.some(function (x) { return x.id === want; })) switchTo(want); }
         paintSaveState();
         if (!canSave() && TT.boardIntro) TT.boardIntro();
         requestAnimationFrame(function () {
