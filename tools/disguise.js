@@ -30,6 +30,7 @@
   var st = document.createElement('style');
   st.textContent = '.mascot-dis { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; display: none; }' +
     '.mascot-dis.front { transition: translate .12s ease; }' +
+    '.mascot-body.pop .dis-pop { transform-box: view-box; transform-origin: 210px 553px; animation: mas-pop .38s cubic-bezier(.3, 1.6, .5, 1); }' +
     '.mascot-dis.dis-fan { transform-origin: 50% 65%; animation: mas-dis-fan 3s ease-in-out infinite; }' +
     '@keyframes mas-dis-fan { 50% { transform: scale(1.03); } }' +
     '@media (prefers-reduced-motion: reduce) { .mascot-dis, .mascot-dis * { animation: none !important; transition: none !important; } }';
@@ -73,7 +74,7 @@
     g.parts.forEach(function (p, i) {
       var s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       s.setAttribute('class', 'mascot-dis ' + p.layer + ' dp' + i + (p.cls ? ' ' + p.cls : ''));
-      s.setAttribute('viewBox', '0 0 420 576'); s.setAttribute('aria-hidden', 'true'); s.innerHTML = p.svg;
+      s.setAttribute('viewBox', '0 0 420 576'); s.setAttribute('aria-hidden', 'true'); s.innerHTML = '<g class="dis-pop">' + p.svg + '</g>';  // dis-pop squashes with his picture when he changes pose
       if (p.layer === 'back') body.insertBefore(s, body.firstChild); else body.appendChild(s);
     });
     return el;
