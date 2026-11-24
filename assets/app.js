@@ -225,7 +225,7 @@
   }, 60000);
 
   // Settings live in the account menu (Kevin, 2026-11-24), so the top bar has no gear button.
-  $('homeBackup').append(TT.backupControls());
+  if ($('homeBackup')) $('homeBackup').append(TT.backupControls());
   var petMini = TT.mountPetMini ? TT.mountPetMini($('petMini')) : null;
   paintDate();
   paintLinks();
