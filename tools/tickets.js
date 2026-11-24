@@ -4,10 +4,10 @@
   var TT = window.TT, h = TT.h;
   var COLORS = ['#3B7BFF', '#FF7448', '#14B884', '#F5AE14', '#8B5CF6'];
   var PRESETS = {
-    thumbs: { label: 'Thumbs Check', icon: '👍', q: 'How well do you understand today’s lesson?', choices: ['👍 Got It', '👌 Almost', '👎 Not Yet'] },
-    scale: { label: 'Rate It 1 to 4', icon: '🔢', q: 'Rate your understanding from 1 to 4.', choices: ['1 · I’m Lost', '2 · I Need Help', '3 · I Mostly Get It', '4 · I Could Teach It'] },
-    choice: { label: 'Multiple Choice', icon: '🔠', q: '', choices: ['', '', ''] },
-    text: { label: 'Short Answer', icon: '✏️', q: 'What is one thing you learned today?', choices: [] }
+    thumbs: { label: 'Thumbs Check', icon: '👍', tint: '#14B884', desc: 'Got it, almost or not yet', q: 'How well do you understand today’s lesson?', choices: ['👍 Got It', '👌 Almost', '👎 Not Yet'] },
+    scale: { label: 'Rate It 1 to 4', icon: '🔢', tint: '#3B7BFF', desc: 'How well do I get it?', q: 'Rate your understanding from 1 to 4.', choices: ['1 · I’m Lost', '2 · I Need Help', '3 · I Mostly Get It', '4 · I Could Teach It'] },
+    choice: { label: 'Multiple Choice', icon: '🔠', tint: '#8B5CF6', desc: 'Your own answer choices', q: '', choices: ['', '', ''] },
+    text: { label: 'Short Answer', icon: '✏️', tint: '#FF7448', desc: 'Students type a sentence', q: 'What is one thing you learned today?', choices: [] }
   };
 
   TT.mountTickets = function (el) {
@@ -30,32 +30,42 @@
     // ----- 1. Set up a question -----
     function setup() {
       var q = h('input', { type: 'text', id: 'xtQ', maxlength: 160, placeholder: 'Type your question', 'aria-label': 'Question' });
-      q.value = draft.q; q.addEventListener('input', function () { draft.q = q.value; });
+      q.value = draft.q; q.addEventListener('input', function () { draft.q = q.value; preview(); });
+      // A live look at what students will see, so the setup screen is not just a form.
+      var pv = h('div', { class: 'xt-pv-screen' });
+      function preview() {
+        pv.textContent = '';
+        pv.append(h('span', { class: 'xt-pv-tag', text: 'Exit Ticket' }), h('b', { class: 'xt-pv-q', text: draft.q.trim() || 'Your question shows here' }));
+        if (draft.type === 'text') pv.append(h('span', { class: 'xt-pv-area', text: 'Type your answer here' }), h('span', { class: 'xt-pv-turn', text: 'Turn It In' }));
+        else pv.append(h('div', { class: 'xt-pv-answers' }, draft.choices.map(function (c, i) { return h('span', { class: 'xt-pv-answer', style: '--c:' + COLORS[i % 5], text: c.trim() || 'Choice ' + String.fromCharCode(65 + i) }); })));
+      }
+      function step(n, label) { return h('span', { class: 'xt-step' }, h('i', { text: String(n) }), label); }
       var msg = h('p', { class: 'form-msg', hidden: true, role: 'status' });
       var form = h('div', { class: 'cq-form' },
+        step(1, 'Pick a Kind of Ticket'),
         h('div', { class: 'xt-presets' }, Object.keys(PRESETS).map(function (k) {
-          return h('button', { type: 'button', class: 'xt-preset' + (draft.type === k ? ' on' : ''), 'aria-pressed': draft.type === k, onclick: function () {
+          return h('button', { type: 'button', class: 'xt-preset' + (draft.type === k ? ' on' : ''), style: '--c:' + PRESETS[k].tint, 'aria-pressed': draft.type === k, onclick: function () {
             draft.type = k; draft.q = PRESETS[k].q; draft.choices = PRESETS[k].choices.slice(); paint();
-          } }, h('span', { text: PRESETS[k].icon }), h('b', { text: PRESETS[k].label }));
+          } }, h('span', { class: 'xt-preset-ico', text: PRESETS[k].icon }), h('span', { class: 'xt-preset-t' }, h('b', { text: PRESETS[k].label }), h('small', { text: PRESETS[k].desc })));
         })),
-        h('label', { class: 'cq-field', for: 'xtQ' }, h('span', { text: 'Question' }), q));
+        h('label', { class: 'cq-field xt-qfield', for: 'xtQ' }, step(2, 'Write the Question'), q));
       if (draft.type !== 'text') {
         var rows = h('div', { class: 'xt-choices' });
         draft.choices.forEach(function (c, i) {
           var inp = h('input', { type: 'text', id: 'xtC' + i, maxlength: 50, placeholder: 'Choice ' + String.fromCharCode(65 + i), 'aria-label': 'Choice ' + (i + 1) });
-          inp.value = c; inp.addEventListener('input', function () { draft.choices[i] = inp.value; });
-          rows.append(h('div', { class: 'xt-choice-row' }, h('i', { style: 'background:' + COLORS[i % 5] }), inp,
+          inp.value = c; inp.addEventListener('input', function () { draft.choices[i] = inp.value; preview(); });
+          rows.append(h('div', { class: 'xt-choice-row', style: '--c:' + COLORS[i % 5] }, h('i', { text: String.fromCharCode(65 + i) }), inp,
             draft.choices.length > 2 ? h('button', { type: 'button', class: 'cq-x', 'aria-label': 'Remove choice ' + (i + 1), html: TT.icon('close'), onclick: function () { draft.choices.splice(i, 1); paint(); } }) : null));
         });
-        form.append(h('div', { class: 'cq-field' }, h('span', { text: 'Choices' }), rows,
+        form.append(h('div', { class: 'cq-field' }, h('span', { class: 'xt-sub', text: 'Answer Choices' }), rows,
           draft.choices.length < 5 ? h('div', { class: 'row' }, TT.button('Add a Choice', { icon: 'plus', kind: 'small', onclick: function () { draft.choices.push(''); paint(); } })) : null));
       }
-      form.append(h('div', { class: 'cq-field' }, h('span', { text: 'Who Answers' }),
+      form.append(h('div', { class: 'cq-field' }, step(3, 'Who Answers'),
         seg([['anon', 'Anonymous Taps'], ['names', 'By Name']], function () { return draft.mode; }, function (v) { draft.mode = v; }),
         h('p', { class: 'muted xt-note', text: draft.mode === 'anon' ? 'Students tap an answer on this screen as they leave. No names are kept.'
           : 'Students tap their own name, then answer. You see who chose what and who is missing. Names stay on this computer.' })),
         msg,
-        h('div', { class: 'row' }, TT.button('Start Collecting Answers', { icon: 'play', kind: 'primary big', onclick: function () {
+        h('div', { class: 'row' }, TT.button('Start Collecting Answers', { icon: 'play', kind: 'primary big xt-start', onclick: function () {
           var choices = draft.choices.map(function (c) { return c.trim(); }).filter(Boolean);
           if (!draft.q.trim()) { msg.textContent = 'Type a question first.'; msg.hidden = false; q.focus(); return; }
           if (draft.type !== 'text' && choices.length < 2) { msg.textContent = 'Add at least two choices.'; msg.hidden = false; return; }
@@ -63,7 +73,9 @@
             cls: draft.mode === 'names' ? TT.roster.activeName() : '' };
           save(); view = 'collect'; who = null; peek = false; paint();
         } })));
-      root.append(form);
+      form.classList.add('xt-form');
+      preview();
+      root.append(h('div', { class: 'xt-setup' }, form, h('aside', { class: 'xt-pv' }, h('span', { class: 'xt-pv-label', text: 'What Students Will See' }), pv)));
       var list = h('div', { class: 'cq-list' });
       if (!state.saved.length) list.append(h('div', { class: 'empty', text: 'Finished tickets show up here so you can look back at them.' }));
       state.saved.forEach(function (t, i) {
