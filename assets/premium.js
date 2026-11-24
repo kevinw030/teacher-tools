@@ -123,7 +123,7 @@
       h('div', { class: 'pm-actions' }, go, later),
       h('p', { class: 'pm-foot', text: signedIn ? 'Everything you have saved stays put when you upgrade.' : 'Start with a free account, then upgrade anytime.' }));
     layer = h('div', { class: 'pm-layer', onclick: function (e) { if (e.target === layer) close(); } }, card);
-    document.body.append(layer);
+    (document.fullscreenElement || document.body).append(layer);
     // The lock pops open a moment after the card lands.
     setTimeout(function () { var ic = card.querySelector('.pm-icon'); if (ic) { ic.innerHTML = TT.icon('unlock'); ic.classList.add('open'); } }, 520);
     document.addEventListener('keydown', onKey, true);
@@ -151,7 +151,7 @@
       h('div', { class: 'pm-actions' }, make, TT.button('I Have an Account', { kind: 'big', onclick: toAccount })),
       h('button', { type: 'button', class: 'linkish pm-try', onclick: close }, 'Just Try It (Nothing Is Saved)'));
     layer = h('div', { class: 'pm-layer', onclick: function (e) { if (e.target === layer) close(); } }, card);
-    document.body.append(layer);
+    (document.fullscreenElement || document.body).append(layer);
     document.addEventListener('keydown', onKey, true);
     make.focus({ preventScroll: true });
   };

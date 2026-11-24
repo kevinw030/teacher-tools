@@ -204,7 +204,7 @@
     var title = h('p', { class: 'lb-count-title', text: opts.title || 'Get Ready!' });
     var stage = h('div', { class: 'lb-count-stage' });
     layer.append(title, stage);
-    document.body.append(layer);
+    (document.fullscreenElement || document.body).append(layer);
     var step = 0, STEP = still ? 700 : 950;
     function show() {
       stage.textContent = '';
