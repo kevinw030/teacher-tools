@@ -108,12 +108,12 @@ The signing secret goes in one place only: Supabase's Secrets page (step 5). Pay
 | Price | Amount | Billing |
 |---|---|---|
 | Plus Monthly | $3.99 | Monthly |
-| Plus Yearly | $35.99 | Yearly |
+| Plus Yearly | $34.99 | Yearly |
 | Plus Early Access Monthly | $2.99 | Monthly |
-| Plus Early Access Yearly | $30.99 | Yearly |
+| Plus Early Access Yearly | $29.99 | Yearly |
 
-(Yearly is 25% off twelve months ($47.88), rounded to $35.99. Early Access, for people who join before January 1, 2027:
-monthly is 25% off ($2.99), and yearly is 35% off twelve months instead of 25% ($31.12, rounded down to $30.99).
+(Yearly is $34.99, about 27% off twelve months ($47.88). Early Access, for people who join before January 1, 2027:
+monthly is 25% off ($2.99), and yearly is $29.99, about 37% off twelve months.
 Early members keep that price as long as they stay subscribed. The site stops showing the Early Access prices on that date.)
 
 **Premium (later, not tonight):** when the live quiz games are ready, make a second product, `ED Sidekick Premium`, with
@@ -183,5 +183,5 @@ Test links on the live site would let anyone get Plus with the fake card, so swi
 ## Costs
 
 - Supabase: free up to 50,000 monthly users and 500 MB of saved data (roughly thousands of teachers). Pro is $25/month after that.
-- Stripe: no monthly fee. 2.9% + 30¢ per payment (about 42¢ of each $3.99 month, $1.34 of each $35.99 year).
+- Stripe: no monthly fee. 2.9% + 30¢ per payment (about 42¢ of each $3.99 month, $1.31 of each $34.99 year).
 - Email sender: free up to 3,000 emails a month.

@@ -89,15 +89,15 @@
   // mo/yr are Plus; topMo/topYr are the Premium plan. early() is a price with the Early Access discount, to the cent.
   TT.account.prices = function () {
     function num(v, d) { return parseFloat(String(v == null ? d : v).replace(/[^0-9.]/g, '')) || 0; }
-    var mo = num(CFG.priceMonthly, '3.99'), yr = num(CFG.priceYearly, '35.99');
+    var mo = num(CFG.priceMonthly, '3.99'), yr = num(CFG.priceYearly, '34.99');
     var topMo = num(CFG.topPriceMonthly, '7.99'), topYr = num(CFG.topPriceYearly, '71.99');
     var until = new Date((CFG.earlyUntil || '2027-01-01') + 'T00:00:00');
-    var early = { mo: num(CFG.earlyPriceMonthly, '2.99'), yr: num(CFG.earlyPriceYearly, '30.99'),
+    var early = { mo: num(CFG.earlyPriceMonthly, '2.99'), yr: num(CFG.earlyPriceYearly, '29.99'),
       topMo: num(CFG.topEarlyPriceMonthly, '5.99'), topYr: num(CFG.topEarlyPriceYearly, '61.99') };
-    var offMo = CFG.earlyOffMonthly || 0.25, offYr = CFG.earlyOffYearly || 0.35;
+    var offMo = CFG.earlyOffMonthly || 0.25, offYr = CFG.earlyOffYearly || 0.37;
     return { mo: mo, yr: yr, topMo: topMo, topYr: topYr, earlyOpen: new Date() < until, earlyPrices: early, offMo: offMo, offYr: offYr,
       // One plan's price for a billing period. Early Access monthly is crossed out against the monthly price,
-      // and early yearly against twelve months (it is 35% off twelve months).
+      // and early yearly against twelve months (about 37% off twelve months).
       price: function (top, yearly, isEarly) {
         var full = top ? (yearly ? topYr : topMo) : (yearly ? yr : mo);
         if (!isEarly) return { now: full, was: 0 };

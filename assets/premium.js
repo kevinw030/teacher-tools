@@ -25,11 +25,11 @@
   var FALLBACK_FEATURES = [['Unlimited Saved Board Screens'], ['Unlimited Class Lists'], ['All 4 Escape Rooms'], ['Edit the Questions in Any Room'],
     ['Seating Chart'], ['Prompts'], ['Trivia Showdown'], ['The Last 50 Exit Tickets'], ['Customize Your Home Page']];
   function fallbackPrices() {
-    var C = window.TT_ACCOUNT_CONFIG || {}, mo = parseFloat(String(C.priceMonthly || '3.99').replace(/[^0-9.]/g, '')), yr = parseFloat(String(C.priceYearly || '35.99').replace(/[^0-9.]/g, ''));
+    var C = window.TT_ACCOUNT_CONFIG || {}, mo = parseFloat(String(C.priceMonthly || '3.99').replace(/[^0-9.]/g, '')), yr = parseFloat(String(C.priceYearly || '34.99').replace(/[^0-9.]/g, ''));
     var until = new Date((C.earlyUntil || '2027-01-01') + 'T00:00:00');
-    var e = { mo: parseFloat(String(C.earlyPriceMonthly || '2.99').replace(/[^0-9.]/g, '')), yr: parseFloat(String(C.earlyPriceYearly || '30.99').replace(/[^0-9.]/g, '')) };
+    var e = { mo: parseFloat(String(C.earlyPriceMonthly || '2.99').replace(/[^0-9.]/g, '')), yr: parseFloat(String(C.earlyPriceYearly || '29.99').replace(/[^0-9.]/g, '')) };
     return { mo: mo, yr: yr, earlyOpen: new Date() < until, save: Math.round((1 - yr / (mo * 12)) * 100),
-      price: function (top, yearly, isEarly) { return !isEarly ? { now: yearly ? yr : mo, was: 0 } : { now: yearly ? e.yr : e.mo, was: yearly ? mo * 12 : mo, off: yearly ? (C.earlyOffYearly || 0.35) : (C.earlyOffMonthly || 0.25) }; },
+      price: function (top, yearly, isEarly) { return !isEarly ? { now: yearly ? yr : mo, was: 0 } : { now: yearly ? e.yr : e.mo, was: yearly ? mo * 12 : mo, off: yearly ? (C.earlyOffYearly || 0.37) : (C.earlyOffMonthly || 0.25) }; },
       untilText: new Date(until.getTime() - 86400000).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }) };
   }
   function has() { return TT.limit ? !!TT.limit('premium') : true; }
