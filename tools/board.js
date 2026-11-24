@@ -66,14 +66,23 @@
 
     // ----- Screens menu -----
     var screenLabel = h('span', { class: 'screen-label' });
-    var screenBtn = h('button', { type: 'button', class: 'btn glass', 'aria-haspopup': 'true', onclick: function () { screenPanel.hidden = !screenPanel.hidden; paintScreens(); } },
+    var screenBtn = h('button', { type: 'button', class: 'btn glass', 'aria-haspopup': 'true', onclick: function () { screenPanel.hidden = !screenPanel.hidden; organizer.reset(); paintScreens(); } },
       h('span', { html: TT.icon('board') }), screenLabel, h('span', { class: 'caret', text: '▾' }));
     var screenList = h('div', { class: 'screen-list' });
     var screenName = h('input', { type: 'text', id: 'screenName', maxlength: 30, placeholder: 'Name, like Morning Work', 'aria-label': 'New screen name' });
     var screenMsg = h('p', { class: 'roster-note', hidden: true });
-    var renameInput = h('input', { type: 'text', id: 'screenRename', maxlength: 30, 'aria-label': 'Rename this screen' });
+    // Organize mode (tools/board-screens.js): drag or arrow to reorder, rename in place, delete with undo.
+    var organizer = TT.boardScreens({
+      list: function () { return screens.list; },
+      active: function () { return screens.active; },
+      thumb: function (st) { return bgCss(st); },
+      changed: function (paintOnly) { if (!paintOnly) save(); paintScreens(); },
+      remove: removeScreen,
+      restore: restoreScreen
+    });
+    var organizeHint = h('p', { class: 'ss-hint', hidden: true, text: 'Drag a screen by its dots or use the arrows to change the order. Type on a name to rename it.' });
     var screenPanel = h('div', { class: 'bg-panel screen-panel', hidden: true, role: 'dialog', 'aria-label': 'Saved screens' },
-      h('div', { class: 'bg-group' }, h('h4', { text: 'Saved Screens' }), screenList),
+      h('div', { class: 'bg-group' }, h('div', { class: 'ss-head' }, h('h4', { text: 'Saved Screens' }), organizer.toggle), organizeHint, organizer.undoBar, screenList),
       h('div', { class: 'bg-group' }, h('h4', { text: 'Save a New Screen' }),
         h('div', { class: 'screen-form' }, screenName,
           TT.button('Copy This Screen', { kind: 'small', onclick: function () { addScreen(true); } }),
@@ -83,11 +92,7 @@
         h('div', { class: 'tpl-list' }, (TT.BOARD_TEMPLATES || []).map(function (t) {
           return h('button', { type: 'button', class: 'tpl', onclick: function () { addTemplate(t); } },
             h('span', { class: 'tpl-dot', style: 'background:' + t.color }), h('span', { class: 'screen-text' }, h('b', { text: t.name }), h('small', { text: t.desc })));
-        }))),
-      h('div', { class: 'bg-group' }, h('h4', { text: 'This Screen' }),
-        h('div', { class: 'screen-form' }, renameInput,
-          TT.button('Rename', { kind: 'small', onclick: function () { if (renameInput.value.trim()) { activeScreen().name = renameInput.value.trim(); save(); paintScreens(); } } }),
-          delWrap())));
+        }))));
 
     // Quick switcher: flip between saved screens without opening the menu.
     var navLabel = h('span', { class: 'screen-count', 'aria-live': 'polite' });
@@ -100,18 +105,15 @@
       if (n > 1) switchTo(screens.list[(i + d + n) % n].id);
     }
 
-    function delWrap() {
-      var confirm = h('span', { class: 'confirm', hidden: true }, h('span', { text: 'Delete this screen?' }),
-        TT.button('Delete', { kind: 'primary small', onclick: function () { deleteScreen(); confirm.hidden = true; btn.hidden = false; } }),
-        TT.button('Keep', { kind: 'small', onclick: function () { confirm.hidden = true; btn.hidden = false; } }));
-      var btn = TT.button('Delete', { icon: 'trash', kind: 'small', onclick: function () { btn.hidden = true; confirm.hidden = false; } });
-      return h('span', null, btn, confirm);
-    }
     function paintScreens() {
       screenLabel.textContent = activeScreen().name;
-      renameInput.value = activeScreen().name;
       screenList.textContent = '';
-      screens.list.forEach(function (sc) {
+      screenList.className = 'screen-list';
+      var organizing = organizer.editing();
+      organizeHint.hidden = !organizing;
+      organizer.toggle.hidden = screens.list.length < 2 && !organizing;
+      if (organizing) organizer.paintList(screenList);
+      else screens.list.forEach(function (sc) {
         var n = (sc.state && sc.state.widgets ? sc.state.widgets.length : 0);
         screenList.append(h('button', { type: 'button', class: 'screen-item' + (sc.id === screens.active ? ' on' : ''), onclick: function () { switchTo(sc.id); } },
           h('span', { class: 'screen-thumb', style: 'background:' + bgCss(sc.state) }),
@@ -156,6 +158,7 @@
       loadState(); save(); screenPanel.hidden = true;
     }
     function addScreen(copy) {
+      organizer.forgetUndo();
       if (screens.list.length >= TT.config.maxScreens) { if (TT.account && TT.account.signedIn() && !TT.premium.has()) TT.premium.open('screens'); paintScreens(); return; }
       save();
       var st = copy ? JSON.parse(JSON.stringify(state)) : { bg: state.bg || 'morning', widgets: [] };
@@ -167,6 +170,7 @@
     }
     // A template becomes a new saved screen, so the screen you were on is never changed.
     function addTemplate(t) {
+      organizer.forgetUndo();
       var replace = !canSave();   // signed out: a template takes over the one working screen
       if (!replace && screens.list.length >= TT.config.maxScreens) { if (TT.account && TT.account.signedIn() && !TT.premium.has()) TT.premium.open('screens'); paintScreens(); return; }
       save();
@@ -180,12 +184,26 @@
       unrenderAll(); screens.active = sc.id; state = st;
       loadState(); save(); screenPanel.hidden = true;
     }
-    function deleteScreen() {
-      if (screens.list.length <= 1) { unrenderAll(); state.widgets = []; save(); paintScreens(); return; }
-      unrenderAll();
-      screens.list = screens.list.filter(function (x) { return x.id !== screens.active; });
-      screens.active = screens.list[0].id; state = activeScreen().state;
-      loadState(); save(); screenPanel.hidden = true;
+    // Delete any saved screen (from Organize). Deleting the one on the board shows its neighbor.
+    function removeScreen(id) {
+      if (screens.list.length <= 1) return;
+      var i = screens.list.map(function (x) { return x.id; }).indexOf(id);
+      if (i < 0) return;
+      if (id !== screens.active) { screens.list.splice(i, 1); save(); paintScreens(); return; }
+      save(); unrenderAll();
+      screens.list.splice(i, 1);
+      screens.active = screens.list[Math.min(i, screens.list.length - 1)].id; state = activeScreen().state;
+      loadState(); save();
+    }
+    // Undo a delete: the screen goes back in its old spot (and back on the board if it was showing).
+    function restoreScreen(sc, index, wasActive) {
+      if (screens.list.length >= TT.config.maxScreens) { paintScreens(); return true; }
+      screens.list.splice(Math.min(index, screens.list.length), 0, sc);
+      if (!wasActive) { save(); paintScreens(); return true; }
+      save(); unrenderAll();
+      screens.active = sc.id; state = sc.state;
+      loadState(); save();
+      return true;
     }
 
     // Signed out: a small chip says the board isn't being saved, and the first visit explains why.
