@@ -491,10 +491,10 @@
         h('h3', { text: 'Why Make an Account?' }),
         h('ul', null,
           item('☁️', 'Saved Everywhere', 'Your boards, lists and questions on any computer.'),
-          item('🆓', 'Free to Start', 'Every tool and game, no card needed.'),
+          item('🆓', 'Free to Start', 'Most tools and games, no card needed.'),
           item('🔒', 'Just for You', 'Only you can see what you save.')),
         h('p', { class: 'acct-disclaimer', text: DISCLAIMER }),
-        h('p', { class: 'muted small', text: 'A free account opens every tool and game. Students never need one: they join with a class code.' }));
+        h('p', { class: 'muted small', text: 'You need an account to open the tools and games. Students never need one: they join with a class code.' }));
     }
 
     function resetCard() {

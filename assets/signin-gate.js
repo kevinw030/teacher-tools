@@ -59,7 +59,7 @@
           useGoogle ? h('button', { type: 'button', class: 'sg-btn sg-google', onclick: google, html: G_LOGO + '<span>Continue With Google</span>' }) : null),
         h('p', { class: 'sg-have' }, 'Already have an account? ',
           h('button', { type: 'button', class: 'linkish sg-login', onclick: function () { toAccount('login'); }, text: 'Log In' })),
-        h('p', { class: 'sg-fine', text: 'Free to use. No card needed. For grown-ups 13 and up.' })));
+        h('p', { class: 'sg-fine', text: 'The free account needs no card. For grown-ups 13 and up.' })));
     // Students never sign in here: they go straight to edsidekick.com/join (Kevin, 2026-11-24).
     var student = h('p', { class: 'sg-join-line' },
       h('span', { text: 'Students don’t need an account. They go to ' }),
@@ -78,7 +78,7 @@
     shownFor = name;
     var isGame = TT.games && TT.games.some(function (g) { return g.id === name; });
     titleEl.textContent = title ? 'Sign In to Use ' + title : 'Sign In to Use ED Sidekick';
-    textEl.textContent = (isGame ? 'Every game' : 'Every tool and game') + ' on ED Sidekick is free with an account. Make one in a minute, or log in, and you’ll go right back to ' + (title || 'where you were') + '.';
+    textEl.textContent = 'Create a free account or log in to open ' + (title || (isGame ? 'the games' : 'the tools and games')) + '. It only takes a minute, and you’ll come right back here.';
     view.hidden = false;
     if (!mascot && TT.mascot) { mascot = TT.mascot({ mood: 'wave' }); document.getElementById('sgMascot').append(mascot); setTimeout(function () { mascot.mood('idle'); }, 2200); }
     else if (mascot && mascot.play) mascot.play('wave');
@@ -98,7 +98,7 @@
         h('span', { class: 'sg-note-icon', html: lock }),
         h('div', { class: 'sg-note-text' },
           h('strong', { text: 'Sign In to Open the Tools and Games' }),
-          h('span', { text: 'Every tool and game is free with an account. It only takes a minute.' })),
+          h('span', { text: 'Create a free account to open the tools and games. It only takes a minute.' })),
         h('div', { class: 'sg-note-actions' },
           h('button', { type: 'button', class: 'sg-btn sg-main', onclick: function () { shownFor = ''; toAccount('signup'); }, html: '<span>Create a Free Account</span>' + arrow() }),
           h('button', { type: 'button', class: 'sg-btn sg-plain', onclick: function () { shownFor = ''; toAccount('login'); }, text: 'Log In' }))),
