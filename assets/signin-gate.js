@@ -60,13 +60,10 @@
         h('p', { class: 'sg-have' }, 'Already have an account? ',
           h('button', { type: 'button', class: 'linkish sg-login', onclick: function () { toAccount('login'); }, text: 'Log In' })),
         h('p', { class: 'sg-fine', text: 'Free to use. No card needed. For grown-ups 13 and up.' })));
-    // Students who wander in get one big, clear way to their class game.
-    var student = h('a', { class: 'sg-card sg-student', href: '/join', 'aria-label': 'I am a student. Join my class with a class code.' },
-      h('span', { class: 'sg-kid-icon', 'aria-hidden': 'true' }, h('img', { src: '/assets/animals/bear.webp', alt: '', width: 64, height: 64 })),
-      h('span', { class: 'sg-kid-text' },
-        h('span', { class: 'sg-kid-title', text: 'Are You a Student?' }),
-        h('span', { class: 'sg-kid-sub', text: 'Tap here and type the class code your teacher shows.' })),
-      h('span', { class: 'sg-kid-go', html: '<span>Join My Class</span>' + arrow() }));
+    // Students never sign in here: they go straight to edsidekick.com/join (Kevin, 2026-11-24).
+    var student = h('p', { class: 'sg-join-line' },
+      h('span', { text: 'Students don’t need an account. They go to ' }),
+      h('span', { class: 'sg-url', text: 'edsidekick.com/join' }));
     view = h('main', { class: 'page sg-page', id: 'view-signin', hidden: true },
       h('div', { class: 'sg-wrap' }, teacher, student,
         h('a', { class: 'sg-home', href: '/', text: 'Back to Home' })));
@@ -95,14 +92,19 @@
     var need = on() && !signedIn();
     if (!need) { if (note) { note.remove(); note = null; } return; }
     if (note) return;
+    var lock = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10.5" width="16" height="10.5" rx="3"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.6" r="1.4" fill="currentColor" stroke="none"/></svg>';
     note = h('section', { class: 'sg-note', 'aria-label': 'Sign in' },
-      h('div', { class: 'sg-note-text' },
-        h('strong', { text: 'Sign In to Open the Tools and Games' }),
-        h('span', { text: 'Everything here is free with an account.' })),
-      h('div', { class: 'sg-note-actions' },
-        h('button', { type: 'button', class: 'sg-btn sg-main small', onclick: function () { shownFor = ''; toAccount('signup'); }, text: 'Create a Free Account' }),
-        h('button', { type: 'button', class: 'sg-btn sg-plain small', onclick: function () { shownFor = ''; toAccount('login'); }, text: 'Log In' }),
-        h('a', { class: 'sg-btn sg-kid small', href: '/join', text: 'Students: Join My Class' })));
+      h('div', { class: 'sg-note-main' },
+        h('span', { class: 'sg-note-icon', html: lock }),
+        h('div', { class: 'sg-note-text' },
+          h('strong', { text: 'Sign In to Open the Tools and Games' }),
+          h('span', { text: 'Every tool and game is free with an account. It only takes a minute.' })),
+        h('div', { class: 'sg-note-actions' },
+          h('button', { type: 'button', class: 'sg-btn sg-main', onclick: function () { shownFor = ''; toAccount('signup'); }, html: '<span>Create a Free Account</span>' + arrow() }),
+          h('button', { type: 'button', class: 'sg-btn sg-plain', onclick: function () { shownFor = ''; toAccount('login'); }, text: 'Log In' }))),
+      h('p', { class: 'sg-join-line' },
+        h('span', { text: 'Students don’t need an account. They go to ' }),
+        h('span', { class: 'sg-url', text: 'edsidekick.com/join' })));
     var welcome = home.querySelector('.welcome');
     if (welcome && welcome.nextSibling) home.insertBefore(note, welcome.nextSibling); else home.prepend(note);
   }
