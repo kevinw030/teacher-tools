@@ -139,3 +139,13 @@ body.board-mode .od-pill { opacity: .35; } body.board-mode .od-pill:hover { opac
 .od-range, .od-tabs { display: flex; flex-wrap: wrap; max-width: 100%; align-self: flex-start; }
 .od-controls { min-width: 0; max-width: 100%; }
 @media (max-width: 560px) { .od-range .seg, .od-tabs .seg { flex: 1 1 auto; padding: 7px 8px; } }
+
+/* Change or delete one account */
+.od-manage { margin: 0 12px 12px 58px; padding-top: 12px; border-top: 1px solid var(--line); display: grid; gap: 8px; }
+.od-manage-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.od-manage-note { margin: 0; font-size: 14px; color: var(--muted); }
+.od-manage-note:empty { display: none; }
+.od-manage-note.bad { color: color-mix(in srgb, var(--rose) 80%, var(--ink)); font-weight: 700; }
+.btn.od-del { color: color-mix(in srgb, var(--rose) 80%, var(--ink)); border-color: color-mix(in srgb, var(--rose) 40%, var(--line)); }
+.btn.od-del.armed { background: var(--rose); border-color: var(--rose); color: #fff; }
+@media (max-width: 640px) { .od-manage { margin-left: 12px; } }

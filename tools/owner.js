@@ -9,6 +9,7 @@
   var PLAN_COLOR = { free: 'var(--cobalt)', premium: 'var(--coral)', owner: 'var(--emerald)' };
   var ROOMS = { library: 'The Locked Library', space: 'Stuck on the Space Station', pirate: 'The Pirate’s Treasure', museum: 'Night at the Museum', 'my-room': 'Teachers’ Own Rooms' };
   var FEATURES = { rooms: 'Escape Rooms', roomedit: 'Edit Room Questions', seating: 'Seating Chart', prompts: 'Prompts', screens: 'More Board Screens', classes: 'More Class Lists', trivia: 'More Trivia', plan: 'Plan Button' };
+  var ACCOUNTS_SQL = 'https://github.com/kevinw030/teacher-tools/blob/main/supabase/owner-accounts.sql';
   var GITHUB_SQL = 'https://github.com/kevinw030/teacher-tools/blob/main/supabase/owner-dashboard.sql';
 
   function tz() {
@@ -406,7 +407,8 @@
               fact('Last Signed In', ago(u.last_sign_in)), fact('Last Saved Work', ago(u.last_saved)),
               fact('Pages Opened (Signed In)', num(u.visits)), fact('Devices', u.devices ? u.devices.split(',').map(titleCase).join(', ') : '–'),
               fact('Plus Since', u.plan === 'premium' ? (u.premium_since ? shortDate(u.premium_since) : 'Given by hand') : '–'),
-              fact('Paid So Far', money(u.paid_cents))));
+              fact('Paid So Far', money(u.paid_cents))),
+            manage(u, name));
           list.append(item);
         });
         if (r.length > userShown) list.append(TT.button('Show More (' + num(r.length - userShown) + ' more)', { kind: 'small', onclick: function () { userShown += 60; fill(); } }));
@@ -416,7 +418,45 @@
       sort.addEventListener('change', function () { userSort = sort.value; fill(); });
       box.append(h('div', { class: 'od-user-tools' }, search, plan, sort, TT.button('Download List', { kind: 'small', icon: 'download', onclick: function () { csv(rows()); } })), countLine, list);
       fill();
-      return card('All Accounts', 'Tap anyone to see their details.', box, 'od-wide');
+      return card('All Accounts', 'Tap anyone to see their details, change their plan or delete the account.', box, 'od-wide');
+    }
+    // Owner tools for one account: change the plan, or delete it (two presses, so a slip can't delete anyone).
+    // The work is done by owner-only database functions in supabase/owner-accounts.sql.
+    function manage(u, name) {
+      var box = h('div', { class: 'od-manage' }), note = h('p', { class: 'od-manage-note', 'aria-live': 'polite' });
+      if (u.plan === 'owner') { box.append(h('p', { class: 'muted od-manage-note', text: 'Owner accounts can’t be changed or deleted here.' })); return box; }
+      var armed = false, busy = false, timer;
+      function say(text, bad) { note.textContent = text || ''; note.classList.toggle('bad', !!bad); }
+      function fail(err) {
+        var m = (err && (err.message || '')) + (err && err.code || '');
+        if (/PGRST202|could not find|does not exist/i.test(m)) {
+          note.textContent = ''; note.classList.remove('bad');
+          note.append('One setup step left. Open ', h('a', { href: ACCOUNTS_SQL, target: '_blank', rel: 'noopener', text: 'owner-accounts.sql' }), ', copy it, paste it into Supabase (SQL Editor, New Query), click Run, then try again.');
+        } else if (/plus_account/.test(m)) say('This is a Plus account. Cancel their plan in Stripe, press Make Free, then delete.', true);
+        else if (/owner only|42501/i.test(m)) say('Only the owner account can do this.', true);
+        else say('That didn’t work: ' + (m || 'unknown error') + '.', true);
+      }
+      function run(fn, args, after) {
+        if (busy) return; busy = true; say('Working…');
+        TT.account.client().rpc(fn, args).then(function (res) { busy = false; if (res.error) return fail(res.error); after(); },
+          function () { busy = false; say('You’re offline. Try again in a minute.', true); });
+      }
+      var toPlan = u.plan === 'premium' ? 'free' : 'premium';
+      var planBtn = TT.button(toPlan === 'premium' ? 'Make Plus' : 'Make Free', { kind: 'small', onclick: function () {
+        run('owner_set_plan', { target: u.id, new_plan: toPlan }, function () { u.plan = toPlan; if (toPlan === 'free') u.premium_since = null; paint(); });
+      } });
+      var del = TT.button('Delete Account', { kind: 'small od-del', icon: 'trash', onclick: function () {
+        if (!armed) {
+          armed = true; del.classList.add('armed'); del.lastChild.textContent = 'Press Again to Delete ' + name;
+          say('This removes the sign-in and all saved work for ' + (u.email || name) + '. It can’t be undone.');
+          clearTimeout(timer); timer = setTimeout(function () { armed = false; del.classList.remove('armed'); del.lastChild.textContent = 'Delete Account'; if (!busy) say(''); }, 6000);
+          return;
+        }
+        clearTimeout(timer); armed = false; del.classList.remove('armed'); del.lastChild.textContent = 'Delete Account';
+        run('owner_delete_user', { target: u.id }, function () { users = users.filter(function (x) { return x.id !== u.id; }); paint(); });
+      } });
+      box.append(h('div', { class: 'od-manage-row' }, planBtn, del), note);
+      return box;
     }
     function fact(k, v) { return h('div', null, h('dt', { text: k }), h('dd', { text: v })); }
     function csv(rows) {
