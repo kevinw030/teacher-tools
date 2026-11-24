@@ -71,6 +71,19 @@
   // The question buddy is the site mascot (tools/mascot.js).
   var MOODS = { idle: 'idle', think: 'think', 'cheer-a': 'cheer-left', 'cheer-b': 'cheer-right', party: 'party' };
 
+  // Kevin's title-case rule for the two choices: every word capitalized except short joining words
+  // (a, of, the, to…), which stay lowercase unless they come first or last.
+  var SMALL = /^(a|an|and|as|at|but|by|for|from|in|into|nor|of|off|on|onto|or|out|over|per|so|than|the|to|up|via|with|yet|vs)$/i;
+  function titleCase(s) {
+    var words = String(s || '').trim().split(/(\s+)/), last = words.length - 1;
+    return words.map(function (w, i) {
+      if (/^\s+$/.test(w)) return w;
+      if (i !== 0 && i !== last && SMALL.test(w)) return w.toLowerCase();
+      return w.replace(/(^|-)([a-z\u00e0-\u00ff])/g, function (m, pre, c) { return pre + c.toUpperCase(); });
+    }).join('');
+  }
+  TT.wyr.titleCase = titleCase;
+
   TT.mountWYR = function (el, opts) {
     opts = opts || {};
     var compact = !!opts.compact;
@@ -209,7 +222,7 @@
       }
       if (!q) { A.text.textContent = 'No questions found'; B.text.textContent = 'Check questions.js'; return; }
       cleanSeen();
-      A.text.textContent = q[0]; B.text.textContent = q[1];
+      A.text.textContent = titleCase(q[0]); B.text.textContent = titleCase(q[1]);
       var v = state.votes || { a: 0, b: 0 }, t = v.a + v.b;
       A.count.textContent = v.a; B.count.textContent = v.b;
       A.bar.style.width = t ? (v.a / t * 100) + '%' : '0%';

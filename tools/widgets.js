@@ -181,7 +181,9 @@
   };
 
   // ---------- Work Mode ----------
-  var MODES = [['silent', '🤐', 'Silent Work', '#E5484D'], ['whisper', '🤫', 'Whisper', '#E89A00'], ['partner', '💬', 'Partner Talk', '#0FA974'], ['group', '👥', 'Group Work', '#2563EB']];
+  // Icons are Kevin's sticker art in assets/widget-icons/ (one transparent image per mode).
+  var MODES = [['silent', 'silent', 'Silent Work', '#E5484D'], ['whisper', 'whisper', 'Whisper', '#E89A00'], ['partner', 'partner', 'Partner Talk', '#0FA974'], ['group', 'group', 'Group Work', '#2563EB']];
+  function wmIcon(m, cls) { return h('img', { class: cls, src: '/assets/widget-icons/' + m[1] + '.webp?v=1', alt: '', draggable: 'false' }); }
   W.workmode = {
     title: 'Work Mode', color: '#F2643D', w: 300, h: 320,
     icon: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8.5 10.5h7"/>',
@@ -190,12 +192,12 @@
       var d = w.data;
       var big = h('div', { class: 'wm-big', 'aria-live': 'polite' });
       var btns = MODES.map(function (m) {
-        return h('button', { type: 'button', class: 'wm-btn', title: m[2], 'aria-label': m[2], 'data-m': m[0], onclick: function () { d.on = m[0]; save(); paint(); } }, m[1]);
+        return h('button', { type: 'button', class: 'wm-btn', title: m[2], 'aria-label': m[2], 'data-m': m[0], onclick: function () { d.on = m[0]; save(); paint(); } }, wmIcon(m, 'wm-ico'));
       });
       function paint() {
         var m = MODES.filter(function (x) { return x[0] === d.on; })[0] || MODES[0];
         big.textContent = ''; big.style.background = m[3];
-        big.append(h('span', { class: 'wm-emoji', text: m[1] }), h('b', { text: m[2] }));
+        big.append(wmIcon(m, 'wm-emoji'), h('b', { text: m[2] }));
         btns.forEach(function (b) { var on = b.getAttribute('data-m') === m[0]; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
       }
       body.append(h('div', { class: 'wx wm' }, big, h('div', { class: 'wx-row' }, btns)));
@@ -219,7 +221,7 @@
       function paint() {
         var what = (d.name || '').trim() || 'the Big Day';
         var p = /^(\d{4})-(\d\d)-(\d\d)$/.exec(d.date || '');
-        if (!p) { num.textContent = '📅'; label.textContent = 'Pick a date below'; return; }
+        if (!p) { num.textContent = ''; num.append(h('img', { class: 'cd-ico', src: '/assets/widget-icons/calendar.webp?v=1', alt: '', draggable: 'false' })); label.textContent = 'Pick a Date Below'; return; }
         var now = new Date(), a = new Date(now.getFullYear(), now.getMonth(), now.getDate()), b = new Date(+p[1], +p[2] - 1, +p[3]);
         var n = Math.round((b - a) / 864e5);
         if (n === 0) { num.textContent = '🎉'; label.textContent = what + ' Is Today!'; }
