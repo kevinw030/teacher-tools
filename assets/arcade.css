@@ -157,7 +157,7 @@
 .arc-left { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
 .arc-gem { --g: #3D8BFF; display: block; width: clamp(26px, 4.6vh, 40px); aspect-ratio: 1; border-radius: 50%; border: 3px solid #0A1830;
   background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, .85) 0 12%, transparent 13%), radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--g) 70%, #000) 0, var(--g) 70%); box-shadow: 0 3px 0 #0A1830; }
-.arc-gem.empty { background: rgba(255, 255, 255, .1); border: 3px dashed rgba(255, 255, 255, .35); box-shadow: none; }
+.arc-gem.empty { padding: 0; grid-column: auto; background: rgba(255, 255, 255, .1); border: 3px dashed rgba(255, 255, 255, .35); box-shadow: none; }
 .arc-gem.lock { display: grid; place-items: center; background: #FFD43B; color: #0A1830; font: 800 clamp(15px, 2.4vh, 22px) var(--display); }
 .arc-gem.flip { animation: arc-flip .6s var(--spring, ease) both; animation-delay: calc(var(--i) * .12s); }
 @keyframes arc-flip { from { transform: rotateY(180deg) scale(.5); opacity: 0; } }
@@ -174,7 +174,8 @@
 .arc-row.active .arc-gem:not(.empty) { animation: arc-plop .35s var(--spring, ease); }
 .arc-row.fresh .arc-fb.exact, .arc-row.fresh .arc-fb.near { animation: arc-plop .45s var(--spring, ease) both; }
 @keyframes arc-plop { from { transform: scale(.3); } }
-.arc-pegs { display: flex; gap: clamp(5px, .9vw, 10px); }
+.arc-pegs { display: flex; align-items: center; gap: clamp(5px, .9vw, 10px); }
+.arc-pegs .arc-gem, .arc-vault .arc-gem { flex: none; align-self: center; }
 .arc-fbs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
 .arc-fb { display: inline-block; width: clamp(10px, 1.7vh, 15px); aspect-ratio: 1; border-radius: 50%; background: rgba(255, 255, 255, .14); border: 2px solid rgba(255, 255, 255, .25); }
 .arc-fb.exact { background: #2CE08A; border-color: #0A1830; box-shadow: 0 0 8px #2CE08A; }
