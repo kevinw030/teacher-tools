@@ -1,5 +1,5 @@
 // The student join page (/join). A student types the class code their teacher shows and gets their own
-// Class Bingo card. No account and no password. A first name or nickname is optional: it is kept in this
+// Class Bingo card, or an Exit Ticket question to answer (the teacher's screen says which). No account and no password. A first name or nickname is optional: it is kept in this
 // browser tab only and sent live to the teacher's open screen, never saved online.
 (function () {
   var B = window.Bingo, TT = window.TT = window.TT || {};
@@ -119,13 +119,14 @@
 
   // ---------- Connecting ----------
   function connect() {
-    avMap = {}; pending = null; picker = null;
+    avMap = {}; pending = null; picker = null; ticket = null; ticketKey = ''; ticketSent = null;
     paintWaiting('Finding your class…');
     if (conn) conn.close();
     conn = B.connect({
       code: me.code, me: me.id, meta: meta(),
       on: {
         state: onState,
+        ticket: onTicket,
         verdict: onVerdict,
         countdown: onCountdown,
         poke: function (m) { if (m && room) room.poke(m.id); },
@@ -141,14 +142,14 @@
         if (was !== hostHere && state) paintHost();
         // The teacher's screen left and didn't come back (its "end" message got lost): the game is over.
         clearTimeout(goneTimer);
-        if (state && !hostHere) goneTimer = setTimeout(function () { if (state && !hostHere) over(); }, 20000);
+        if ((state || ticket) && !hostHere) goneTimer = setTimeout(function () { if ((state || ticket) && !hostHere) over(); }, 20000);
       },
-      onStatus: function (s) { if (s === 'off' && !state) paintWaiting('Can’t reach the game. Check the internet, then we’ll keep trying.'); },
+      onStatus: function (s) { if (s === 'off' && !state && !ticket) paintWaiting('Can’t reach the game. Check the internet, then we’ll keep trying.'); },
       onLive: function () { conn.send('hello', { id: me.id }); }
     });
     clearTimeout(findTimer);
     findTimer = setTimeout(function () {
-      if (state) return;
+      if (state || ticket) return;
       paintNotFound();
     }, 9000);
   }
@@ -172,12 +173,12 @@
       h('div', { class: 'row center' },
         h('button', { type: 'button', class: 'btn primary big', onclick: leave, text: 'Type the Code Again' }))));
     if (conn) conn.send('hello', { id: me.id });
-    findTimer = setTimeout(function () { if (!state && conn) { conn.send('hello', { id: me.id }); } }, 5000);
+    findTimer = setTimeout(function () { if (!state && !ticket && conn) { conn.send('hello', { id: me.id }); } }, 5000);
   }
   function leave() {
     if (conn) conn.close(); conn = null; clearTimeout(findTimer);
     var keepName = me && !me.auto ? me.name : '';
-    state = null; cells = null; store('me', null); store('card', null);
+    state = null; cells = null; ticket = null; ticketKey = ''; store('me', null); store('card', null); store('ticket', null);
     me = keepName ? { name: keepName } : null;
     paintEnter();
   }
@@ -186,15 +187,114 @@
     clearTimeout(goneTimer);
     if (conn) conn.close(); conn = null;
     store('me', null); store('card', null);
-    state = null;
+    var wasTicket = !!ticket && !state;
+    state = null; ticket = null; ticketKey = ''; clearTimeout(sendTimer);
     root.textContent = '';
     root.className = 'join-main is-over';
     var mas = TT.mascot ? TT.mascot({ mood: 'wave' }) : null;
     root.append(h('div', { class: 'join-card join-wait' },
       mas ? h('div', { class: 'join-mascot small', 'aria-hidden': 'true' }, mas) : null,
-      h('h1', { text: 'Thanks for Playing!' }),
-      h('p', { class: 'join-lead', text: wins ? 'You got Bingo ' + (wins === 1 ? 'once' : wins + ' times') + '. Nice work!' : 'Your teacher ended the game.' }),
+      h('h1', { text: wasTicket ? 'All Done!' : 'Thanks for Playing!' }),
+      h('p', { class: 'join-lead', text: wasTicket ? 'Thanks for answering. You can close this page now.' : wins ? 'You got Bingo ' + (wins === 1 ? 'once' : wins + ' times') + '. Nice work!' : 'Your teacher ended the game.' }),
       h('button', { type: 'button', class: 'btn primary big', onclick: function () { me = null; wins = 0; paintEnter(); }, text: 'Join Another Game' })));
+  }
+
+  // ---------- Exit Ticket: one question from the teacher, answered once on this screen ----------
+  // The teacher's screen sends { id, q, type, choices, open, got: [ids that answered] } or { idle: true }.
+  var ticket = null, ticketKey = '', ticketSent = null, sendTimer = null;
+  var T_COLORS = ['#3B7BFF', '#FF7448', '#14B884', '#F5AE14', '#8B5CF6'];
+  function onTicket(m) {
+    if (!m) return;
+    clearTimeout(findTimer);
+    hostHere = true; state = null;
+    var fl = document.querySelector('.lb-floaties'); if (fl) fl.remove();
+    if (m.idle || typeof m.q !== 'string') { ticket = { idle: true }; ticketSent = null; setTicketView('idle'); return; }
+    var fresh = !ticket || ticket.id !== m.id;
+    ticket = m;
+    if (fresh) { var kept = recall('ticket'); ticketSent = kept && kept.id === m.id ? kept : null; }
+    var got = Array.isArray(m.got) && m.got.indexOf(me.id) >= 0;
+    if (got) { clearTimeout(sendTimer); setTicketView('thanks'); }
+    else if (!m.open) setTicketView('closed');
+    else if (ticketSent && ticketSent.wait) setTicketView('sending');
+    else setTicketView('ask');
+  }
+  function ticketCard(cls, kids) {
+    root.textContent = '';
+    root.className = 'join-main is-ticket';
+    var card = h('div', { class: 'join-card jt ' + cls });
+    kids.forEach(function (k) { if (k) card.append(k); });
+    root.append(card);
+    return card;
+  }
+  function who() { return h('p', { class: 'jt-who' }, window.Lobby ? h('span', { class: 'join-ava', 'aria-hidden': 'true', style: '--ac:' + Lobby.avatar(me.av).c }, Lobby.img(me.av)) : null, me.name); }
+  // Screens only repaint when they change, so typing is never wiped by a message from the teacher.
+  function setTicketView(v) {
+    var key = v + ':' + (ticket && ticket.id || '');
+    if (key === ticketKey) return;
+    ticketKey = key;
+    var mas;
+    if (v === 'ask') { paintAsk(); return; }
+    if (v === 'thanks') {
+      mas = TT.mascot ? TT.mascot({ mood: 'cheer' }) : null;
+      if (mas) setTimeout(function () { mas.mood('idle'); }, 2600);
+      ticketCard('jt-done', [mas ? h('div', { class: 'join-mascot small', 'aria-hidden': 'true' }, mas) : null,
+        h('h1', { text: 'Thanks!' }), h('p', { class: 'join-lead', text: 'Your teacher got your answer.' }),
+        ticketSent && ticketSent.label ? h('p', { class: 'jt-mine' }, h('span', { text: 'Your Answer' }), h('b', { text: ticketSent.label })) : null,
+        h('p', { class: 'join-help', text: 'Stay here if your teacher has another question.' })]);
+      cheer();
+      return;
+    }
+    if (v === 'sending') {
+      ticketCard('jt-done', [h('div', { class: 'join-dots', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')), h('h1', { text: 'Sending…' }), h('p', { class: 'join-lead', text: 'Giving your answer to your teacher.' })]);
+      return;
+    }
+    mas = TT.mascot ? TT.mascot({ mood: 'think' }) : null;
+    ticketCard('jt-done', [mas ? h('div', { class: 'join-mascot small', 'aria-hidden': 'true' }, mas) : null,
+      h('div', { class: 'join-dots', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')),
+      h('h1', { text: v === 'closed' ? 'Time Is Up' : 'You’re In!' }),
+      h('p', { class: 'join-lead', text: v === 'closed' ? 'Your teacher is looking at the answers.' : 'Waiting for your teacher’s question.' })]);
+  }
+  function paintAsk() {
+    var t = ticket, pick = null, area = null;
+    var err = h('p', { class: 'join-err', role: 'alert' });
+    var go = h('button', { type: 'button', class: 'btn primary big join-go jt-go', disabled: true, onclick: function () {
+      var v, label;
+      if (t.type === 'text') {
+        v = area.value.replace(/\s+/g, ' ').trim().slice(0, 240);
+        if (!v) { area.focus(); return; }
+        if (window.NameFilter && NameFilter.textOk && !NameFilter.textOk(v)) { err.textContent = 'Let’s use school words. Try writing it a different way.'; shake(area); return; }
+        label = v;
+      } else { if (pick == null) return; v = pick; label = t.choices[pick]; }
+      ticketSent = { id: t.id, v: v, label: label, wait: true };
+      store('ticket', ticketSent);
+      sendAnswer(0);
+      setTicketView('sending');
+    } }, h('span', { text: 'Turn It In' }));
+    var body;
+    if (t.type === 'text') {
+      area = h('textarea', { class: 'jt-area', rows: 4, maxlength: 240, placeholder: 'Type your answer here', 'aria-label': 'Your answer' });
+      area.addEventListener('input', function () { go.disabled = !area.value.trim(); err.textContent = ''; });
+      body = area;
+    } else {
+      body = h('div', { class: 'jt-answers', role: 'radiogroup', 'aria-label': 'Answers' }, (t.choices || []).map(function (c, i) {
+        var b = h('button', { type: 'button', class: 'jt-answer', role: 'radio', 'aria-checked': 'false', style: '--c:' + T_COLORS[i % 5], onclick: function () {
+          pick = i; go.disabled = false;
+          body.querySelectorAll('.jt-answer').forEach(function (x) { x.classList.toggle('on', x === b); x.setAttribute('aria-checked', x === b ? 'true' : 'false'); });
+          beep(520 + i * 60, 0.1, 'triangle', 0.07);
+        } }, h('span', { class: 'jt-answer-t', text: String(c) }), h('span', { class: 'jt-check', 'aria-hidden': 'true', text: '✓' }));
+        return b;
+      }));
+    }
+    ticketCard('jt-ask', [who(), h('p', { class: 'join-call-n jt-tag', text: 'Exit Ticket' }), h('h1', { class: 'jt-q', text: t.q }),
+      h('p', { class: 'join-help', text: t.type === 'text' ? 'Type your answer. Then press Turn It In.' : 'Tap your answer. Then press Turn It In.' }), body, err, go]);
+  }
+  // Keep trying until the teacher's screen says it has the answer (it only ever counts one per student).
+  function sendAnswer(n) {
+    clearTimeout(sendTimer);
+    if (!conn || !ticket || !ticketSent || ticketSent.id !== ticket.id) return;
+    conn.send('answer', { id: me.id, t: ticketSent.id, v: ticketSent.v });
+    if (n < 6) sendTimer = setTimeout(function () { sendAnswer(n + 1); }, 2500);
+    else { ticketSent.wait = false; store('ticket', ticketSent); ticketKey = ''; setTicketView('ask'); toast('That didn’t send. Please try again.'); }
   }
 
   // ---------- Playing ----------
@@ -343,6 +443,7 @@
 
   function onState(s) {
     if (!s || !Array.isArray(s.cards)) return;
+    ticket = null; ticketKey = '';
     clearTimeout(findTimer);
     if (s.avs) applySeats(s.avs);
     // Everyone waits in the lobby until the teacher presses Start Game. (A game from an older teacher page

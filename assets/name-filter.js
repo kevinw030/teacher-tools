@@ -66,6 +66,17 @@
     if (bad(name) || bad(r)) return { ok: false, why: 'word' };
     return { ok: true, name: name };
   };
+  // A typed sentence (an exit ticket answer): no links and no bad words, checked word by word.
+  NF.textOk = function (raw) {
+    var r = String(raw || '');
+    if (/https?:|www\.|\.(com|net|org|io|gg|tv|ly|me|co|xyz)\b|discord|tiktok|insta|snap|youtube|robux/i.test(r)) return false;
+    // Each word on its own (running a whole sentence together would trip on "push it"), plus letters typed
+    // one at a time ("s h i t").
+    var words = r.split(/\s+/).filter(Boolean), run = '', runs = [];
+    words.forEach(function (w) { if (/^\p{L}$/u.test(w)) run += w; else { if (run.length > 2) runs.push(run); run = ''; } });
+    if (run.length > 2) runs.push(run);
+    return !words.concat(runs).some(bad);
+  };
   NF.ok = function (raw) { return NF.check(raw).ok; };
   // For showing someone else's name: theirs if it passes, otherwise a safe stand-in.
   NF.safe = function (raw, fallback) { var c = NF.check(raw); return c.ok ? c.name : (fallback || 'Player'); };

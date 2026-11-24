@@ -1,5 +1,7 @@
-// Exit Tickets and Quick Polls: one question at the end of a lesson. Students answer on this screen,
-// either with anonymous taps or by tapping their own name first. Everything stays in this browser.
+// Exit Tickets and Quick Polls: one question at the end of a lesson. Students answer on this screen
+// (anonymous taps, or tapping their own name first), or on their own devices with a class code.
+// Device answers travel live from screen to screen (assets/bingo-live.js) and only the answers are kept:
+// student names show while the question is open and are never saved.
 (function () {
   var TT = window.TT, h = TT.h;
   var COLORS = ['#3B7BFF', '#FF7448', '#14B884', '#F5AE14', '#8B5CF6'];
@@ -15,6 +17,74 @@
     if (!Array.isArray(state.saved)) state.saved = [];
     var draft = { type: 'thumbs', q: PRESETS.thumbs.q, choices: PRESETS.thumbs.choices.slice(), mode: 'anon' };
     var view = state.cur ? (state.cur.done ? 'results' : 'collect') : 'setup', viewing = null, who = null, peek = false;
+    var B = window.Bingo, Lobby = window.Lobby;
+    function canLive() { return !!(B && B.connect && B.liveReady && B.liveReady() && Lobby); }
+
+    // ----- Answering on student devices: this screen is the "server" -----
+    // One class code for the whole visit, so students can stay on for the next question.
+    var conn = null, liveCode = '', people = [], nameOf = {}, liveStatus = 'trying', refreshLive = null, showNames = false;
+    function isLive(t) { return !!t && t.mode === 'devices'; }
+    function sendState() {
+      if (!conn) return;
+      var t = state.cur;
+      if (!isLive(t)) { conn.send('ticket', { idle: true }); return; }
+      conn.send('ticket', { id: t.id, q: t.q, type: t.type, choices: t.choices, open: !t.done, got: t.answers.map(function (a) { return a.sid; }).filter(Boolean) });
+    }
+    function goLive(t) {
+      if (!canLive()) return;
+      if (conn && liveCode === t.code) { sendState(); return; }
+      if (conn) conn.close();
+      liveCode = t.code; liveStatus = 'trying'; people = [];
+      conn = B.connect({
+        code: t.code, me: 'host-' + t.id, meta: { host: true },
+        on: { hello: function () { sendState(); }, answer: onAnswer },
+        onPeople: function (list) {
+          people = list.filter(function (p) { return !p.host; }).map(function (p) { return { id: p.id, av: p.av | 0, name: Lobby.safeName(p.name, p.av) }; });
+          people.forEach(function (p) { nameOf[p.id] = p.name; });
+          if (refreshLive) refreshLive();
+        },
+        onStatus: function (s) { liveStatus = s; if (refreshLive) refreshLive(); },
+        onLive: function () { sendState(); }
+      });
+    }
+    function onAnswer(m) {
+      var t = state.cur;
+      if (!isLive(t) || t.done || !m || typeof m.id !== 'string' || m.t !== t.id) return;
+      if (t.answers.some(function (a) { return a.sid === m.id; })) { sendState(); return; }
+      var v = m.v;
+      if (t.type === 'text') {
+        v = String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, 240);
+        if (!v || (window.NameFilter && NameFilter.textOk && !NameFilter.textOk(v))) return;
+      } else if (typeof v !== 'number' || v % 1 || v < 0 || v >= t.choices.length) return;
+      t.answers.push({ v: v, sid: m.id.slice(0, 24) });
+      save(); TT.tick(); sendState();
+      if (refreshLive) refreshLive();
+    }
+    function endLive() {
+      if (!conn) return;
+      conn.send('end', {}); var c = conn; setTimeout(function () { c.close(); }, 600);
+      conn = null; liveCode = ''; people = [];
+    }
+    // Only the answers are kept: the ids that stop double answers are dropped when a ticket is put away.
+    function tidy(t) { if (!isLive(t)) return t; t.answers = t.answers.map(function (a) { return { v: a.v }; }); delete t.code; return t; }
+    function joinCard(code) {
+      var host = location.host.replace(/^www\./, '') || 'edsidekick.com';
+      var url = location.origin + '/join?code=' + code;
+      var qr = h('div', { class: 'bgo-qr', 'aria-hidden': 'true' });
+      function draw() { try { var q = window.qrcode(0, 'M'); q.addData(url); q.make(); qr.innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true }); } catch (e) {} }
+      if (window.qrcode) draw(); else { var sc = document.createElement('script'); sc.src = '/assets/qrcode.js?v=1'; sc.onload = draw; document.head.append(sc); }
+      var copyBtn = h('button', { type: 'button', class: 'bgo-copy', title: 'Post this link in Google Classroom so students can click it', onclick: function () {
+        function done(ok) { copyBtn.lastChild.textContent = ok ? 'Copied! Paste It for Your Class' : url; copyBtn.classList.toggle('ok', ok); if (ok) setTimeout(function () { copyBtn.lastChild.textContent = 'Copy Join Link'; copyBtn.classList.remove('ok'); }, 2600); }
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(function () { done(true); }, function () { done(false); }); else done(false);
+      } }, h('span', { html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>' }), h('span', { text: 'Copy Join Link' }));
+      function st(n, label, body, cls) { return h('li', { class: 'bgo-st' + (cls || '') }, h('span', { class: 'bgo-st-n', 'aria-hidden': 'true', text: n }), h('span', { class: 'bgo-st-body' }, h('span', { class: 'bgo-join-step', text: label }), body)); }
+      return h('section', { class: 'bgo-join' },
+        h('ol', { class: 'bgo-join-text bgo-steps' },
+          st('1', 'Open the internet and type', h('span', { class: 'bgo-join-url', text: host + '/join' })),
+          st('2', 'Type this code', h('span', { class: 'bgo-code', 'aria-label': 'Class code ' + code.split('').join(' ') }, code.split('').map(function (ch, i) { return h('span', { class: 'bgo-code-ch', style: '--i:' + i, text: ch }); }))),
+          st('3', 'Then', h('span', { class: 'bgo-st-go', text: 'Press the big pink Join button!' }), ' bgo-st-3')),
+        h('div', { class: 'bgo-qr-box' }, qr, h('div', { class: 'bgo-qr-side' }, h('span', { class: 'bgo-qr-t', text: 'Or scan with a camera' }), copyBtn)));
+    }
     var root = h('div', { class: 'xt' });
     el.append(root);
     function save() { TT.save('tickets', state); }
@@ -61,8 +131,9 @@
           draft.choices.length < 5 ? h('div', { class: 'row' }, TT.button('Add a Choice', { icon: 'plus', kind: 'small', onclick: function () { draft.choices.push(''); paint(); } })) : null));
       }
       form.append(h('div', { class: 'cq-field' }, step(3, 'Who Answers'),
-        seg([['anon', 'Anonymous Taps'], ['names', 'By Name']], function () { return draft.mode; }, function (v) { draft.mode = v; }),
+        seg([['anon', 'Anonymous Taps'], ['names', 'By Name']].concat(canLive() ? [['devices', 'On Student Devices']] : []), function () { return draft.mode; }, function (v) { draft.mode = v; }),
         h('p', { class: 'muted xt-note', text: draft.mode === 'anon' ? 'Students tap an answer on this screen as they leave. No names are kept.'
+          : draft.mode === 'devices' ? 'Students go to ' + (location.host.replace(/^www\./, '') || 'edsidekick.com') + '/join on their own device, type the class code and answer there. No accounts, and only the answers are kept.'
           : 'Students tap their own name, then answer. You see who chose what and who is missing. Names stay on this computer.' })),
         msg,
         h('div', { class: 'row' }, TT.button('Start Collecting Answers', { icon: 'play', kind: 'primary big xt-start', onclick: function () {
@@ -71,6 +142,8 @@
           if (draft.type !== 'text' && choices.length < 2) { msg.textContent = 'Add at least two choices.'; msg.hidden = false; return; }
           state.cur = { id: 't' + Date.now().toString(36), date: TT.today(), q: draft.q.trim(), type: draft.type, choices: draft.type === 'text' ? [] : choices, mode: draft.mode, answers: [], done: false,
             cls: draft.mode === 'names' ? TT.roster.activeName() : '' };
+          if (draft.mode === 'devices') { if (!canLive()) state.cur.mode = 'anon'; else state.cur.code = liveCode || B.makeCode(); }
+          showNames = false;
           save(); view = 'collect'; who = null; peek = false; paint();
         } })));
       form.classList.add('xt-form');
@@ -95,6 +168,8 @@
     // ----- 2. Students answer -----
     function collect() {
       var t = state.cur, done = {};
+      refreshLive = null;
+      if (isLive(t)) { collectLive(t); return; }
       t.answers.forEach(function (a) { if (a.who) done[a.who] = 1; });
       var names = t.mode === 'names' ? TT.roster.present() : [];
       var stage = h('div', { class: 'xt-stage' }, h('span', { class: 'eyebrow', text: t.mode === 'names' && who ? 'Hi, ' + who + '!' : 'Exit Ticket' }), h('h2', { class: 'xt-q', text: t.q }));
@@ -133,6 +208,42 @@
       if (peek) root.append(results(t, true));
     }
 
+    // Students answer on their own devices: the join steps, the question and who has turned it in.
+    function collectLive(t) {
+      if (!t.code) { t.code = liveCode || B.makeCode(); save(); }
+      goLive(t);
+      var num = h('b', { class: 'xt-live-num' }), lab = h('span', { class: 'xt-live-lab' }), whoBox = h('div', { class: 'xt-live-who' }), status = h('p', { class: 'xt-live-status', role: 'status' });
+      var peekBox = h('div');
+      var peekBtn = TT.button(peek ? 'Hide Results' : 'Peek at Results', { kind: 'small', onclick: function () { peek = !peek; paint(); } });
+      refreshLive = function () {
+        if (state.cur !== t || view !== 'collect') return;
+        var got = {}; t.answers.forEach(function (a) { got[a.sid] = 1; });
+        var n = t.answers.length;
+        num.textContent = String(n);
+        lab.textContent = (n === 1 ? 'Answer' : 'Answers') + (people.length ? ' · ' + people.length + (people.length === 1 ? ' Student Here' : ' Students Here') : '');
+        whoBox.textContent = '';
+        if (!people.length) whoBox.append(h('p', { class: 'xt-live-empty', text: 'Students show up here as they join.' }));
+        people.slice().sort(function (a, b) { return (got[a.id] ? 1 : 0) - (got[b.id] ? 1 : 0); }).forEach(function (p) {
+          whoBox.append(h('span', { class: 'xt-who' + (got[p.id] ? ' done' : ''), style: '--ac:' + Lobby.avatar(p.av).c }, h('span', { class: 'xt-who-ava', 'aria-hidden': 'true' }, Lobby.img(p.av)), h('span', { text: p.name }),
+            h('span', { class: 'xt-who-mark', text: got[p.id] ? '✓' : '…', 'aria-label': got[p.id] ? 'answered' : 'still thinking' })));
+        });
+        status.textContent = liveStatus === 'off' ? 'Can’t reach the internet. Students can’t join until it’s back.' : '';
+        status.hidden = liveStatus !== 'off';
+        if (peek) { peekBox.textContent = ''; peekBox.append(results(t, true)); }
+      };
+      root.append(h('div', { class: 'xt-live' },
+        h('div', { class: 'lb-host xt-live-join' }, joinCard(t.code)),
+        h('div', { class: 'xt-stage xt-live-stage' }, h('span', { class: 'eyebrow', text: 'Exit Ticket · Answer on Your Device' }), h('h2', { class: 'xt-q', text: t.q }),
+          h('div', { class: 'xt-live-count', 'aria-live': 'polite' }, num, lab), whoBox, status)),
+        h('div', { class: 'xt-bar' },
+          h('b', { class: 'xt-count', text: 'Students Answer on Their Own Screens' }),
+          h('div', { class: 'row' }, peekBtn,
+            TT.button('Cancel', { kind: 'small', onclick: function () { state.cur = null; save(); sendState(); view = 'setup'; paint(); } }),
+            TT.button('Show Results', { kind: 'primary', onclick: function () { t.done = true; save(); sendState(); view = 'results'; paint(); } }))),
+        peekBox);
+      refreshLive();
+    }
+
     // ----- 3. Results -----
     function results(t, small) {
       var box = h('div', { class: 'xt-results' + (small ? ' small' : '') }), total = t.answers.length;
@@ -158,12 +269,18 @@
     }
     function resultsView() {
       var t = viewing || state.cur, live = !viewing;
+      refreshLive = null;
+      var shown = t, named = live && isLive(t) && t.answers.some(function (a) { return nameOf[a.sid]; });
+      if (named && showNames) shown = Object.assign({}, t, { answers: t.answers.map(function (a) { return { v: a.v, who: nameOf[a.sid] }; }) });
+      if (live && isLive(t)) goLive(t);
       root.append(h('div', { class: 'xt-stage results' }, h('span', { class: 'eyebrow', text: dateText(t.date) + ' · ' + t.answers.length + (t.answers.length === 1 ? ' Answer' : ' Answers') }), h('h2', { class: 'xt-q', text: t.q })),
-        results(t, false),
+        results(shown, false),
+        named ? h('p', { class: 'muted xt-note', text: showNames ? 'Names show only while this ticket is open. They are not saved with it.' : 'Want to see who chose what? Names show only while this ticket is open and are not saved.' }) : null,
         h('div', { class: 'row' },
-          live ? TT.button('Save and Close', { kind: 'primary big', onclick: function () { state.saved.unshift(t); state.saved = state.saved.slice(0, TT.storeLimit ? TT.storeLimit('tickets') : TT.limit ? TT.limit('tickets') : 50); state.cur = null; save(); view = 'setup'; paint(); } }) : null,
-          live ? TT.button('Keep Collecting', { kind: 'big', onclick: function () { t.done = false; save(); view = 'collect'; paint(); } }) : null,
-          live ? TT.button('Throw Away', { icon: 'trash', kind: 'big', onclick: function () { state.cur = null; save(); view = 'setup'; paint(); } }) : null,
+          named ? TT.button(showNames ? 'Hide Names' : 'Show Names', { kind: 'big', onclick: function () { showNames = !showNames; paint(); } }) : null,
+          live ? TT.button('Save and Close', { kind: 'primary big', onclick: function () { state.saved.unshift(tidy(t)); state.saved = state.saved.slice(0, TT.storeLimit ? TT.storeLimit('tickets') : TT.limit ? TT.limit('tickets') : 50); state.cur = null; save(); sendState(); view = 'setup'; paint(); } }) : null,
+          live ? TT.button('Keep Collecting', { kind: 'big', onclick: function () { t.done = false; save(); sendState(); view = 'collect'; paint(); } }) : null,
+          live ? TT.button('Throw Away', { icon: 'trash', kind: 'big', onclick: function () { state.cur = null; save(); sendState(); view = 'setup'; paint(); } }) : null,
           !live ? TT.button('Back to Tickets', { icon: 'back', kind: 'big', onclick: function () { viewing = null; view = 'setup'; paint(); } }) : null));
     }
 
@@ -172,6 +289,8 @@
       if (view === 'collect' && state.cur) collect(); else if (view === 'results' && (viewing || state.cur)) resultsView(); else { view = 'setup'; setup(); }
     }
     paint();
-    return { show: function () { if (view === 'collect') paint(); } };
+    // Leaving the page closes the class code (students see "All Done"). Answers so far stay on the ticket.
+    if (Lobby && Lobby.endOnLeave) Lobby.endOnLeave({ page: 'exit-tickets', active: function () { return !!conn; }, players: function () { return isLive(state.cur) && !state.cur.done ? people.length : 0; }, end: endLive });
+    return { show: function () { if (view === 'collect' || (view === 'results' && !viewing && isLive(state.cur))) paint(); } };
   };
 })();

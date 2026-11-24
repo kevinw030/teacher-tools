@@ -1,0 +1,49 @@
+/* Exit Tickets on student devices.
+   Teacher side (tools/tickets.js collectLive): the join steps beside the question and who has answered.
+   Student side (assets/join.js, the /join page): one big question, big answers, one Turn It In button. */
+
+/* ---------- Teacher's screen ---------- */
+.xt-live { display: grid; grid-template-columns: minmax(280px, 5fr) minmax(0, 7fr); gap: var(--s4, 16px); align-items: stretch; margin-bottom: var(--s4, 16px); }
+.xt-live-join { min-width: 0; display: flex; }
+.xt-live-join .bgo-join { flex: 1; margin: 0; }
+.xt-live-stage { min-height: 0; justify-content: flex-start; gap: 12px; }
+.xt-live-stage .xt-q { font-size: clamp(22px, 2.6vw, 38px); }
+.xt-live-count { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.xt-live-num { font: 900 clamp(56px, 7vw, 104px)/1 var(--display); color: var(--coral); font-variant-numeric: tabular-nums; }
+.xt-live-lab { font: 800 clamp(16px, 1.5vw, 22px) var(--display); color: var(--muted); }
+.xt-live-who { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-height: 260px; overflow: auto; width: 100%; }
+.xt-live-empty { margin: 0; color: var(--muted); }
+.xt-live-status { margin: 0; font-weight: 700; color: #C2185B; }
+.xt-who { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 99px; background: var(--surface); border: 1px solid var(--line); font: 700 15px var(--body); opacity: .72; transition: opacity .2s, transform .35s var(--spring), border-color .2s; }
+.xt-who-ava { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--ac) 78%, #fff); }
+.xt-who-ava img { width: 92%; height: 92%; object-fit: contain; }
+.xt-who-mark { font-weight: 900; color: var(--muted); }
+.xt-who.done { opacity: 1; border-color: color-mix(in srgb, var(--emerald) 60%, var(--line)); background: color-mix(in srgb, var(--emerald) 12%, var(--surface)); }
+.xt-who.done .xt-who-mark { color: var(--emerald); }
+@media (max-width: 900px) { .xt-live { grid-template-columns: 1fr; } }
+
+/* ---------- Student's screen ---------- */
+.join-main.is-ticket { justify-content: center; }
+.jt { gap: var(--s3); }
+.jt-done { align-items: center; text-align: center; padding-top: var(--s7); }
+.jt-who { margin: 0; display: inline-flex; align-self: flex-start; align-items: center; gap: var(--s2); padding: 4px 14px 4px 6px; border-radius: 99px; background: var(--surface-2, #EEF0F6); font: 800 16px var(--display); }
+.jt-who .join-ava { margin-left: 0; }
+.jt-tag { margin: 0; color: var(--coral); }
+.join-card h1.jt-q { font-size: clamp(26px, 6.4vw, 38px); line-height: 1.12; overflow-wrap: anywhere; }
+.jt-answers { display: flex; flex-direction: column; gap: var(--s3); }
+.jt-answer { position: relative; display: flex; align-items: center; justify-content: space-between; gap: var(--s3); width: 100%; min-height: 68px; padding: 14px 18px; border-radius: 20px; cursor: pointer; text-align: left;
+  border: 3px solid color-mix(in srgb, var(--c) 55%, var(--surface)); background: color-mix(in srgb, var(--c) 12%, var(--surface)); color: var(--text, inherit);
+  font: 800 clamp(20px, 5.2vw, 26px)/1.15 var(--display); transition: transform .35s var(--spring), background .15s, border-color .15s; }
+.jt-answer-t { overflow-wrap: anywhere; min-width: 0; }
+.jt-answer:active { transform: scale(.97); }
+.jt-check { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-size: 20px; color: transparent; border: 3px solid color-mix(in srgb, var(--c) 55%, var(--surface)); background: var(--surface); }
+.jt-answer.on { background: var(--c); border-color: var(--c); color: #14121F; transform: scale(1.02); }
+.jt-answer.on .jt-check { background: #fff; border-color: #fff; color: #14121F; }
+.jt-area { width: 100%; min-height: 150px; padding: 14px 16px; border-radius: 18px; border: 3px solid var(--line); background: var(--surface); color: inherit; font: 600 20px/1.4 var(--body); resize: vertical; }
+.jt-area:focus { outline: none; border-color: var(--rose); }
+.jt-area.shake { animation: bc-shake .45s ease; }
+.btn.primary.jt-go:disabled { opacity: .45; box-shadow: none; cursor: default; }
+.jt-mine { margin: 0; display: flex; flex-direction: column; gap: 2px; padding: 10px 18px; border-radius: 16px; background: var(--surface-2, #EEF0F6); max-width: 100%; }
+.jt-mine span { font: 800 12px var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.jt-mine b { font: 800 20px var(--display); overflow-wrap: anywhere; }
+@media (prefers-reduced-motion: reduce) { .jt-answer, .xt-who { transition: none; } }
