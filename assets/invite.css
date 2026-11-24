@@ -1,0 +1,71 @@
+/* Invite Friends box in My Account, the sign-up banner and the invite toast (assets/invite.js). */
+.invite-box {
+  margin: 24px 0 8px; padding: 20px; border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--amber) 35%, var(--line));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--amber) 12%, var(--surface)) 0%, color-mix(in srgb, var(--coral) 9%, var(--surface)) 100%);
+}
+.invite-head { display: flex; gap: 12px; align-items: flex-start; }
+.invite-head h3 { font-family: var(--display); font-size: 20px; margin: 0 0 4px; }
+.invite-head p { margin: 0; }
+.invite-gift { flex: none; width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; color: #fff;
+  background: linear-gradient(135deg, var(--amber), var(--coral)); box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--coral) 70%, transparent);
+  transform: rotate(-6deg); }
+.invite-gift svg { width: 24px; height: 24px; }
+.invite-wait { margin: 16px 0 8px; }
+
+.invite-code-row { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: end; margin-top: 16px; }
+.invite-code, .invite-link { display: grid; gap: 4px; min-width: 0; }
+.invite-code small, .invite-link small { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.invite-code b { font-family: var(--display); font-size: 26px; letter-spacing: .14em; padding: 6px 14px; border-radius: 12px;
+  background: var(--surface); border: 2px dashed color-mix(in srgb, var(--coral) 55%, var(--line)); color: var(--coral); line-height: 1.2; }
+.invite-url { display: block; padding: 12px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line);
+  font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.invite-actions { display: flex; gap: 8px; }
+.invite-actions .btn.copied { background: var(--emerald); border-color: var(--emerald); }
+
+.invite-progress { margin-top: 16px; display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; align-items: center; }
+.invite-count b { font-family: var(--display); font-size: 28px; }
+.invite-count span { font-weight: 600; color: var(--muted); }
+.invite-dots { display: flex; gap: 6px; flex-wrap: wrap; }
+.invite-dot { width: 18px; height: 18px; border-radius: 50%; background: color-mix(in srgb, var(--ink) 10%, transparent); transition: transform .3s cubic-bezier(.34, 1.56, .64, 1); }
+.invite-dot.on { background: linear-gradient(135deg, var(--amber), var(--coral)); transform: scale(1.08); }
+.invite-earned { grid-column: 1 / -1; margin: 4px 0 0; }
+.invite-note { margin: 12px 0 0; font-size: 14px; }
+
+.invite-redeem { margin-top: 16px; padding-top: 16px; border-top: 1px dashed color-mix(in srgb, var(--amber) 40%, var(--line)); }
+.invite-redeem-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.invite-redeem-q { font-weight: 700; margin-right: 4px; }
+.invite-input { font: inherit; font-size: 16px; text-transform: uppercase; letter-spacing: .1em; width: 150px; padding: 8px 12px;
+  border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.invite-input::placeholder { text-transform: none; letter-spacing: 0; }
+.invite-input:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+.invite-msg { margin: 8px 0 0; font-weight: 600; color: var(--amber); }
+.invite-msg.ok { color: var(--emerald); }
+
+/* Sign-up form */
+.invite-banner { display: flex; gap: 12px; align-items: center; margin: 16px 0 4px; padding: 12px 16px; border-radius: 16px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--amber) 16%, var(--surface)), color-mix(in srgb, var(--coral) 12%, var(--surface)));
+  border: 1px solid color-mix(in srgb, var(--amber) 40%, var(--line)); animation: invite-pop .5s cubic-bezier(.34, 1.56, .64, 1) both; }
+.invite-banner p { margin: 0; }
+.invite-banner-ico { font-size: 28px; line-height: 1; }
+.acct-stack input#acctInvite { text-transform: uppercase; letter-spacing: .08em; }
+.acct-stack input#acctInvite::placeholder { text-transform: none; letter-spacing: 0; }
+.acct-stack input#acctInvite.has-invite { border-color: color-mix(in srgb, var(--coral) 50%, var(--line)); background: color-mix(in srgb, var(--amber) 8%, var(--surface-2)); }
+
+.invite-toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 9999; max-width: min(520px, calc(100vw - 32px));
+  padding: 14px 20px; border-radius: 16px; background: var(--ink); color: var(--surface); font-weight: 700; box-shadow: var(--shadow-lg);
+  animation: invite-pop .5s cubic-bezier(.34, 1.56, .64, 1) both; transition: opacity .4s, transform .4s; }
+.invite-toast.out { opacity: 0; transform: translate(-50%, 12px); }
+@keyframes invite-pop { from { opacity: 0; transform: translateY(8px) scale(.97); } }
+.invite-toast { animation-name: invite-toast-in; }
+@keyframes invite-toast-in { from { opacity: 0; transform: translate(-50%, 12px); } }
+
+@media (max-width: 640px) {
+  .invite-code-row { grid-template-columns: 1fr; }
+  .invite-actions .btn { flex: 1; justify-content: center; }
+  .invite-progress { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .invite-banner, .invite-toast { animation: none; }
+  .invite-dot { transition: none; }
+}

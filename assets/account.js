@@ -83,7 +83,14 @@
     classSync: classSync,
     setClassSync: function (on) { TT.settings.syncClasses = !!on; TT.saveSettings(); changed('tt:classes'); emit(); }
   };
-  function realPlan() { return !enabled ? 'open' : user || meta.userId ? (meta.plan || 'free') : 'guest'; }
+  // Free days of Plus from invite codes (profiles.plus_until, see assets/invite.js) count as Plus while they last.
+  // paidPlan() is the plan saved in the account without them: Stripe and the owner set that one.
+  function paidPlan() { return !enabled ? 'open' : user || meta.userId ? (meta.plan || 'free') : 'guest'; }
+  function freePlus() { return paidPlan() === 'free' && !!meta.plusUntil && meta.plusUntil > Date.now(); }
+  function realPlan() { return freePlus() ? 'premium' : paidPlan(); }
+  TT.account.paidPlan = paidPlan;
+  TT.account.freePlus = freePlus;
+  TT.account.plusUntil = function () { return meta.plusUntil || 0; };
   TT.limit = function (name) { return PLANS[TT.account.plan()][name]; };
   // For trimming saved things: always the real plan, so previewing Free never deletes the owner's work.
   TT.storeLimit = function (name) { return PLANS[realPlan()][name]; };
@@ -256,10 +263,13 @@
 
   function loadPlan() {
     if (!sb || !user) return;
-    sb.from('profiles').select('plan').eq('id', user.id).maybeSingle().then(function (res) {
+    // plus_until comes from invites.sql. Until that has been run, ask for the plan alone.
+    function ask(cols) { return sb.from('profiles').select(cols).eq('id', user.id).maybeSingle(); }
+    ask('plan, plus_until').then(function (res) { return res.error ? ask('plan') : res; }).then(function (res) {
       if (res.error || !res.data) return;
-      if (meta.plan !== res.data.plan) {
-        meta.plan = res.data.plan;
+      var until = res.data.plus_until ? Date.parse(res.data.plus_until) || 0 : 0;
+      if (meta.plan !== res.data.plan || (meta.plusUntil || 0) !== until) {
+        meta.plan = res.data.plan; meta.plusUntil = until;
         if (res.data.plan !== 'free' && paying()) { try { sessionStorage.removeItem('tt-paid'); } catch (e) {} TT.account.justPaid = true; }
         saveMeta(); emit();
       }
@@ -269,6 +279,9 @@
   function paying() {
     try { var t = +sessionStorage.getItem('tt-paid'); return !!t && Date.now() - t < 3 * 60 * 1000; } catch (e) { return false; }
   }
+  TT.account.refreshPlan = function () { loadPlan(); };
+  // assets/invite.js says when the Invite Friends box has something new to show.
+  window.addEventListener('tt:invite', function () { emit(); });
   TT.account.paying = function () { return paying() && TT.account.plan() === 'free'; };
   var paidTimer = null;
   function watchPaid() {
@@ -459,6 +472,7 @@
     }
     function googleBtn() {
       var g = h('button', { type: 'button', class: 'btn big google-btn', onclick: function () {
+        if (TT.invite) TT.invite.keepTyped();
         TT.account.google().then(function (r) { if (r && r.error) { msgText = 'Google sign-in isn’t ready yet. Use your email for now.'; paint(); } });
       } });
       g.innerHTML = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span>Continue with Google</span>';
@@ -522,14 +536,18 @@
       }
       card.append(h('h2', { text: signup ? 'Create Your Free Account' : 'Welcome Back' }),
         h('p', { class: 'muted', text: signup ? 'Save your boards, lists, questions and settings, and use them on any computer.' : 'Log in to get your boards, lists and settings on this computer.' }));
+      if (signup && TT.invite && TT.invite.code()) card.append(TT.invite.banner());
       if (CFG.google) card.append(googleBtn(), h('div', { class: 'acct-or' }, h('span', { text: 'OR' })));
       var nameIn = signup ? field('text', 'acctName', 'First name', 'given-name') : null;
       if (nameIn) nameIn.value = fName;
       var emailIn = field('email', 'acctEmail', 'Email', 'email'); emailIn.value = email;
       var pw = pwField('acctPassword', signup ? 'Password (8+ characters)' : 'Password', signup ? 'new-password' : 'current-password');
       pw.input.value = fPass;
+      // Invite code from a friend's link (?invite=CODE), or typed in. Saved before signing up, used right after.
+      var inviteIn = signup && TT.invite ? TT.invite.field() : null;
       var form = h('form', { class: 'acct-stack', novalidate: true, onsubmit: function (e) {
         e.preventDefault();
+        if (inviteIn) TT.invite.keepTyped();
         email = emailIn.value.trim();
         var pass = pw.input.value, name = nameIn ? nameIn.value.trim() : '';
         fPass = pass; if (nameIn) fName = name;
@@ -546,7 +564,7 @@
         } else {
           run(TT.account.logIn(email, pass), function () { fPass = ''; });
         }
-      } }, nameIn, emailIn, pw.wrap, submitBtn(signup ? 'Create Account' : 'Log In', signup ? 'Creating…' : 'Logging In…'));
+      } }, nameIn, emailIn, pw.wrap, inviteIn, submitBtn(signup ? 'Create Account' : 'Log In', signup ? 'Creating…' : 'Logging In…'));
       card.append(form);
       if (nameIn && !busy) setTimeout(function () { if (!nameIn.value && document.activeElement === document.body) nameIn.focus(); }, 0);
       var m = msg(); if (m) card.append(m);
@@ -644,11 +662,13 @@
           h('div', null, h('h2', { text: TT.account.firstName() ? 'Hi, ' + TT.account.firstName() + '!' : TT.account.email() }),
             TT.account.firstName() ? h('p', { class: 'muted acct-email', text: TT.account.email() }) : null,
             h('span', { class: 'plan-badge p-' + plan, text: label + ' Plan' }),
-            plan === 'free' && !TT.account.paying() ? h('button', { type: 'button', class: 'linkish plan-see', onclick: function () { tab = 'plans'; paint(); } }, 'See Plans') : null,
-            plan === 'premium' && CFG.manageLink ? h('a', { class: 'linkish plan-see', href: manageUrl(), target: '_blank', rel: 'noopener' }, 'Manage My Plan') : null)),
+            (plan === 'free' || freePlus()) && !TT.account.paying() ? h('button', { type: 'button', class: 'linkish plan-see', onclick: function () { tab = 'plans'; paint(); } }, 'See Plans') : null,
+            paidPlan() === 'premium' && CFG.manageLink ? h('a', { class: 'linkish plan-see', href: manageUrl(), target: '_blank', rel: 'noopener' }, 'Manage My Plan') : null)),
         TT.account.paying() ? h('p', { class: 'sync-status s-syncing', role: 'status', text: 'Thank you! Your Plus plan is turning on. This only takes a few seconds.' }) : null,
         TT.account.justPaid && plan !== 'free' ? h('p', { class: 'sync-status s-saved', role: 'status', text: 'Welcome to Plus! Everything is unlocked.' }) : null,
+        freePlus() && TT.account.viewAs() === '' ? h('p', { class: 'sync-status s-saved invite-plus-note', text: 'You have free Plus from invites until ' + new Date(meta.plusUntil).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) + '. Invite more friends below to add days.' }) : null,
         picking ? avatarPicker() : null,
+        TT.invite && TT.invite.card ? TT.invite.card() : null,
         realPlan() === 'owner' ? h('div', { class: 'acct-owner' },
           h('div', null, h('h3', { text: 'Owner Dashboard' }),
             h('p', { class: 'muted', text: meta.viewAs ? 'You are previewing the site as ' + TT.planName(meta.viewAs) + '. Your account is still the owner account.' : 'Traffic, members, income and the plan preview switch.' })),
@@ -673,7 +693,7 @@
             h('p', { class: 'muted', text: 'Remove your account and everything saved in it.' })),
           h('button', { type: 'button', class: 'btn small del-open', onclick: function () { delOpen = true; delText = ''; delMsg = ''; paint(); var f = document.getElementById('delConfirm'); if (f) f.focus(); } }, 'Delete My Account'));
       }
-      if (realPlan() === 'premium') {
+      if (paidPlan() === 'premium') {
         return h('div', { class: 'acct-delete open', role: 'region', 'aria-label': 'Delete My Account' },
           h('h3', { text: 'Cancel Plus First' }),
           h('p', null, 'Your Plus plan is still active. Cancel it in Manage My Plan first so you are not charged again. When your Plus time runs out you can delete your account here, or email ', mail, ' and we will delete it right away.'),
@@ -724,7 +744,7 @@
       }
       function paidCta(monthly, yearlyLink, label) {
         if (plan === 'owner') return cta('Included With Your Account', '', { disabled: true });
-        if (plan === 'premium') return CFG.manageLink ? cta('Manage My Plan', '', { href: manageUrl(), blank: true }) : cta('Your Plan', '', { disabled: true });
+        if (plan === 'premium' && !freePlus()) return CFG.manageLink ? cta('Manage My Plan', '', { href: manageUrl(), blank: true }) : cta('Your Plan', '', { disabled: true });
         if (!user) return cta(label, 'primary', { onclick: needAccount });
         var linkUrl = yearly ? yearlyLink : monthly;
         return linkUrl ? cta(label, 'primary', { href: payLink(linkUrl) }) : cta('Coming Soon', '', { disabled: true });
@@ -791,7 +811,7 @@
     function sig() {
       var av = ''; try { av = localStorage.getItem('tt:avatar') || ''; } catch (e) {}
       return [known, user && user.id, user && user.email, TT.account.firstName(), TT.account.plan(), TT.account.realPlan(), TT.account.viewAs(), status,
-        TT.account.loading(), paying(), !!TT.account.justPaid, classSync(), av, resetting(), tab, mode].join('|');
+        TT.account.loading(), paying(), !!TT.account.justPaid, classSync(), av, resetting(), tab, mode, meta.plusUntil || 0, TT.invite ? TT.invite.sig() : ''].join('|');
     }
     function paint() {
       lastSig = sig();
