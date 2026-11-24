@@ -27,7 +27,14 @@
 .pick-stage.reveal .rw-reel, .pick-stage.reveal .pr-reel { animation: none; }
 .rw-stage.reveal .rw-reel { color: var(--rose); }
 .rw-edit { border-top: 1px solid var(--line); padding-top: var(--s3, 12px); }
-.rw-edit summary { cursor: pointer; font-weight: 700; }
+.rw-edit summary { cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 10px; padding: 10px 18px 10px 10px; border-radius: 999px; font-family: var(--display); font-weight: 700; font-size: 17px; color: var(--ink);
+  background: color-mix(in srgb, var(--violet) 14%, var(--surface)); border: 2px solid color-mix(in srgb, var(--violet) 45%, var(--line)); box-shadow: 0 4px 0 color-mix(in srgb, var(--violet) 30%, var(--surface)); transition: transform .45s var(--spring), border-color .15s ease; }
+.rw-edit summary::-webkit-details-marker { display: none; }
+.rw-edit summary:hover { transform: translateY(-2px); border-color: var(--violet); }
+.rw-edit summary:active { transform: translateY(3px); box-shadow: none; }
+.rw-edit-ico { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--violet); color: #fff; flex: none; }
+.rw-edit-ico svg { width: 18px; height: 18px; display: block; }
+.rw-edit[open] summary { margin-bottom: var(--s2, 8px); }
 .rw-edit p { margin: 8px 0; font-size: 14px; }
 
 /* ----- Fact Fluency ----- */

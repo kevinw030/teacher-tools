@@ -140,3 +140,16 @@ body.pm-free a.tool[href="/trivia"]::after, body.pm-owner a.tool[href="/trivia"]
   content: "Plus"; position: absolute; top: 16px; right: 16px; font-family: var(--body); font-size: 12px; font-weight: 800; line-height: 1; color: #fff; padding: 5px 10px; border-radius: 999px; background: var(--pm-grad); white-space: nowrap;
 }
 body.pm-free a.tool[href="/trivia"] .tool-icon { filter: saturate(.6); }
+
+/* Sign-up: Who Is Making This Account? */
+.who-opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 8px 0 4px; }
+.who-opt { appearance: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 20px 12px; border-radius: 22px; text-align: center; color: var(--ink); font: inherit;
+  background: color-mix(in srgb, var(--c) 10%, var(--surface)); border: 2px solid color-mix(in srgb, var(--c) 32%, var(--line)); box-shadow: 0 5px 0 color-mix(in srgb, var(--c) 28%, var(--surface)); transition: transform .45s var(--spring), border-color .15s ease; }
+.who-opt:hover { transform: translateY(-3px); border-color: var(--c); }
+.who-opt:active { transform: translateY(3px); box-shadow: none; }
+.who-ico { width: 56px; height: 56px; border-radius: 18px; display: grid; place-items: center; background: var(--c); color: #fff; margin-bottom: 4px; }
+.who-ico svg { width: 30px; height: 30px; }
+.who-opt b { font-family: var(--display); font-size: 19px; line-height: 1.15; }
+.who-opt small { font-size: 14px; color: var(--muted); font-weight: 600; }
+.who-join { align-self: stretch; justify-content: center; margin-top: 8px; }
+@media (max-width: 420px) { .who-opts { grid-template-columns: 1fr; } }

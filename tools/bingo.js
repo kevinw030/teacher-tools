@@ -633,6 +633,13 @@
       loadQR().then(function () {
         try { var q = window.qrcode(0, 'M'); q.addData(url); q.make(); qr.innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true }); } catch (e) {}
       }, function () {});
+      // A link to post in Google Classroom, so students click instead of typing the address.
+      var copyBtn = h('button', { type: 'button', class: 'bgo-copy', title: 'Post this link in Google Classroom so students can click it', onclick: function () {
+        function done(ok) { copyBtn.lastChild.textContent = ok ? 'Copied! Paste It for Your Class' : url; copyBtn.classList.toggle('ok', ok); if (ok) setTimeout(function () { copyBtn.lastChild.textContent = 'Copy Join Link'; copyBtn.classList.remove('ok'); }, 2600); }
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(function () { done(true); }, function () { done(false); });
+        else done(false);
+        if (TT.track) TT.track('bingo-copy-link');
+      } }, h('span', { html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.700 0l3-3a4 4 0 0 0-5.700-5.700l-1 1"/><path d="M14 10a4 4 0 0 0-5.700 0l-3 3a4 4 0 0 0 5.700 5.700l1-1"/></svg>' }), h('span', { text: 'Copy Join Link' }));
       var card = h('section', { class: 'bgo-join' + (!big && game.called.length && !game.bigCode ? ' compact' : '') },
         // Three big numbered steps a first grader can follow from across the room.
         h('ol', { class: 'bgo-join-text bgo-steps' },
@@ -646,7 +653,7 @@
           h('li', { class: 'bgo-st bgo-st-3' }, h('span', { class: 'bgo-st-n', 'aria-hidden': 'true', text: '3' }),
             h('span', { class: 'bgo-st-body' }, h('span', { class: 'bgo-join-step', text: 'Then' }),
               h('span', { class: 'bgo-st-go', text: 'Press the big pink Join button!' })))),
-        h('div', { class: 'bgo-qr-box' }, qr, h('span', { class: 'bgo-qr-t', text: 'Or scan with a camera' })));
+        h('div', { class: 'bgo-qr-box' }, qr, h('div', { class: 'bgo-qr-side' }, h('span', { class: 'bgo-qr-t', text: 'Or scan with a camera' }), copyBtn)));
       var size = TT.button(card.classList.contains('compact') ? 'Show the Code Big' : 'Make the Code Smaller', { kind: 'small bgo-join-size', icon: card.classList.contains('compact') ? 'expand' : 'shrink', onclick: function () {
         game.bigCode = card.classList.contains('compact'); persist(); paintGame();
       } });

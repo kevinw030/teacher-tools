@@ -441,6 +441,8 @@
       var u = CFG.manageLink;
       return u && user && user.email ? u + (u.indexOf('?') < 0 ? '?' : '&') + 'prefilled_email=' + encodeURIComponent(user.email) : u;
     }
+    var who = '';
+    function isAdult() { if (who === 'adult') return true; try { return localStorage.getItem('tt-adult') === '1'; } catch (e) { return false; } }
     function go(m) { mode = m; msgText = ''; fPass = ''; paint(); }
     function link(text, m) { return h('button', { type: 'button', class: 'linkish', onclick: function () { go(m); } }, text); }
     function field(type, id, ph, auto) {
@@ -494,6 +496,29 @@
         return card;
       }
       var signup = mode === 'signup';
+      // Students kept making accounts (Kevin, 2026-11-24), so sign-up starts with one question.
+      // "A Student" goes to the class code page and no account is made. Adults are only asked once per computer.
+      if (signup && !isAdult()) {
+        if (who === 'student') {
+          card.classList.add('who-card');
+          card.append(h('h2', { text: 'Students Don’t Need an Account' }),
+            h('p', { class: 'muted', text: 'You join with the class code on your teacher’s screen. No email or password.' }),
+            h('a', { class: 'btn primary big who-join', href: '/join', onclick: function () { if (TT.track) TT.track('signup-who', 'student-join'); } }, h('span', { text: 'Join With a Class Code' })),
+            h('p', { class: 'acct-switch' }, h('button', { type: 'button', class: 'linkish', onclick: function () { who = ''; paint(); } }, 'Go Back')));
+          return card;
+        }
+        card.classList.add('who-card');
+        card.append(h('h2', { text: 'Who Is Making This Account?' }), h('p', { class: 'muted', text: 'Accounts are for teachers, parents and other grown-ups.' }),
+          h('div', { class: 'who-opts' },
+            h('button', { type: 'button', class: 'who-opt c-violet', onclick: function () { who = 'adult'; try { localStorage.setItem('tt-adult', '1'); } catch (e) {} if (TT.track) TT.track('signup-who', 'adult'); paint(); } },
+              h('span', { class: 'who-ico', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H4z"/><path d="M9 20h6M12 16v4M8 9h8M8 12h5"/></svg>' }),
+              h('b', { text: 'A Teacher or Parent' }), h('small', { text: 'Make a free account' })),
+            h('button', { type: 'button', class: 'who-opt c-rose', onclick: function () { who = 'student'; if (TT.track) TT.track('signup-who', 'student'); paint(); } },
+              h('span', { class: 'who-ico', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path d="M9 4.500V3h6v1.500M9 13h6v3H9z"/></svg>' }),
+              h('b', { text: 'A Student' }), h('small', { text: 'Join your class with a code' }))),
+          h('p', { class: 'acct-switch' }, 'Already have an account? ', link('Log In', 'login')));
+        return card;
+      }
       card.append(h('h2', { text: signup ? 'Create Your Free Account' : 'Welcome Back' }),
         h('p', { class: 'muted', text: signup ? 'Save your boards, lists, questions and settings, and use them on any computer.' : 'Log in to get your boards, lists and settings on this computer.' }));
       if (CFG.google) card.append(googleBtn(), h('div', { class: 'acct-or' }, h('span', { text: 'OR' })));

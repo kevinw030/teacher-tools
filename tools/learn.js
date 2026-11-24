@@ -55,7 +55,7 @@
       r.list = list; Object.keys(r.votes).forEach(function (k) { if (list.indexOf(k) < 0) delete r.votes[k]; });
       save(); box.textContent = ''; TT.rewardsTab(box, state, save, toJar);
     });
-    var editBox = h('details', { class: 'rw-edit' }, h('summary', { text: 'Change the Reward Choices' }),
+    var editBox = h('details', { class: 'rw-edit' }, h('summary', null, h('span', { class: 'rw-edit-ico', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>' }), h('span', { text: 'Change the Reward Choices' })),
       h('p', { class: 'muted', text: 'One reward on each line, up to 8. Click outside the box when you finish.' }), edit);
 
     function vote() {
