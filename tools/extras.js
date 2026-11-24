@@ -33,22 +33,40 @@
       sel.addEventListener('change', function () { s.season = sel.value; TT.saveSettings(); if (TT.applySeason) TT.applySeason(); if (TT.paintWelcome) TT.paintWelcome(); });
       return sel;
     }
-    function row(title, desc, control) {
-      return h('div', { class: 'set-row' }, h('div', null, h('h3', { text: title }), h('p', { class: 'muted', text: desc })), h('div', { class: 'set-control' }, control));
+    var ICO = {
+      user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>',
+      class: '<path d="M3 9l9-5 9 5-9 5z"/><path d="M7 11.5V16c0 1.4 2.2 3 5 3s5-1.6 5-3v-4.5"/>',
+      clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+      theme: '<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/>',
+      season: '<path d="M12 2v20M4.2 6.5l15.6 11M19.8 6.5l-15.6 11"/><path d="M9.5 3.5 12 6l2.5-2.5M9.5 20.5 12 18l2.5 2.5"/>',
+      sound: '<path d="M4 9.5v5h4l5 4.5V5L8 9.5z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>',
+      pencil: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/>',
+      save: '<path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M4 19h16"/>'
+    };
+    function row(title, desc, control, icon, color) {
+      return h('div', { class: 'set-row' },
+        h('span', { class: 'set-ico c-' + color, 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ICO[icon] + '</svg>' }),
+        h('div', { class: 'set-text' }, h('h3', { text: title }), h('p', { class: 'muted', text: desc })), h('div', { class: 'set-control' }, control));
+    }
+    function group(title, rows) {
+      return h('section', { class: 'set-group' }, h('h2', { class: 'set-group-h', text: title }), h('div', { class: 'set-card' }, rows));
     }
     var acct = TT.account && TT.account.enabled && !(opts && opts.inAccount)
       ? row('My Account', TT.account.signedIn() ? 'Signed in as ' + TT.account.email() + '. Everything saves to your account.' : 'Sign in to save everything to your account and use it on any computer.',
-          h('a', { class: 'btn', href: '/account' }, TT.account.signedIn() ? 'Open My Account' : 'Sign In'))
+          h('a', { class: 'btn', href: '/account' }, TT.account.signedIn() ? 'Open My Account' : 'Sign In'), 'user', 'cobalt')
       : null;
-    el.append(h('div', { class: 'settings' },
-      acct,
-      row('Class Name', 'Shown on the Morning Meeting screen, like “Good morning, Room 12!”', classInput),
-      row('Time Zone', 'Sets the greeting and the view out of the classroom window on the home page.', zonePick()),
-      row('Theme', 'Light, dark, or match this computer.', seg([['auto', 'Match Computer'], ['light', 'Light'], ['dark', 'Dark']], 'theme', TT.applyTheme)),
-      row('Seasonal Theme', 'Holiday touches on the home page, board backgrounds and games.', seasonPick()),
-      row('Sounds', 'Chimes, ticks and spinner sounds.', seg([[true, 'On'], [false, 'Off']], 'sound', function () { if (s.sound) TT.chime(); })),
-      row('My Questions', 'Write your own Would You Rather questions, trivia and escape rooms.', TT.button('Open My Questions', { icon: 'edit', onclick: function () { TT.custom.open('wyr'); } })),
-      row('Backup', 'Save everything to a file, or load it on another computer.', TT.backupControls())));
+    el.append(h('div', { class: 'settings set2' },
+      group('My Class', [
+        acct,
+        row('Class Name', 'Shown on the Morning Meeting screen, like “Good Morning, Room 12!”', classInput, 'class', 'coral'),
+        row('Time Zone', 'Sets the greeting and the view out of the classroom window on the home page.', zonePick(), 'clock', 'sky')]),
+      group('Look and Sound', [
+        row('Theme', 'Light, dark, or match this computer.', seg([['auto', 'Match Computer'], ['light', 'Light'], ['dark', 'Dark']], 'theme', TT.applyTheme), 'theme', 'violet'),
+        row('Seasonal Theme', 'Holiday touches on the home page, board backgrounds and games.', seasonPick(), 'season', 'emerald'),
+        row('Sounds', 'Chimes, ticks and spinner sounds.', seg([[true, 'On'], [false, 'Off']], 'sound', function () { if (s.sound) TT.chime(); }), 'sound', 'amber')]),
+      group('My Things', [
+        row('My Questions', 'Write your own Would You Rather questions, trivia and escape rooms.', TT.button('Open My Questions', { icon: 'edit', onclick: function () { TT.custom.open('wyr'); } }), 'pencil', 'rose'),
+        row('Backup', 'Save everything to a file, or load it on another computer.', TT.backupControls(), 'save', 'cobalt')])));
   };
 
   // ---------- Morning Meeting ----------

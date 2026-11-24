@@ -12,16 +12,21 @@
     open: function (tab) { TT.customTab = tab; TT.go('my-questions'); }
   };
 
-  var TABS = [['wyr', 'Would You Rather'], ['trivia', 'Trivia'], ['rooms', 'Escape Rooms']];
+  var TABS = [['wyr', 'Would You Rather', 'coral', '<path d="M8 4 3 9l5 5"/><path d="M3 9h10a4 4 0 0 1 4 4v7"/><path d="m16 4 5 5-5 5" opacity=".55"/>'],
+    ['trivia', 'Trivia', 'violet', '<path d="M9 9a3 3 0 1 1 4.5 2.6c-.9.5-1.5 1.2-1.5 2.4"/><circle cx="12" cy="18" r=".6" fill="currentColor"/><circle cx="12" cy="12" r="9.5"/>'],
+    ['rooms', 'Escape Rooms', 'emerald', '<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/><path d="M12 14.5v2.5"/>']];
   var TRIVIA_CATS = ['Science', 'Math', 'Geography', 'Animals', 'Words', 'History'];
 
   TT.mountCustom = function (el) {
     var data = TT.custom.get(), tab = 'wyr', editing = null;
-    var tabs = h('div', { class: 'segmented', role: 'group', 'aria-label': 'Kind of question' }, TABS.map(function (t) {
-      return h('button', { type: 'button', class: 'seg', 'data-t': t[0], onclick: function () { tab = t[0]; editing = null; paint(); } }, t[1]);
+    var tabs = h('div', { class: 'cq-tabs', role: 'group', 'aria-label': 'Kind of question' }, TABS.map(function (t) {
+      return h('button', { type: 'button', class: 'seg cq-tab c-' + t[2], 'data-t': t[0], onclick: function () { tab = t[0]; editing = null; paint(); } },
+        h('span', { class: 'cq-tab-ico', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + t[3] + '</svg>' }),
+        h('span', { class: 'cq-tab-text' }, h('b', { text: t[1] }), h('small', { 'data-n': t[0] })));
     }));
     var box = h('div', { class: 'cq-body' });
-    el.append(h('div', { class: 'cq' }, tabs, box));
+    var root = h('div', { class: 'cq cq2' }, tabs, box);
+    el.append(root);
     function save() { TT.save('custom', data); if (TT.wyr && TT.wyr.reload) TT.wyr.reload(); }
     function field(label, input) { return h('label', { class: 'cq-field' }, h('span', { text: label }), input); }
     function input(id, ph, max) { return h('input', { type: 'text', id: id, placeholder: ph, maxlength: max || 120, autocomplete: 'off' }); }
@@ -48,14 +53,15 @@
         data.wyr.push([x, y]); save(); a.value = ''; b.value = ''; paint();
         document.getElementById('cqA').focus();
       } },
-        h('div', { class: 'cq-wyr' }, field('Would You Rather…', a), h('span', { class: 'cq-or', text: 'or' }), field('The Other Choice', b)),
+        h('div', { class: 'cq-wyr' }, field('Would You Rather…', a), h('span', { class: 'cq-or', text: 'OR' }), field('The Other Choice', b)),
         h('div', { class: 'row' }, TT.button('Add Question', { icon: 'plus', kind: 'primary' })), m);
       form.querySelector('button').type = 'submit';
       var list = h('div', { class: 'cq-list' });
       if (!data.wyr.length) list.append(empty('No questions of your own yet. Add one above and it joins the daily mix.'));
       data.wyr.forEach(function (q, i) {
         list.append(h('div', { class: 'cq-item' },
-          h('div', { class: 'cq-text' }, h('b', { text: 'Would you rather ' + q[0] + ' or ' + q[1] + '?' })),
+          h('span', { class: 'cq-num', 'aria-hidden': 'true', text: String(i + 1) }),
+          h('div', { class: 'cq-text cq-pair' }, h('span', { class: 'cq-a', text: q[0] }), h('i', { text: 'or' }), h('span', { class: 'cq-b', text: q[1] })),
           TT.button('Use Today', { kind: 'small', onclick: function (e) { TT.wyr.use(q); e.currentTarget.querySelector('span').textContent = 'Showing Today'; } }),
           removeBtn('Remove this question', function () { data.wyr.splice(i, 1); save(); paint(); })));
       });
@@ -158,6 +164,8 @@
 
     function paint() {
       tabs.querySelectorAll('.seg').forEach(function (b) { var on = b.getAttribute('data-t') === tab; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+      tabs.querySelectorAll('[data-n]').forEach(function (n) { var c = data[n.getAttribute('data-n')].length; n.textContent = c ? c + ' of My Own' : 'None Yet'; });
+      root.setAttribute('data-tab', tab);
       box.textContent = '';
       ({ wyr: wyr, trivia: trivia, rooms: rooms })[tab]();
     }
