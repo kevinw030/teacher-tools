@@ -4,7 +4,7 @@
 //   TT.chime()              a warm three-note bell (timers, picks, reveals)
 //   TT.tick()               a soft pop (taps, counts)
 //   TT.celebrate(el)       a win: fanfare, Kevin's paper confetti inside el, and the mascot popping up to cheer
-//   TT.fx.sound(name)       'win' | 'good' | 'bad' | 'pop' | 'tap' | 'whoosh' | 'coin' | 'chime'
+//   TT.fx.sound(name)       'win' | 'good' | 'bad' | 'pop' | 'tap' | 'whoosh' | 'coin' | 'chime' | 'dice'
 //   TT.fx.win(el)           the same as TT.celebrate, for wins that had no celebration before
 // Everything follows Settings > Sounds and the "reduce motion" setting. Styles in assets/polish.css.
 (function () {
@@ -50,6 +50,19 @@
     g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + len * 0.3); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
     src.connect(f).connect(g).connect(out); src.start(t);
   }
+  // One clack: a tiny burst of filtered noise with a short knock under it, like plastic on a table.
+  function clack(at, vol) {
+    var t = ctx.currentTime + at, n = Math.floor(ctx.sampleRate * 0.05), buf = ctx.createBuffer(1, n, ctx.sampleRate), d = buf.getChannelData(0);
+    for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 6);
+    var src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    src.buffer = buf; f.type = 'bandpass'; f.frequency.value = 2200 + Math.random() * 1400; f.Q.value = 2.5;
+    g.gain.value = vol * 2.2;
+    src.connect(f).connect(g).connect(out); src.start(t);
+    var o = ctx.createOscillator(), og = ctx.createGain();
+    o.type = 'triangle'; o.frequency.setValueAtTime(900 + Math.random() * 500, t); o.frequency.exponentialRampToValueAtTime(380, t + 0.04);
+    og.gain.setValueAtTime(vol * 0.5, t); og.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+    o.connect(og).connect(out); o.start(t); o.stop(t + 0.07);
+  }
   var SOUNDS = {
     chime: function () { [659.25, 830.61, 987.77].forEach(function (f, i) { note(f, i * 0.2, 1.3, 0.2); }); },
     tap: function () { note(880, 0, 0.07, 0.07, 'triangle'); },
@@ -58,6 +71,11 @@
     bad: function () { note(311.13, 0, 0.3, 0.13, 'triangle'); note(233.08, 0.14, 0.5, 0.13, 'triangle'); },
     coin: function () { note(987.77, 0, 0.12, 0.12, 'triangle'); note(1318.5, 0.07, 0.5, 0.12, 'triangle'); },
     whoosh: function () { sweep(400, 2600, 0.32, 0.12); },
+    // Dice: a quick rattle as they leave the hand, then a clack on each bounce (timed to tools/dice.js).
+    dice: function () {
+      for (var i = 0; i < 6; i++) clack(i * 0.035 + Math.random() * 0.02, 0.05 + Math.random() * 0.03);
+      clack(0.66, 0.16); clack(0.69, 0.08); clack(0.94, 0.09); clack(1.02, 0.04);
+    },
     // The win fanfare: a rising run, a held chord, and a sparkle on top.
     win: function () {
       [523.25, 659.25, 783.99, 1046.5].forEach(function (f, i) { note(f, i * 0.1, 0.5, 0.16, 'triangle'); });

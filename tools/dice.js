@@ -1,6 +1,7 @@
 // A real 3D die for the race board games (tools/trail.js). TT.dice() returns
 // { el, show(v), roll(v, done) }: roll() hops the die up, tumbles it and lands it on v with a
 // springy bounce and squash, then calls done. Reduced motion: a short fade to the new face.
+// TT.dice({ quiet: true }) skips the built-in clatter ticks, for callers that play their own roll sound.
 (function () {
   var h = TT.h;
   var PIPS = { 1: [4], 2: [2, 6], 3: [2, 4, 6], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
@@ -10,7 +11,8 @@
   var calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function tf(a) { return 'rotateX(' + a[0] + 'deg) rotateY(' + a[1] + 'deg) rotateZ(' + a[2] + 'deg)'; }
 
-  TT.dice = function () {
+  TT.dice = function (opts) {
+    var quiet = !!(opts && opts.quiet);
     var cube = h('span', { class: 'tr-dice-cube' });
     [1, 2, 3, 4, 5, 6].forEach(function (v) {
       var f = h('span', { class: 'tr-dice-face f' + v });
@@ -42,7 +44,7 @@
       if (calm || !cube.animate) {
         cube.style.transform = tf(to);
         if (cube.animate) cube.animate([{ opacity: 0.2 }, { opacity: 1 }], { duration: 220 });
-        if (TT.tick) TT.tick();
+        if (TT.tick && !quiet) TT.tick();
         setTimeout(finish, 240);
         return;
       }
@@ -73,7 +75,7 @@
         { transform: 'scale(1)', opacity: 1 }
       ], { duration: D });
       // Clatter: a tick as it leaves the table and on each bounce.
-      if (TT.tick) [0, 0.64, 0.9].forEach(function (o) { setTimeout(TT.tick, o * D); });
+      if (TT.tick && !quiet) [0, 0.64, 0.9].forEach(function (o) { setTimeout(TT.tick, o * D); });
       setTimeout(finish, D);
     }
     show(1);
