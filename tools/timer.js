@@ -60,6 +60,7 @@
       root.classList.toggle('warning', running && remaining <= 10 && remaining > 0);
       if (!editing) status.textContent = done ? 'Time’s up!' : running ? 'Counting Down' : (remaining < total ? 'Paused' : 'Ready');
       startBtn.innerHTML = TT.icon(running ? 'pause' : 'play') + '<span>' + (running ? 'Pause' : (remaining < total && !done ? 'Resume' : 'Start')) + '</span>';
+      if (opts.onPaint) opts.onPaint({ remaining: Math.max(0, remaining), total: total, running: running, done: done }); // tools/timer2.js draws the fun looks from this
     }
     function loop() {
       remaining = (endAt - Date.now()) / 1000;

@@ -333,3 +333,50 @@
 .pr2-tug i { display: block; height: 100%; width: 50%; background: #2F6BFF; border-right: 3px solid var(--ink); transition: width .6s var(--spring, ease); }
 .pr2-clear { font-size: 14px; color: var(--ink); }
 @media (max-width: 720px) { .pr2-sides { grid-template-columns: 1fr; } .pr2-or { margin: -14px auto; } .pr2-side { min-height: 130px; } .ar-prompt[data-kind="talk"] .pr2-card::after { display: none; } }
+
+/* ---------- Timer (tools/timer2.js) ---------- */
+#view-timer > .panel { padding: clamp(10px, 1.2vw, 16px); }
+.ar-timer { background: linear-gradient(170deg, #B9F2D0 0%, #A8E4F5 55%, #C9CCFF 100%); }
+.tm2 { width: 100%; display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: clamp(12px, 2vw, 28px); align-items: center; }
+.tm2[data-look="ring"] { grid-template-columns: 1fr; }
+.tm2-scene { display: none; position: relative; height: clamp(240px, 48vh, 420px); border: 3px solid var(--ink); border-radius: 28px; box-shadow: 0 8px 0 var(--ink); overflow: hidden; }
+.tm2[data-look="rocket"] .tm2-sky, .tm2[data-look="jar"] .tm2-jarbox { display: block; }
+.tm2-timer { background: #fff; border: 3px solid var(--ink); border-radius: 28px; box-shadow: 0 8px 0 var(--ink); padding: clamp(14px, 2vw, 24px); color: #1B1740; --ink: #1B1740; --muted: #5B5780; --surface: #fff; --surface-2: #EEF0FA; --line: #D8DAEC; }
+.tm2-timer .timer { gap: clamp(12px, 1.8vw, 20px); }
+.tm2-timer .timer-ring { width: min(380px, 44vh, 64vw); }
+.tm2:not([data-look="ring"]) .tm2-timer .timer-ring { width: min(250px, 30vh, 60vw); }
+.tm2:not([data-look="ring"]) .tm2-timer .timer-dial { gap: 8px; }
+.tm2-timer .ring-fg { stroke-width: 10; }
+.tm2-timer .btn { --btn-ink: #1B1740; }
+.tm2-timer .btn:not(.primary) { background: #fff; color: #1B1740; border-color: #D8DAEC; }
+.tm2-timer .btn.primary { background: #1B1740; color: #fff; }
+.tm2-timer .preset { background: #EEF0FA; color: #1B1740; border-color: transparent; }
+/* Rocket to the moon */
+.tm2-sky { background: linear-gradient(200deg, #0B1033 0%, #1D2470 55%, #4A3FA8 100%); }
+.tm2-sky i { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #fff; animation: tm2-twinkle 2.4s ease-in-out infinite alternate; }
+.tm2-sky .s1 { left: 12%; top: 16%; } .tm2-sky .s2 { left: 34%; top: 9%; width: 4px; height: 4px; animation-delay: -.6s; } .tm2-sky .s3 { left: 55%; top: 26%; animation-delay: -1.2s; }
+.tm2-sky .s4 { left: 24%; top: 44%; width: 4px; height: 4px; animation-delay: -1.7s; } .tm2-sky .s5 { left: 72%; top: 58%; animation-delay: -.3s; } .tm2-sky .s6 { left: 90%; top: 40%; width: 4px; height: 4px; animation-delay: -2s; }
+@keyframes tm2-twinkle { from { opacity: .25; transform: scale(.7); } to { opacity: 1; transform: scale(1.15); } }
+.tm2-earth { position: absolute; left: -9%; bottom: -24%; width: 40%; aspect-ratio: 1; border-radius: 50%; border: 3px solid #0B1033; background: radial-gradient(circle at 62% 30%, #7BE0A0 0 16%, transparent 17%), radial-gradient(circle at 34% 52%, #7BE0A0 0 22%, transparent 23%), #3D9BFF; }
+.tm2-moon { position: absolute; right: 5%; top: 7%; width: 21%; aspect-ratio: 1; border-radius: 50%; border: 3px solid #0B1033; background: radial-gradient(circle at 32% 34%, #D9D6C2 0 12%, transparent 13%), radial-gradient(circle at 64% 60%, #D9D6C2 0 16%, transparent 17%), radial-gradient(circle at 60% 24%, #D9D6C2 0 7%, transparent 8%), #FFF6D6; box-shadow: 0 0 40px rgba(255, 246, 214, .5); }
+.tm2-rocket { position: absolute; left: 9%; bottom: 10%; width: clamp(52px, 9vh, 84px); aspect-ratio: 1; margin: 0 0 -2% -3%; rotate: 58deg; transition: left .3s linear, bottom .3s linear, rotate .3s linear; z-index: 2; }
+.tm2-rocket svg { width: 100%; height: 100%; overflow: visible; }
+.tm2-flame { opacity: 0; transform-origin: 50% 72%; transform-box: fill-box; }
+.tm2.run .tm2-flame { opacity: 1; animation: tm2-flame .18s ease-in-out infinite alternate; }
+@keyframes tm2-flame { from { transform: scaleY(.7); } to { transform: scaleY(1.25); } }
+.tm2.run .tm2-rocket svg { animation: tm2-shake .12s linear infinite alternate; }
+@keyframes tm2-shake { from { translate: -1px 0; } to { translate: 1px 0; } }
+.tm2.done .tm2-moon { animation: ar-hop .6s var(--spring, ease) 3; }
+/* Juice jar */
+.tm2-jarbox { background: linear-gradient(180deg, #FFF3C4, #FFD9B0); display: none; }
+.tm2[data-look="jar"] .tm2-jarbox { display: grid; place-items: center; }
+.tm2-jar { position: relative; display: block; width: min(52%, 220px); height: 74%; margin-top: 6%; border: 4px solid var(--ink); border-radius: 18px 18px 34px 34px; background: rgba(255, 255, 255, .6); overflow: hidden; }
+.tm2-lid { position: absolute; top: 7%; left: 50%; translate: -50% 0; width: min(58%, 246px); height: 6%; border: 4px solid var(--ink); border-radius: 10px; background: #FF7A59; z-index: 1; }
+.tm2-juice { position: absolute; left: 0; right: 0; bottom: 0; height: 100%; background: linear-gradient(180deg, #FF9F43, #FF6B6B); transition: height .3s linear, background .4s ease; }
+.tm2-wave { position: absolute; left: -50%; top: -9px; width: 200%; height: 18px; border-radius: 45%; background: #FFB869; animation: tm2-wave 2.2s ease-in-out infinite alternate; }
+@keyframes tm2-wave { from { transform: translateX(-6%) rotate(-1.2deg); } to { transform: translateX(6%) rotate(1.2deg); } }
+.tm2-shine { position: absolute; left: 10%; top: 8%; width: 9%; height: 46%; border-radius: 99px; background: rgba(255, 255, 255, .55); }
+.tm2.low .tm2-juice { background: linear-gradient(180deg, #FF6B6B, #E11D48); }
+.tm2.done .tm2-jar { animation: arm-no .4s ease-in-out 2; }
+@media (max-width: 720px) { .tm2 { grid-template-columns: 1fr; } .tm2-scene { height: 200px; } }
+@media (prefers-reduced-motion: reduce) { .tm2-sky i, .tm2-wave, .tm2.run .tm2-flame, .tm2.run .tm2-rocket svg { animation: none !important; } }
