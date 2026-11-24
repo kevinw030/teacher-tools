@@ -369,7 +369,12 @@
       place(node, w);
       node.style.zIndex = ++z;
       canvas.append(node);
-      node.addEventListener('pointerdown', function () { node.style.zIndex = ++z; });
+      // The title bar, handles and turn button only show on the box that was clicked last (Kevin, 2026-11-24),
+      // so the board looks clean while it is just sitting on the screen.
+      function activate() { canvas.querySelectorAll('.widget.active').forEach(function (n) { if (n !== node) n.classList.remove('active'); }); node.classList.add('active'); }
+      node.addEventListener('pointerdown', function () { node.style.zIndex = ++z; activate(); });
+      node.addEventListener('focusin', activate);
+      if (fresh) activate();
 
       drag(head, function (dx, dy, start) {
         // the pointer moves in screen pixels, the widget is stored in layout measurements
@@ -422,6 +427,11 @@
       mounted[w.id] = (WIDGETS[w.type] || t.mount)(body, w, save) || {};
     }
 
+    // Clicking anywhere that is not a widget puts every title bar away again.
+    document.addEventListener('pointerdown', function (e) {
+      if (e.target.closest && e.target.closest('.widget, .look-pop, .look-panel')) return;
+      canvas.querySelectorAll('.widget.active').forEach(function (n) { n.classList.remove('active'); });
+    });
     function drag(handle, move, w, ignore) {
       handle.addEventListener('pointerdown', function (e) {
         if (w.locked || (ignore && ignore.contains(e.target))) return;
