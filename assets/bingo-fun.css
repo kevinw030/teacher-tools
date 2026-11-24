@@ -130,3 +130,16 @@
   .join-main.is-play > .join-card-box { grid-column: 2; grid-row: 2 / span 6; }
   .join-main.is-play .join-card-box .bc { width: max(300px, calc((100dvh - 120px) / 1.16)); max-width: none; }
 }
+
+/* Waiting room join box: the address and code are sized from the box itself (not the screen), so they
+   always fit inside it, however narrow the box is. */
+.lb-host .bgo-join { container-type: inline-size; }
+.lb-host .bgo-join .bgo-steps, .lb-host .bgo-join .bgo-st-body { min-width: 0; }
+.lb-host .bgo-join .bgo-st-body { flex: 1; }
+.lb-host .bgo-join .bgo-st-n { width: clamp(32px, 11cqw, 56px); font-size: clamp(18px, 6cqw, 30px); }
+.lb-host .bgo-join .bgo-steps .bgo-join-url { align-self: flex-start; max-width: 100%; padding: 6px clamp(8px, 2.6cqw, 16px); font-size: clamp(14px, calc(9.4cqw - 11px), 50px); }
+.lb-host .bgo-join .bgo-code { gap: clamp(3px, 1.2cqw, 10px); }
+.lb-host .bgo-join .bgo-code-ch { width: clamp(24px, calc(13.6cqw - 13px), 76px); font-size: clamp(18px, calc(10.4cqw - 10px), 58px); border-radius: clamp(8px, 2.6cqw, 16px); }
+.lb-host .bgo-join .bgo-code-ch:nth-child(3) { margin-right: clamp(4px, 2cqw, 18px); }
+.lb-host .bgo-join .bgo-st-go { font-size: clamp(17px, 5cqw, 30px); }
+.lb-host .bgo-join .bgo-qr { width: clamp(88px, 26cqw, 140px); }
