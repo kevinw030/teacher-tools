@@ -119,8 +119,11 @@
       try { back = sessionStorage.getItem(RETURN_KEY); sessionStorage.removeItem(RETURN_KEY); } catch (e) {}
       if (back && TT.pages && TT.pages[back] && TT.page() === 'account') { lastState = state; TT.go(back); return; }
     }
-    if (lastState !== null && state !== lastState) window.dispatchEvent(new Event('tt:page'));
+    // Remember the new state before re-opening the page: the page can save while it opens,
+    // which runs this again, and it must not re-open the page a second time (endless loop).
+    var was = lastState;
     lastState = state;
+    if (was !== null && state !== was) window.dispatchEvent(new Event('tt:page'));
   }
   if (TT.account && TT.account.onChange) TT.account.onChange(refresh);
   document.addEventListener('DOMContentLoaded', function () { lastState = signedIn(); paintHomeNote(); });
