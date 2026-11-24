@@ -80,11 +80,93 @@
       var temp = h('input', { type: 'text', id: 'mmTemp', class: 'mm2-temp', inputmode: 'numeric', maxlength: 4, placeholder: '?', 'aria-label': 'Temperature' });
       temp.addEventListener('input', function () { state.temp = { day: TT.today(), v: temp.value.replace(/[^0-9\-]/g, '') }; save(); });
       var pick = h('div', { class: 'mm2-wx-pick', role: 'group', 'aria-label': 'Today’s weather' }, WEATHER.map(function (w) {
-        return h('button', { type: 'button', class: 'mm2-wx', 'data-w': w[0], title: w[1], 'aria-label': w[1], onclick: function () { state.weather = { day: TT.today(), v: w[0] }; save(); paintWx(true); if (TT.tick) TT.tick(); } },
+        return h('button', { type: 'button', class: 'mm2-wx', 'data-w': w[0], title: w[1], 'aria-label': w[1], onclick: function () { state.weather = { day: TT.today(), v: w[0], manual: !!state.place }; save(); paintWx(true); paintCity(); if (TT.tick) TT.tick(); } },
           h('img', { src: '/assets/weather/' + w[0] + '.webp', alt: '', draggable: 'false' }));
       }));
+      var city = h('div', { class: 'mm2-city' }), cityOpen = false, cityMsg = '', busy = false;
       var t = shell('weather', 'Today’s Weather', 'sky', ICO.weather, h('div', { class: 'mm2-weather' }, big,
-        h('label', { class: 'mm2-temp-row', for: 'mmTemp' }, h('span', { class: 'mm2-temp-lab', text: 'Temperature' }), temp, h('b', { text: '°F' })), pick));
+        h('label', { class: 'mm2-temp-row', for: 'mmTemp' }, h('span', { class: 'mm2-temp-lab', text: 'Temperature' }), temp, h('b', { text: '°F' })), pick, city));
+
+      // ----- Local forecast (optional): the teacher types a city or ZIP code once. The place is looked up
+      // with api.zippopotam.us and the forecast comes from the U.S. National Weather Service (api.weather.gov).
+      // Only the city is sent. The teacher can still tap a picture to change today's weather by hand.
+      function getJSON(url) { return fetch(url, { headers: { Accept: 'application/geo+json, application/json' } }).then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); }); }
+      function kind(text) {
+        var s = (text || '').toLowerCase();
+        if (/thunder|t-storm|tstorm/.test(s)) return 'stormy';
+        if (/snow|sleet|flurr|ice|wintry|blizzard|freezing/.test(s)) return 'snowy';
+        if (/rain|shower|drizzle/.test(s)) return 'rainy';
+        if (/fog|haze|mist|smoke/.test(s)) return 'foggy';
+        if (/wind|breez|blustery/.test(s)) return 'windy';
+        if (/partly|mostly sunny|mostly clear/.test(s)) return 'partly';
+        if (/cloud|overcast/.test(s)) return 'cloudy';
+        return 'sunny';
+      }
+      function findPlace(q) {
+        q = q.trim();
+        var zip = /^\d{5}$/.exec(q), m = /^(.+?)[,\s]+([A-Za-z]{2})$/.exec(q);
+        if (!zip && !m) return Promise.reject(new Error('format'));
+        var url = zip ? 'https://api.zippopotam.us/us/' + q : 'https://api.zippopotam.us/us/' + m[2].toLowerCase() + '/' + encodeURIComponent(m[1].trim().toLowerCase());
+        return getJSON(url).then(function (d) {
+          var pl = d.places && d.places[0]; if (!pl) throw new Error('none');
+          var lat = Math.round(parseFloat(pl.latitude) * 10000) / 10000, lon = Math.round(parseFloat(pl.longitude) * 10000) / 10000;
+          if (isNaN(lat) || isNaN(lon)) throw new Error('none');
+          return { name: (d['place name'] || pl['place name']) + ', ' + (d['state abbreviation'] || pl['state abbreviation'] || ''), lat: lat, lon: lon };
+        });
+      }
+      function loadForecast(force) {
+        var pl = state.place; if (!pl || busy) return;
+        var a = state.wxAuto, today = TT.today();
+        if (!force && a && a.day === today && Date.now() - a.at < 45 * 60000) return;
+        busy = true; paintCity();
+        (pl.hourly && pl.daily ? Promise.resolve() : getJSON('https://api.weather.gov/points/' + pl.lat + ',' + pl.lon).then(function (d) { pl.hourly = d.properties.forecastHourly; pl.daily = d.properties.forecast; }))
+          .then(function () { return Promise.all([getJSON(pl.hourly), getJSON(pl.daily).catch(function () { return null; })]); })
+          .then(function (r) {
+            var now = r[0].properties.periods[0], day = r[1] && r[1].properties.periods.filter(function (x) { return x.isDaytime; })[0];
+            var first = r[1] && r[1].properties.periods[0], useDay = first && first.isDaytime ? first : null;   // "Today" while it is still daytime
+            state.wxAuto = { day: today, at: Date.now(), v: kind((useDay || now).shortForecast), temp: String(now.temperature), high: useDay ? useDay.temperature : null, text: (useDay || now).shortForecast };
+            busy = false; cityMsg = ''; save(); applyAuto(true);
+          }).catch(function (e) { if (window.console) console.warn('forecast', e); busy = false; cityMsg = 'The forecast could not load right now. You can still pick a picture.'; paintCity(); });
+      }
+      function applyAuto(pop) {
+        var a = state.wxAuto, today = TT.today();
+        if (a && a.day === today && !(state.weather && state.weather.day === today && state.weather.manual)) {
+          state.weather = { day: today, v: a.v }; state.temp = { day: today, v: a.temp }; save();
+        }
+        paintWx(pop); paintCity();
+      }
+      function paintCity() {
+        city.textContent = '';
+        var pl = state.place, a = state.wxAuto, today = TT.today();
+        function link(label, fn) { return h('button', { type: 'button', class: 'mm2-city-link', onclick: fn }, label); }
+        if (cityOpen) {
+          var inp = h('input', { type: 'text', id: 'mmCity', class: 'mm2-city-in', maxlength: 40, placeholder: 'City, State or ZIP Code', 'aria-label': 'City and state, or ZIP code', autocomplete: 'off' });
+          inp.value = pl ? pl.name : '';
+          var go = function () {
+            if (!inp.value.trim()) return;
+            cityMsg = 'Looking…'; msg.textContent = cityMsg;
+            findPlace(inp.value).then(function (found) { state.place = found; state.wxAuto = null; if (state.weather) delete state.weather.manual; cityOpen = false; cityMsg = ''; save(); loadForecast(true); },
+              function (e) { cityMsg = e.message === 'format' ? 'Type it like Peru, IN or a 5-digit ZIP code.' : 'That place was not found. Try a ZIP code.'; msg.textContent = cityMsg; });
+          };
+          inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
+          var msg = h('p', { class: 'mm2-city-msg', 'aria-live': 'polite', text: cityMsg });
+          city.append(h('label', { class: 'mm2-temp-lab', for: 'mmCity', text: 'Fill In the Forecast for' }),
+            h('div', { class: 'mm2-city-row' }, inp, h('button', { type: 'button', class: 'wb primary', onclick: go }, 'Find'), h('button', { type: 'button', class: 'wb', onclick: function () { cityOpen = false; cityMsg = ''; paintCity(); } }, 'Cancel')),
+            msg, h('p', { class: 'mm2-city-note', text: 'United States only. Forecast from the National Weather Service.' }));
+          setTimeout(function () { inp.focus(); }, 0);
+          return;
+        }
+        if (!pl) { city.append(link('Fill It In With My City’s Forecast', function () { cityOpen = true; paintCity(); })); return; }
+        var manual = state.weather && state.weather.day === today && state.weather.manual;
+        city.append(h('p', { class: 'mm2-city-now' }, h('b', { text: pl.name }), busy ? ' · Getting the forecast…' : a && a.day === today ? ' · ' + a.text + (a.high != null ? ' · High ' + a.high + '°' : '') : ''));
+        if (cityMsg) city.append(h('p', { class: 'mm2-city-msg', text: cityMsg }));
+        var links = h('div', { class: 'mm2-city-links' });
+        if (manual && a && a.day === today) links.append(link('Back to the Forecast', function () { delete state.weather.manual; save(); applyAuto(true); }));
+        links.append(link('Change City', function () { cityOpen = true; cityMsg = ''; paintCity(); }), link('Turn Off', function () { delete state.place; delete state.wxAuto; if (state.weather) delete state.weather.manual; cityMsg = ''; save(); paintCity(); }));
+        city.append(links);
+      }
+      temp.addEventListener('input', function () { if (state.place) { state.weather = state.weather && state.weather.day === TT.today() ? state.weather : { day: TT.today(), v: (state.wxAuto || {}).v }; state.weather.manual = true; save(); paintCity(); } });
+      painters.push(function () { paintCity(); loadForecast(false); });
       function paintWx(pop) {
         var cur = state.weather && state.weather.day === TT.today() ? state.weather.v : null;
         var w = WEATHER.filter(function (x) { return x[0] === cur; })[0];

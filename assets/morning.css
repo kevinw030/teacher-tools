@@ -122,3 +122,19 @@ body.mm2-dragging { user-select: none; -webkit-user-select: none; }
   .mm2-hint { flex: 1 1 100%; }
 }
 @media (prefers-reduced-motion: reduce) { .mm2-wx-art, .mm2-wx-art.pop, .mm2-tile.fresh { animation: none; } .mm2-wx, .mm2-add, .mm2-custom { transition: none; } }
+
+/* ----- Weather: fill in from the local forecast ----- */
+.mm2-city { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; padding-top: 12px; border-top: 1px solid var(--line); }
+.mm2-city-link { appearance: none; border: 0; background: none; cursor: pointer; padding: 6px 8px; border-radius: 10px; font: 700 14px var(--body, inherit); color: color-mix(in srgb, var(--sky) 70%, var(--ink)); }
+.mm2-city-link:hover { background: var(--surface-2); }
+.mm2-city-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 4px; }
+.mm2-city-now { margin: 0; font-size: 14px; font-weight: 600; color: var(--muted); text-wrap: balance; }
+.mm2-city-now b { color: var(--ink); }
+.mm2-city-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; width: 100%; }
+.mm2 input.mm2-city-in { flex: 1 1 160px; min-width: 0; font: inherit; font-weight: 600; font-size: 16px; padding: 9px 12px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); }
+.mm2-city .wb { padding: 10px 14px; border-radius: 12px; cursor: pointer; }
+.mm2-city .wb.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.mm2-city-msg { margin: 0; min-height: 1.2em; font-size: 13.5px; font-weight: 700; color: color-mix(in srgb, var(--coral) 75%, var(--ink)); }
+.mm2-city-msg:empty { display: none; }
+.mm2-city-note { margin: 0; font-size: 12px; color: var(--muted); }
+.page.fs .mm2-city-links, .page.fs .mm2-city > .mm2-city-link { display: none; }
