@@ -1,8 +1,8 @@
 // Holiday Helper (Kevin, 2026-11-24): a red elf hat over his antenna, with his gold antenna ball as the
 // hat's big jingle bell, and a few wrapped gifts on the floor around him. All of December, taking over
 // from the November turkey.
-// NOT LIVE YET: waiting for Kevin's OK. To turn it on, add <script src="/tools/disguise-elf.js"> after
-// disguise.js in index.html and join.html, then run node scripts/make-pages.js.
+// Kevin approved this version on 2026-11-24 ("we can use this for now"). Loaded after disguise.js in
+// index.html and join.html.
 // Drawn to match Kevin's mascot artwork: flat colors, one simple shade, and the same thick dark-purple
 // outline (#44037B, about 10px). The hat follows each pose's own antenna, so it is drawn once per pose
 // from where his head and antenna ball are in that picture (POSES below, measured from the artwork).
