@@ -50,6 +50,7 @@
     ['If two is company and three is a crowd, what are four and five?', 'This one is a math trick.', 'Add them together.', 'Nine']
   ];
 
+  TT.RIDDLES = RIDDLES; // also used by the stage version in tools/arcade2.js
   function riddle(el) {
     var state = TT.load('riddle', { seen: [], day: '', cur: -1 });
     var shown = 0;
