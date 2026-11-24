@@ -605,7 +605,7 @@
         html: TT.icon(S.speak ? 'volume' : 'mute') + '<span>Read Aloud</span>',
         onclick: function () { S.speak = !S.speak; save(); if (S.speak && game.last) say(game.last.text); paintGame(); } });
       var auto = h('div', { class: 'bgo-auto' }, h('span', { class: 'bgo-lab', text: 'Auto Call' }),
-        seg([[0, 'Off'], [10, '10s'], [20, '20s'], [30, '30s']], S.auto, function (v) { S.auto = v; save(); paintGame(); if (v && game.last) restartAuto(); else if (!v) stopAuto(); }, 'Auto call'));
+        seg([[0, 'Off'], [10, '10s'], [15, '15s'], [20, '20s'], [30, '30s']], S.auto, function (v) { S.auto = v; save(); paintGame(); if (v && game.last) restartAuto(); else if (!v) stopAuto(); }, 'Auto call'));
       left.append(h('div', { class: 'bgo-stage' }, callEl, h('div', { class: 'bgo-auto-bar', 'aria-hidden': 'true' }),
         h('div', { class: 'bgo-controls' }, next, speak, auto)));
       // Right: everything called so far, and live players and bingo calls
