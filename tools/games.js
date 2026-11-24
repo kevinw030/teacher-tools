@@ -185,7 +185,7 @@
       }
       chain = false; sel = -1; turn = 1 - turn;
       var left = board.some(function (x, k) { return x && x.p === turn && moves(k).length; });
-      if (!left) { over = true; sb.win(1 - turn); paint(); st.textContent = (turn ? 'Red' : 'Black') + ' Team wins!'; TT.chime(); return; }
+      if (!left) { over = true; sb.win(1 - turn); paint(); st.textContent = (turn ? 'Red' : 'Black') + ' Team wins!'; (TT.fx ? TT.fx.win() : TT.chime()); return; }
       paint();
     }
     function paint() {
@@ -255,7 +255,7 @@
           var w = pts[0] === pts[1] ? -1 : pts[0] > pts[1] ? 0 : 1;
           if (w >= 0) sb.win(w);
           paint(); st.textContent = w < 0 ? 'All matched! It’s a tie, ' + pts[0] + ' to ' + pts[1] + '.' : 'Team ' + (w + 1) + ' wins, ' + Math.max(pts[0], pts[1]) + ' to ' + Math.min(pts[0], pts[1]) + '!';
-          TT.chime(); return;
+          (TT.fx ? TT.fx.win() : TT.chime()); return;
         }
         paint(); st.textContent = 'Match! Team ' + (turn + 1) + ' goes again. (' + pts[0] + ' – ' + pts[1] + ')';
       } else {
@@ -319,7 +319,7 @@
       guessed[L] = true; TT.tick();
       if (word.indexOf(L) < 0) misses++;
       var solved = word.split('').every(function (c) { return guessed[c]; });
-      if (solved) { over = true; TT.chime(); }
+      if (solved) { over = true; (TT.fx ? TT.fx.win() : TT.chime()); }
       else if (misses >= MAX) over = true;
       paint(solved);
     }

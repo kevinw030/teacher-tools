@@ -171,7 +171,7 @@
     function check() {
       if (over || cur.length < LEN) return;
       var sc = score(cur); rows.push({ g: cur.slice(), s: sc }); cur = [];
-      if (sc[0] === LEN) { over = true; TT.chime(); }
+      if (sc[0] === LEN) { over = true; (TT.fx ? TT.fx.win() : TT.chime()); }
       else if (rows.length >= MAX) over = true;
       paint();
     }
@@ -303,7 +303,7 @@
           TT.button('Write Your Own', { icon: 'plus', kind: 'small', onclick: function () { TT.custom.open('trivia'); } })),
         h('p', { class: 'game-status', text: left ? 'Pick a category and a point value.' : overText(s) }),
         grid);
-      if (!left) TT.chime();
+      if (!left) (TT.fx ? TT.fx.win() : TT.chime());
     }
     function question(ci, r) {
       var c = state.cats[ci], q = c.items[r], p = POINTS[r];

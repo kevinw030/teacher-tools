@@ -533,7 +533,7 @@
       stopAuto();
       if (goWinners.indexOf(name) >= 0) return;
       goWinners.push(name);
-      if (TT.chime) TT.chime();
+      if (TT.fx) TT.fx.sound('win'); else if (TT.chime) TT.chime();
       if (S.speak) say(name + ' has Bingo!');
       if (celebrating && celebrating.isConnected && celebrating.addWinner) { celebrating.addWinner(name); return; }
       if (celebrating) celebrating.remove();

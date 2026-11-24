@@ -24,3 +24,23 @@
 .pal-loading { display: grid; grid-template-columns: auto 1fr; column-gap: var(--s4, 16px); align-items: center; }
 .pal-loading > .pal-mascot { grid-row: 1 / span 3; width: 96px; }
 .pal-loading > h2, .pal-loading > p { grid-column: 2; margin: 0; }
+
+/* ---------- Win moments (tools/fx.js): paper confetti and the mascot popping up to cheer ---------- */
+.fx-host { position: relative; }
+.fx-confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 30; border-radius: inherit; }
+.fx-bit { position: absolute; top: -24px; width: 10px; height: 16px; background: var(--c); opacity: 0; transform-origin: center; font-style: normal;
+  animation: fx-fall var(--t, 2.6s) cubic-bezier(.3, .2, .6, 1) var(--d, 0s) forwards; }
+.fx-bit.c { width: 11px; height: 11px; border-radius: 50%; }
+.fx-bit.s { width: 7px; height: 20px; border-radius: 4px; }
+.fx-bit.e { background: none; width: auto; height: auto; font-size: 26px; line-height: 1; }
+@keyframes fx-fall {
+  0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(0) scale(var(--s, 1)); }
+  8% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(var(--x, 0), min(92vh, 900px), 0) rotate(var(--r, 360deg)) scale(var(--s, 1)); }
+}
+.fx-cheer { position: absolute; right: clamp(8px, 3%, 32px); bottom: 0; width: clamp(84px, 11vw, 132px); z-index: 31; pointer-events: none;
+  animation: fx-cheer-in .7s var(--spring) both; }
+.fx-cheer.out { animation: fx-cheer-out .45s ease-in both; }
+@keyframes fx-cheer-in { from { transform: translateY(110%); } to { transform: none; } }
+@keyframes fx-cheer-out { to { transform: translateY(115%); opacity: 0; } }
