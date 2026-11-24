@@ -3,7 +3,7 @@
 // nicer versions, so every tool and game sounds and celebrates the same way:
 //   TT.chime()              a warm three-note bell (timers, picks, reveals)
 //   TT.tick()               a soft pop (taps, counts)
-//   TT.celebrate(el, emoji) a win: fanfare, paper confetti inside el, and the mascot popping up to cheer
+//   TT.celebrate(el)       a win: fanfare, Kevin's paper confetti inside el, and the mascot popping up to cheer
 //   TT.fx.sound(name)       'win' | 'good' | 'bad' | 'pop' | 'tap' | 'whoosh' | 'coin' | 'chime'
 //   TT.fx.win(el)           the same as TT.celebrate, for wins that had no celebration before
 // Everything follows Settings > Sounds and the "reduce motion" setting. Styles in assets/polish.css.
@@ -72,25 +72,8 @@
   TT.chime = function () { clearTimeout(chimeT); chimeT = setTimeout(function () { sound('chime'); }, 0); };
   TT.tick = function () { sound('tap'); };
 
-  // ---------- Confetti: paper pieces in the site's colors, plus a few themed emoji ----------
-  var COLORS = ['#F2643D', '#E5397A', '#E89A00', '#0FA974', '#2563EB', '#7B4DEB', '#0B9BD8', '#FFC233'];
-  function confetti(el, emoji) {
-    if (!el || still) return;
-    var old = el.querySelector(':scope > .fx-confetti'); if (old) old.remove();
-    var box = document.createElement('div'); box.className = 'fx-confetti'; box.setAttribute('aria-hidden', 'true');
-    var wide = el.getBoundingClientRect().width, count = Math.max(36, Math.min(110, Math.round(wide / 11)));
-    for (var i = 0; i < count; i++) {
-      var p = document.createElement('i'), kind = i % 9 === 0 && emoji && emoji.length ? 'e' : ['r', 'c', 's'][i % 3];
-      p.className = 'fx-bit ' + kind;
-      if (kind === 'e') p.textContent = emoji[(i / 9 | 0) % emoji.length];
-      p.style.cssText = 'left:' + (Math.random() * 100).toFixed(1) + '%;--c:' + COLORS[i % COLORS.length] + ';--d:' + (Math.random() * 0.7).toFixed(2) + 's;--t:' + (2 + Math.random() * 1.6).toFixed(2) +
-        's;--x:' + (Math.random() * 160 - 80).toFixed(0) + 'px;--r:' + (Math.random() * 900 - 450).toFixed(0) + 'deg;--s:' + (0.7 + Math.random() * 0.8).toFixed(2);
-      box.append(p);
-    }
-    if (getComputedStyle(el).position === 'static') el.classList.add('fx-host');
-    el.append(box);
-    setTimeout(function () { box.remove(); }, 4600);
-  }
+  // ---------- Confetti: Kevin's paper shapes, drawn by tools/confetti.js (no emoji, Kevin 2026-11-24) ----------
+  function confetti(el) { if (TT.confetti) TT.confetti(el); }
   // The mascot pops up from the bottom corner to cheer, on pages that don't already have him on stage.
   function cheer(el) {
     if (!el || still || !TT.mascot || el.closest('.ar-stage, .board, .widget, .trail') || el.querySelector('.mascot') || el.getBoundingClientRect().width < 420) return;
@@ -107,8 +90,7 @@
     var now = Date.now();
     if (now - lastWin > 900) sound('win');            // two things finishing at once still play one fanfare
     lastWin = now;
-    if (!emoji) { var s = TT.season ? TT.season() : null; emoji = s ? s.emoji.slice(0, 3) : ['⭐']; }
-    confetti(el, emoji); cheer(el);
+    confetti(el); cheer(el);
   };
   TT.fx = {
     sound: sound,

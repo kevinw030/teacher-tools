@@ -136,15 +136,14 @@
     return { el: el, update: update, poke: poke };
   };
 
-  // A happy jump with a little burst of sparkles.
+  // A happy jump with a little burst of Kevin's confetti shapes.
   L.JUMP_MS = 800;   // matches the lb-jump animation in lobby.css
-  var SPARKS = ['✨', '⭐', '💖', '🎉', '💫'];
   L.poke = function (node, loud) {
     if (!node) return;
     var ava = node.querySelector('.lb-ava') || node;
     ava.classList.remove('jump'); void ava.offsetWidth; ava.classList.add('jump');
     if (!still) for (var i = 0; i < (loud ? 6 : 3); i++) {
-      var s = h('span', { class: 'lb-spark', 'aria-hidden': 'true', text: SPARKS[Math.floor(Math.random() * SPARKS.length)] });
+      var s = h('span', { class: 'lb-spark cf cf-' + Math.floor(Math.random() * 8), 'aria-hidden': 'true' });
       s.style.setProperty('--dx', (Math.random() * 120 - 60) + 'px'); s.style.setProperty('--dy', (-50 - Math.random() * 60) + 'px');
       s.style.setProperty('--r', (Math.random() * 80 - 40) + 'deg');
       node.append(s);
@@ -215,7 +214,7 @@
         h('span', { text: go ? 'Go!' : String(3 - step) }));
       stage.append(num);
       if (go && !still) for (var i = 0; i < 18; i++) {
-        var b = h('i', { class: 'lb-burst' }); b.style.setProperty('--a', (i * 20) + 'deg'); b.style.setProperty('--c', ['#FFD15C', '#7CE0C3', '#FF8FB8', '#9AD8FF'][i % 4]);
+        var b = h('i', { class: 'lb-burst cf cf-' + (i % 8) }); b.style.setProperty('--a', (i * 20) + 'deg'); b.style.setProperty('--c', ['#FFD15C', '#7CE0C3', '#FF8FB8', '#9AD8FF'][i % 4]);
         stage.append(b);
       }
       L.beep(go ? 880 : 520, go ? 0.45 : 0.18, go ? 'triangle' : 'sine', go ? 0.12 : 0.09);

@@ -608,11 +608,7 @@
     bingoBtn.classList.add('won'); bingoBtn.disabled = true;
     bingoBtn.querySelector('.jb-hint').textContent = 'You got it! Your teacher saw it.';
     var conf = h('div', { class: 'bgo-confetti', 'aria-hidden': 'true' });
-    if (!still) for (var i = 0; i < 60; i++) {
-      var bit = h('i'); bit.style.setProperty('--x', Math.random() * 100 + '%'); bit.style.setProperty('--d', (Math.random() * 0.8) + 's');
-      bit.style.setProperty('--r', (Math.random() * 720 - 360) + 'deg'); bit.style.setProperty('--c', B.COLS[i % 5]); bit.style.setProperty('--s', 0.6 + Math.random() * 0.8);
-      conf.append(bit);
-    }
+    if (!still && TT.confetti) TT.confetti(conf);   // Kevin's paper shapes, fired once the layer is on screen
     var mas = TT.mascot ? TT.mascot({ mood: 'party' }) : null;
     var layer = h('div', { class: 'bgo-win join-win', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Bingo!' }, conf,
       h('div', { class: 'bgo-win-card' }, mas ? h('div', { class: 'bgo-win-mascot' }, mas) : null,

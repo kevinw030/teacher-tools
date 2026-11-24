@@ -56,24 +56,7 @@
       SEASONS.map(function (s) { return { id: 'hol-' + s.id, name: s.name, css: TT.seasonPattern(s), dark: !!s.dark }; })) });
   }
 
-  // A burst of falling emoji inside an element (used for wins and full jars).
-  TT.celebrate = function (el, emoji) {
-    if (!el || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
-    var s = TT.season();
-    emoji = emoji || (s ? s.emoji.concat(['🎉', '⭐']) : ['🎉', '⭐', '✨', '🎊', '💫']);
-    var box = h('div', { class: 'party', 'aria-hidden': 'true' });
-    for (var i = 0; i < 28; i++) {
-      var e = h('span', { text: emoji[i % emoji.length] });
-      e.style.left = Math.random() * 100 + '%';
-      e.style.fontSize = 20 + Math.random() * 26 + 'px';
-      e.style.animationDelay = Math.random() * 0.9 + 's';
-      e.style.animationDuration = 1.8 + Math.random() * 1.6 + 's';
-      e.style.setProperty('--r', (Math.random() * 720 - 360) + 'deg');
-      box.append(e);
-    }
-    el.append(box);
-    setTimeout(function () { box.remove(); }, 4500);
-  };
+  // Wins and full jars: TT.celebrate lives in tools/fx.js (Kevin's paper confetti, no emoji).
 
   // Tint the home page for the season (colors only, no scattered icons).
   TT.applySeason = function () {

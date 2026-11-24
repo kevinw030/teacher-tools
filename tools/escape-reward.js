@@ -1,16 +1,16 @@
 // Escape Room: the "you found a key" moment. A shockwave leaves the thing that was solved, a big key
-// springs out of it to the middle of the room in front of spinning light, themed bits burst out, and
+// springs out of it to the middle of the room in front of spinning light, confetti shapes burst out, and
 // then the key is handed back (done) so it can fly down to its slot. Everything is sized in em, and
 // 1em is 1% of the room's width, so it scales with the room on any screen.
 (function () {
   var TT = window.TT, h = TT.h;
   var THEMES = {
-    library: { say: 'The Lock Clicks Open!', bits: ['✨', '📖', '⭐', '🔖'] },
-    space: { say: 'Access Granted!', bits: ['⭐', '🚀', '🪐', '✨'] },
-    pirate: { say: 'Arrr, a Key!', bits: ['🪙', '💎', '⭐', '🪙'] },
-    museum: { say: 'A Hidden Key!', bits: ['🦴', '⭐', '🦕', '✨'] }
+    library: { say: 'The Lock Clicks Open!' },
+    space: { say: 'Access Granted!' },
+    pirate: { say: 'Arrr, a Key!' },
+    museum: { say: 'A Hidden Key!' }
   };
-  var DEFAULT = { say: 'Great Thinking!', bits: ['⭐', '✨', '🗝️', '🎉'] };
+  var DEFAULT = { say: 'Great Thinking!' };
 
   TT.escapeReward = function (stage, o, done) {
     var calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -26,7 +26,7 @@
     var bits = h('span', { class: 'er-rw-bits' });
     for (var i = 0; i < 16; i++) {
       var ang = (i / 16) * Math.PI * 2 + (i % 2 ? 0.2 : 0), far = 15 + (i % 3) * 5;
-      var b = h('span', { text: theme.bits[i % theme.bits.length] });
+      var b = h('span', { class: 'cf cf-' + (i % 8) });   // Kevin's confetti shapes, no emoji
       b.style.setProperty('--bx', (Math.cos(ang) * far).toFixed(1) + 'em');
       b.style.setProperty('--by', (Math.sin(ang) * far * 0.8).toFixed(1) + 'em');
       b.style.setProperty('--br', (i % 2 ? 1 : -1) * (120 + i * 20) + 'deg');

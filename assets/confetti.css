@@ -1,0 +1,21 @@
+/* Kevin's confetti shapes (2026-11-24, second set): red spiral, orange zigzag, yellow sparkle, green curl,
+   teal spiral, blue bolt, purple loop, pink heart. Cut from his artwork into assets/confetti/*.webp.
+   Big bursts are drawn on a canvas by tools/confetti.js (TT.confetti). These classes are for the small
+   CSS bursts that use single pieces: <span class="cf cf-0"> ... cf-7 (lobby sparks, Go! burst, escape room key). */
+.fx-confetti { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; border-radius: inherit; }
+.fx-confetti.fixed { position: fixed; z-index: 1000; border-radius: 0; }
+.cf { display: inline-block; width: 24px; height: 24px; background-position: center !important; background-size: contain !important;
+  background-repeat: no-repeat !important; background-color: transparent !important; border-radius: 0 !important; font-size: 0 !important; }
+.cf-0 { background-image: url(/assets/confetti/spiral-red.webp) !important; }
+.cf-1 { background-image: url(/assets/confetti/zigzag.webp) !important; }
+.cf-2 { background-image: url(/assets/confetti/sparkle.webp) !important; }
+.cf-3 { background-image: url(/assets/confetti/curl.webp) !important; }
+.cf-4 { background-image: url(/assets/confetti/spiral-teal.webp) !important; }
+.cf-5 { background-image: url(/assets/confetti/bolt.webp) !important; }
+.cf-6 { background-image: url(/assets/confetti/loop.webp) !important; }
+.cf-7 { background-image: url(/assets/confetti/heart.webp) !important; }
+/* Sizes where single pieces are used */
+.lb-burst.cf { width: 34px; height: 34px; margin: -17px; }
+.lb-spark.cf { width: 24px; height: 24px; }
+.er-rw-bits span.cf { width: 3.4em; height: 3.4em; margin: -1.7em 0 0 -1.7em; }
+.bgo-win-star.cf { width: 56px; height: 56px; }

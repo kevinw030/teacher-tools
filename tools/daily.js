@@ -129,7 +129,7 @@
         if (sinceStar >= state.every) {
           sinceStar = 0; stars++; TT.tick(); paintStars(true);
           TT.save('sound', state);
-          if (stars >= state.goal) { done = true; again.hidden = false; TT.chime(); if (TT.celebrate) TT.celebrate(stage, ['⭐', '🌟', '✨', '🎉']); }
+          if (stars >= state.goal) { done = true; again.hidden = false; TT.chime(); if (TT.celebrate) TT.celebrate(stage); }
         }
       }
       var s = done ? 'win' : loud ? 'loud' : quietNow ? 'quiet' : 'ok';
@@ -355,7 +355,7 @@
         h('div', { class: 'jar' + (full ? ' full' : '') }, h('div', { class: 'jar-lid' }), h('div', { class: 'jar-glass' }, marbles)),
         h('div', { class: 'jar-side' },
           h('div', { class: 'jar-count', 'aria-live': 'polite' }, h('b', { text: String(j.count) }), h('span', { text: ' of ' + goal })),
-          h('h2', { class: 'jar-title', text: full ? '🎉 The Jar Is Full!' : (goal - j.count) + (goal - j.count === 1 ? ' More to Go' : ' More to Go') }), rewardEl,
+          h('h2', { class: 'jar-title', text: full ? 'The Jar Is Full!' : (goal - j.count) + (goal - j.count === 1 ? ' More to Go' : ' More to Go') }), rewardEl,
           full ? h('div', { class: 'row' }, TT.button('Empty the Jar and Start Again', { icon: 'reset', kind: 'primary big', onclick: function () { j.count = 0; save(); paint(); } }))
             : h('div', { class: 'row' }, TT.button('Add a Marble', { icon: 'plus', kind: 'primary big', onclick: function () { add(1); } }), TT.button('Add 5', { kind: 'big', onclick: function () { add(5); } }), TT.button('Take One Out', { icon: 'minus', kind: 'big', onclick: function () { add(-1); } })),
           h('div', { class: 'jar-set' }, h('label', { class: 'cq-field', for: 'jarReward' }, h('span', { text: 'Reward' }), rewardIn), h('label', { class: 'cq-field small', for: 'jarGoal' }, h('span', { text: 'Marbles to Fill' }), goalIn)))));

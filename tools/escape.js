@@ -221,7 +221,7 @@
       status.textContent = 'You escaped!';
       setTimeout(function () {
         if (!room) return;
-        if (TT.celebrate) TT.celebrate(stage, ['🗝️', '⭐', '🎉', '✨']);
+        if (TT.celebrate) TT.celebrate(stage);
         card([h('span', { class: 'er-mascot' }, TT.mascot({ mood: 'cheer' })), h('span', { class: 'er-eyebrow', text: room.title + (grade ? ' · ' + GRADES[grade] : '') }), h('h2', { text: 'You Escaped!' }), h('p', { text: room.win }),
           h('div', { class: 'er-stats' },
             h('span', null, h('b', { text: fmt(secs) }), record ? 'New Best Time' : 'Your Time'),
