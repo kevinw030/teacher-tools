@@ -1,0 +1,42 @@
+/* "Why ED Sidekick?" on the home page for visitors (tools/why.js) */
+.why { display: flex; flex-direction: column; gap: var(--s5, 24px); }
+.why-head { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--s4, 16px) var(--s6, 32px); flex-wrap: wrap; }
+.why-eyebrow { display: block; font-family: var(--display); font-weight: 800; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--coral); margin-bottom: 4px; }
+.why-head h2 { margin: 0; font-size: clamp(30px, 3.6vw, 44px); font-weight: 800; line-height: 1.02; letter-spacing: -.025em; }
+.why-lead { margin: var(--s2, 8px) 0 0; max-width: 58ch; font-size: 17.5px; line-height: 1.5; color: var(--muted); }
+.why-cta { display: inline-flex; align-items: center; gap: 8px; border: 0; cursor: pointer; padding: 13px 24px; border-radius: 99px; background: var(--coral); color: #fff; font-family: var(--display); font-weight: 800; font-size: 17px; box-shadow: 0 5px 0 color-mix(in srgb, var(--coral) 55%, #000); transition: transform .45s var(--spring), box-shadow .2s ease; }
+.why-cta svg { width: 20px; height: 20px; transition: transform .45s var(--spring); }
+.why-cta:hover { transform: translateY(-2px); box-shadow: 0 7px 0 color-mix(in srgb, var(--coral) 55%, #000); }
+.why-cta:hover svg { transform: translateX(3px); }
+.why-cta:active { transform: translateY(3px); box-shadow: 0 2px 0 color-mix(in srgb, var(--coral) 55%, #000); }
+.why-cta:focus-visible { outline: 3px solid var(--cobalt); outline-offset: 3px; }
+
+.why-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s4, 16px); }
+.why-card { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 24px; overflow: hidden; box-shadow: var(--shadow); transition: transform .55s var(--spring), border-color .2s ease; }
+.why-card:hover { transform: translateY(-4px) rotate(-.4deg); border-color: color-mix(in srgb, var(--c) 45%, var(--line)); }
+.why-shot { position: relative; aspect-ratio: 16 / 10; background: color-mix(in srgb, var(--c) 14%, var(--surface)); border-bottom: 1px solid var(--line); overflow: hidden; }
+.why-shot img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.why-shot::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 5px; background: var(--c); }
+.why-text { padding: var(--s4, 16px) var(--s5, 20px) var(--s5, 20px); }
+.why-text h3 { margin: 0 0 6px; font-size: 19px; font-weight: 800; line-height: 1.2; letter-spacing: -.01em; }
+.why-text p { margin: 0; font-size: 15.5px; line-height: 1.5; color: var(--muted); }
+
+.why-trust { list-style: none; margin: 0; padding: var(--s4, 16px) var(--s5, 24px); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s4, 16px); border-radius: 24px; background: var(--surface-2); border: 1px solid var(--line); }
+.why-trust li { display: flex; gap: 10px; align-items: flex-start; }
+.why-trust b { display: block; font-family: var(--display); font-weight: 800; font-size: 16px; line-height: 1.25; }
+.why-trust span { font-size: 14px; line-height: 1.4; color: var(--muted); }
+.why-check { flex: none; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: color-mix(in srgb, var(--emerald) 20%, var(--surface)); color: var(--emerald); margin-top: 1px; }
+.why-check svg { width: 15px; height: 15px; }
+.why-trust li > div > span { display: block; }
+
+@media (max-width: 1000px) {
+  .why-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .why-trust { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .why-grid { grid-template-columns: 1fr; gap: var(--s3, 12px); }
+  .why-trust { grid-template-columns: 1fr; padding: var(--s4, 16px); }
+  .why-cta { width: 100%; justify-content: center; }
+  .why-text h3 { font-size: 18px; }
+}
+@media (prefers-reduced-motion: reduce) { .why-card, .why-cta, .why-cta svg { transition: none; } .why-card:hover { transform: none; } }
