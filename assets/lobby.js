@@ -215,7 +215,7 @@
         h('span', { text: go ? 'Go!' : String(3 - step) }));
       stage.append(num);
       if (go && !still) for (var i = 0; i < 18; i++) {
-        var b = h('i', { class: 'lb-burst' }); b.style.setProperty('--a', (i * 20) + 'deg'); b.style.setProperty('--c', ['#FFD15C', '#7CE0C3', '#FF8FB8', '#9AD8FF'][i % 4]);
+        var b = h('i', { class: 'lb-burst cf cf-' + (i % 8) }); b.style.setProperty('--a', (i * 20) + 'deg'); b.style.setProperty('--c', ['#FFD15C', '#7CE0C3', '#FF8FB8', '#9AD8FF'][i % 4]);
         stage.append(b);
       }
       L.beep(go ? 880 : 520, go ? 0.45 : 0.18, go ? 'triangle' : 'sine', go ? 0.12 : 0.09);

@@ -72,7 +72,7 @@
   TT.chime = function () { clearTimeout(chimeT); chimeT = setTimeout(function () { sound('chime'); }, 0); };
   TT.tick = function () { sound('tap'); };
 
-  // ---------- Confetti: paper pieces in the site's colors, plus a few themed emoji ----------
+  // ---------- Confetti: Kevin's eight paper shapes (assets/confetti.css), plus a few themed emoji ----------
   var COLORS = ['#F2643D', '#E5397A', '#E89A00', '#0FA974', '#2563EB', '#7B4DEB', '#0B9BD8', '#FFC233'];
   function confetti(el, emoji) {
     if (!el || still) return;
@@ -80,11 +80,12 @@
     var box = document.createElement('div'); box.className = 'fx-confetti'; box.setAttribute('aria-hidden', 'true');
     var wide = el.getBoundingClientRect().width, count = Math.max(36, Math.min(110, Math.round(wide / 11)));
     for (var i = 0; i < count; i++) {
-      var p = document.createElement('i'), kind = i % 9 === 0 && emoji && emoji.length ? 'e' : ['r', 'c', 's'][i % 3];
+      var p = document.createElement('i'), kind = i % 9 === 0 && emoji && emoji.length ? 'e' : 'cf cf-' + (i % 8);
       p.className = 'fx-bit ' + kind;
       if (kind === 'e') p.textContent = emoji[(i / 9 | 0) % emoji.length];
       p.style.cssText = 'left:' + (Math.random() * 100).toFixed(1) + '%;--c:' + COLORS[i % COLORS.length] + ';--d:' + (Math.random() * 0.7).toFixed(2) + 's;--t:' + (2 + Math.random() * 1.6).toFixed(2) +
-        's;--x:' + (Math.random() * 160 - 80).toFixed(0) + 'px;--r:' + (Math.random() * 900 - 450).toFixed(0) + 'deg;--s:' + (0.7 + Math.random() * 0.8).toFixed(2);
+        's;--x:' + (Math.random() * 160 - 80).toFixed(0) + 'px;--r:' + (Math.random() * 900 - 450).toFixed(0) + 'deg;--s:' + (0.7 + Math.random() * 0.8).toFixed(2) +
+        (kind === 'e' ? '' : ';--f:' + (Math.random() * 1080 - 540).toFixed(0) + 'deg');
       box.append(p);
     }
     if (getComputedStyle(el).position === 'static') el.classList.add('fx-host');

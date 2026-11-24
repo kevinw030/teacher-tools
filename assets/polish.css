@@ -34,10 +34,10 @@
 .fx-bit.s { width: 7px; height: 20px; border-radius: 4px; }
 .fx-bit.e { background: none; width: auto; height: auto; font-size: 26px; line-height: 1; }
 @keyframes fx-fall {
-  0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(0) scale(var(--s, 1)); }
+  0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(0) rotateX(0) scale(var(--s, 1)); }
   8% { opacity: 1; }
   85% { opacity: 1; }
-  100% { opacity: 0; transform: translate3d(var(--x, 0), min(92vh, 900px), 0) rotate(var(--r, 360deg)) scale(var(--s, 1)); }
+  100% { opacity: 0; transform: translate3d(var(--x, 0), min(92vh, 900px), 0) rotate(var(--r, 360deg)) rotateX(var(--f, 0deg)) scale(var(--s, 1)); }
 }
 .fx-cheer { position: absolute; right: clamp(8px, 3%, 32px); bottom: 0; width: clamp(84px, 11vw, 132px); z-index: 31; pointer-events: none;
   animation: fx-cheer-in .7s var(--spring) both; }
