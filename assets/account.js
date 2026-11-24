@@ -664,7 +664,7 @@
     var tab = 'account';
     function tabs() {
       return h('div', { class: 'acct-tabs', role: 'tablist', 'aria-label': 'Account sections' },
-        [['account', user ? 'My Account' : 'Sign In'], ['plans', 'Plans and Pricing']].map(function (t) {
+        [['account', user ? 'My Account' : 'Sign In'], ['settings', 'Settings'], ['plans', ['Plans', h('span', { class: 'tab-long', text: ' and Pricing' })]]].map(function (t) {
           return h('button', { type: 'button', role: 'tab', class: 'acct-tab' + (tab === t[0] ? ' on' : ''), 'aria-selected': tab === t[0] ? 'true' : 'false',
             onclick: function () { if (tab !== t[0]) { tab = t[0]; paint(); } } }, t[1]);
         }));
@@ -677,7 +677,11 @@
       if (!enabled) { root.append(h('section', { class: 'acct-card' }, h('h2', { text: 'Accounts Are Coming Soon' }), h('p', { class: 'muted', text: 'For now, everything saves on this computer.' }))); return; }
       root.append(tabs());
       if (tab === 'plans') root.append(plansCard());
-      else {
+      else if (tab === 'settings') {
+        var setBox = h('section', { class: 'panel acct-settings' });
+        root.append(setBox);
+        if (TT.mountSettings) TT.mountSettings(setBox, { inAccount: true });
+      } else {
         if (user && resetting()) root.append(resetCard());
         if (user) root.append(accountCard());
         else root.append(h('div', { class: 'acct-row' }, signInCard(), sideCard()));
