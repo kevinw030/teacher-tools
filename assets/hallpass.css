@@ -10,7 +10,7 @@
 .hp-hole { position: absolute; top: max(8px, 3cqh); left: 50%; width: max(28px, 16cqw); height: max(10px, 4cqh); transform: translateX(-50%);
   border-radius: 99px; background: var(--surface, #fff); box-shadow: inset 0 2px 3px rgba(0,0,0,.25); }
 .hp-name { font-family: var(--display); font-weight: 800; font-size: max(16px, min(12cqw, 10cqh)); line-height: 1; letter-spacing: -.02em; text-align: center; overflow-wrap: anywhere; }
-.hp-ready { font-weight: 800; font-size: max(12px, min(5.5cqw, 5cqh)); text-transform: uppercase; letter-spacing: .14em; background: rgba(255,255,255,.2); padding: 5px 12px; border-radius: 99px; }
+.hp-ready { font-weight: 800; font-size: max(13px, min(6.5cqw, 5.5cqh)); text-align: center; letter-spacing: .01em; background: rgba(255,255,255,.2); padding: 5px 12px; border-radius: 99px; }
 .hp-who { font-family: var(--display); font-weight: 700; font-size: max(13px, min(7.5cqw, 6.5cqh)); line-height: 1.1; text-align: center; overflow-wrap: anywhere; }
 .hp-time { font-family: var(--display); font-weight: 800; font-size: max(26px, min(22cqw, 19cqh)); line-height: .95; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .hp-hint { font-weight: 700; font-size: max(12px, min(5.5cqw, 5cqh)); opacity: .92; }

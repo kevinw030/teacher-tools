@@ -91,12 +91,12 @@
           timeEl = h('div', { class: 'hp-time', role: 'timer', 'aria-live': 'off' });
           hintEl = h('div', { class: 'hp-hint', 'aria-live': 'polite' });
           passEl.append(
-            h('div', { class: 'hp-who', text: d.out.who ? d.out.who + ' Is Out' : 'Pass Is Out' }),
+            h('div', { class: 'hp-who', text: d.out.who ? d.out.who + ' Is Currently Out!' : 'Someone Is Currently Out!' }),
             timeEl, hintEl,
             h('button', { type: 'button', class: 'hp-go back', onclick: comeBack, html: HOME + '<span>I’m Back</span>' }));
         } else {
           passEl.append(
-            h('div', { class: 'hp-ready', text: 'Ready' }),
+            h('div', { class: 'hp-ready', text: 'Hall Pass Available' }),
             h('button', { type: 'button', class: 'hp-go', onclick: startOut, html: WALK + '<span>I’m Going</span>' }));
         }
         box.append(passEl, tools());
