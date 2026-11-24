@@ -128,18 +128,12 @@
     function startRound() {
       body.textContent = '';
       run = { left: state.secs, right: 0, miss: 0, typed: '', f: F.fact(state.op, state.lv), x: {}, lock: false, who: state.who || '' };
-      var q = h('div', { class: 'ff-q' }), ans = h('div', { class: 'ff-ans', 'aria-live': 'polite' }), card = h('div', { class: 'ff-card' }, q, h('span', { class: 'ff-eq', text: '=' }), ans);
-      var time = h('b', { class: 'ff-time' }), score = h('b', { class: 'ff-score' }), bar = h('span');
-      var padEl = h('div', { class: 'ff-pad', role: 'group', 'aria-label': 'Number pad' });
-      ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'del', '0', 'ok'].forEach(function (k) {
-        padEl.append(h('button', { type: 'button', class: 'ff-key' + (k === 'ok' ? ' ok' : k === 'del' ? ' del' : ''), 'aria-label': k === 'ok' ? 'Check the answer' : k === 'del' ? 'Erase' : k, onclick: function () { press(k); } }, k === 'ok' ? 'Enter' : k === 'del' ? '⌫' : k));
-      });
+      var who = run.who ? h('p', { class: 'fd-who' }, h('span', { text: 'Now Playing' }), h('b', { text: run.who })) : null;
+      var st = F.stage(h, { who: who, onKey: function (k) { press(k); } });
       function paintRun() {
         if (!run) return;
-        q.textContent = run.f.q;
-        if (!run.lock) { ans.textContent = run.typed || '?'; ans.classList.toggle('empty', !run.typed); ans.classList.remove('fix'); }
-        time.textContent = Math.floor(run.left / 60) + ':' + pad(run.left % 60); score.textContent = String(run.right);
-        bar.style.width = (100 - run.left / state.secs * 100) + '%';
+        if (!run.lock) st.setTyped(run.typed);
+        st.setTime(run.left, state.secs); st.setScore(run.right);
       }
       function press(k) {
         if (!run || run.left <= 0 || run.lock) return;
@@ -148,23 +142,19 @@
           if (!run.typed) return;
           if (+run.typed === run.f.a) {
             run.right++; sound('good'); run.typed = '';
-            run.f = F.next(state.op, state.lv, run.f);
-            card.classList.remove('good'); void card.offsetWidth; card.classList.add('good');
+            run.f = F.next(state.op, state.lv, run.f); st.setScore(run.right); st.good(); st.setFact(run.f.q);
           } else {
             // Show the right answer for a moment, then a new fact. Nobody gets stuck on one fact.
             run.miss++; run.x[run.f.q] = (run.x[run.f.q] || 0) + 1; run.typed = ''; run.lock = true; sound('bad');
-            ans.textContent = String(run.f.a); ans.classList.remove('empty'); ans.classList.add('fix');
-            card.classList.remove('bad'); void card.offsetWidth; card.classList.add('bad');
-            flashT = setTimeout(function () { if (!run) return; run.lock = false; run.f = F.next(state.op, state.lv, run.f); paintRun(); }, 1000);
+            st.bad(run.f.a);
+            flashT = setTimeout(function () { if (!run) return; run.lock = false; run.f = F.next(state.op, state.lv, run.f); st.setFact(run.f.q); paintRun(); }, 1100);
           }
-        } else if (run.typed.length < 3) run.typed += k;
+        } else if (run.typed.length < 3) { run.typed += k; sound('tap'); }
         paintRun();
       }
       run.press = press;
-      body.append(h('div', { class: 'ff fl-round' }, h('div', { class: 'ff-play' },
-        run.who ? h('p', { class: 'fl-playing' }, h('span', { text: 'Now Playing' }), h('b', { text: run.who })) : null,
-        h('div', { class: 'ff-hud' }, h('div', { class: 'ff-stat' }, h('span', { text: 'Time Left' }), time), h('span', { class: 'track ff-track' }, bar), h('div', { class: 'ff-stat' }, h('span', { text: 'Correct' }), score)),
-        card, padEl, h('div', { class: 'row center' }, TT.button('Stop the Round', { kind: 'small', onclick: roundSetup })))));
+      st.setFact(run.f.q);
+      body.append(h('div', { class: 'fl-round fl-stage' }, st.el, h('div', { class: 'row center' }, TT.button('Stop the Round', { kind: 'small', onclick: roundSetup }))));
       paintRun();
       iv = setInterval(function () {
         if (!run) { clearInterval(iv); return; }

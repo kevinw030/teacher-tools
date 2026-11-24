@@ -82,30 +82,19 @@
     stop();
     play = { id: m.id, op: m.op, lv: m.lv, secs: m.secs, start: Date.now(), r: 0, m: 0, x: {}, typed: '', lock: false, f: F.fact(m.op, m.lv) };
     view = 'play:' + m.id;
-    var h = cx.h;
-    var q = h('span', { class: 'jf-q' }), ans = h('span', { class: 'jf-ans' }), factCard = h('div', { class: 'jf-card', 'aria-live': 'polite' }, q, h('span', { class: 'jf-eq', text: '=' }), ans);
-    var bar = h('span', { class: 'jf-bar' }), secs = h('b', { class: 'jf-secs' }), score = h('b', { class: 'jf-score' });
-    var padEl = h('div', { class: 'jf-pad', role: 'group', 'aria-label': 'Number pad' });
-    ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'del', '0', 'ok'].forEach(function (k) {
-      padEl.append(h('button', { type: 'button', class: 'jf-key' + (k === 'ok' ? ' ok' : k === 'del' ? ' del' : ''), 'aria-label': k === 'ok' ? 'Check my answer' : k === 'del' ? 'Erase' : k,
-        onclick: function () { press(k); } }, k === 'ok' ? '✓' : k === 'del' ? '⌫' : k));
-    });
-    card('jf-play', [
-      h('div', { class: 'jf-top' }, cx.who(), h('span', { class: 'jf-right' }, h('span', { class: 'jf-star', 'aria-hidden': 'true', text: '★' }), score)),
-      h('div', { class: 'jf-time' }, h('span', { class: 'jf-track' }, bar), secs),
-      factCard, padEl]);
+    var st = F.stage(cx.h, { who: cx.who(), compact: true, onKey: function (k) { press(k); } });
+    cx.root.textContent = '';
+    cx.root.className = 'join-main is-ticket is-quiz is-dash';
+    cx.root.append(st.el);
     function show() {
       if (!play) return;
-      q.textContent = play.f.q;
-      if (!play.lock) { ans.textContent = play.typed || '?'; ans.className = 'jf-ans' + (play.typed ? '' : ' empty'); }
-      score.textContent = String(play.r);
+      if (!play.lock) st.setTyped(play.typed);
+      st.setScore(play.r);
     }
     function clock() {
       if (!play) return;
       var left = Math.max(0, play.secs - (Date.now() - play.start) / 1000);
-      bar.style.width = (left / play.secs * 100) + '%';
-      bar.classList.toggle('low', left <= 10);
-      secs.textContent = String(Math.ceil(left));
+      st.setTime(left, play.secs);
       if (left <= 0) end();
     }
     function press(k) {
@@ -117,21 +106,20 @@
           play.r++; play.typed = '';
           play.f = F.next(play.op, play.lv, play.f);
           cx.beep(660 + Math.min(play.r, 20) * 12, 0.1, 'triangle', 0.07);
-          factCard.classList.remove('good'); void factCard.offsetWidth; factCard.classList.add('good');
+          st.setScore(play.r); st.good(); st.setFact(play.f.q);
           if (cx.conn) cx.conn.send('prog', { id: cx.me.id, q: play.id, r: play.r });
         } else {
           // Show the right answer for a moment, then a new fact.
           play.m++; play.x[play.f.q] = (play.x[play.f.q] || 0) + 1; play.typed = ''; play.lock = true;
           cx.beep(240, 0.18, 'sine', 0.06);
-          ans.textContent = String(play.f.a); ans.className = 'jf-ans fix';
-          factCard.classList.remove('bad'); void factCard.offsetWidth; factCard.classList.add('bad');
-          flashT = setTimeout(function () { if (!play) return; play.lock = false; play.f = F.next(play.op, play.lv, play.f); show(); }, 1100);
+          st.bad(play.f.a);
+          flashT = setTimeout(function () { if (!play) return; play.lock = false; play.f = F.next(play.op, play.lv, play.f); st.setFact(play.f.q); show(); }, 1100);
         }
       } else if (play.typed.length < 3) { play.typed += k; cx.beep(520, 0.05, 'sine', 0.03); }
       show();
     }
     play.press = press;
-    show(); clock();
+    st.setFact(play.f.q); show(); clock();
     tickT = setInterval(clock, 200);
   }
   function end() {
