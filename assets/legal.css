@@ -13,6 +13,8 @@
 .legal .summary h2 { margin-top: 0; font-size: 19px; }
 .legal .summary ul { margin: 8px 0 0; }
 .legal h2 { font-family: var(--display); font-weight: 750; font-size: 23px; letter-spacing: -.015em; margin: 32px 0 8px; }
+.legal h3 { font-family: var(--display); font-weight: 700; font-size: 18px; margin: 20px 0 6px; }
+.legal h2[id] { scroll-margin-top: 80px; }
 .legal p { margin: 0 0 12px; }
 .legal ul { margin: 0 0 12px; padding-left: 22px; }
 .legal li { margin: 4px 0; }

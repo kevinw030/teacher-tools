@@ -28,6 +28,9 @@ function pageFor(name, title) {
   const head = '<!-- Made from index.html by scripts/make-pages.js. Edit index.html, not this file. -->\n';
   let html = shell.replace(/<title>[^<]*<\/title>/, '<title>' + esc(title) + ' · ED Sidekick</title>');
   html = html.replace('</head>', '<link rel="canonical" href="' + SITE + '/' + name + '">\n</head>');
+  // Link previews (shared links in texts, email, social media) name the page too.
+  html = html.replace(/<meta property="og:title" content="[^"]*">/, '<meta property="og:title" content="' + esc(title) + ' | ED Sidekick">');
+  html = html.replace(/<meta property="og:url" content="[^"]*">/, '<meta property="og:url" content="' + SITE + '/' + name + '">');
   return html.replace(/^<!doctype html>\n?/i, '<!doctype html>\n' + head);
 }
 
