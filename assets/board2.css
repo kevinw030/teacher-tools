@@ -197,3 +197,7 @@ div.note-area:empty::before { content: attr(data-ph); opacity: .45; }
 .widget.box-clear:hover, .widget.box-clear:focus-within { border-color: transparent; outline: none; }
 .widget.box-clear.active { border-color: rgba(255,255,255,.7); outline: 2px dashed rgba(14,17,32,.35); outline-offset: -2px; }
 .widget.box-clear:hover .w-resize, .widget.box-clear:focus-within .w-resize { opacity: 0; } .widget.box-clear.active .w-resize { opacity: 1; }
+
+/* Scenic photo backgrounds: wider tiles in the picker */
+.bg-swatch.photo { grid-column: span 2; aspect-ratio: 16 / 9; }
+.bg-swatch.photo span { font-size: 12px; padding: 4px 0; background: rgba(0, 0, 0, .45); }

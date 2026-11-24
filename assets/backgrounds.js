@@ -5,6 +5,23 @@
   var stripes = function (a, b, w) { return 'repeating-linear-gradient(45deg, ' + a + ' 0 ' + w + 'px, ' + b + ' ' + w + 'px ' + (w * 2) + 'px)'; };
 
   window.TT.BACKGROUNDS = [
+    // Real photos (Kevin, 2026-11-24). Public domain / CC0 pictures from Wikimedia Commons, credits in assets/scenes/CREDITS.md.
+    // 'thumb' is a tiny copy for the picker so opening it does not download every full photo.
+    { group: 'Scenic Photos', items: [
+      { id: 'scene-mountain-lake', name: 'Mountain Lake', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/mountain-lake.webp"), #626772', thumb: 'center / cover no-repeat url("/assets/scenes/mountain-lake-thumb.webp"), #626772' },
+      { id: 'scene-snowy-peaks', name: 'Snowy Peaks', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/snowy-peaks.webp"), #6f7a96', thumb: 'center / cover no-repeat url("/assets/scenes/snowy-peaks-thumb.webp"), #6f7a96' },
+      { id: 'scene-lavender-field', name: 'Lavender Field', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/lavender-field.webp"), #68768b', thumb: 'center / cover no-repeat url("/assets/scenes/lavender-field-thumb.webp"), #68768b' },
+      { id: 'scene-lavender-farm', name: 'Lavender Farm', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/lavender-farm.webp"), #545f65', thumb: 'center / cover no-repeat url("/assets/scenes/lavender-farm-thumb.webp"), #545f65' },
+      { id: 'scene-desert-stars', name: 'Desert Stars', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/desert-stars.webp"), #124778', thumb: 'center / cover no-repeat url("/assets/scenes/desert-stars-thumb.webp"), #124778' },
+      { id: 'scene-starry-forest', name: 'Starry Forest', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/starry-forest.webp"), #273f61', thumb: 'center / cover no-repeat url("/assets/scenes/starry-forest-thumb.webp"), #273f61' },
+      { id: 'scene-planet-earth', name: 'Planet Earth', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/planet-earth.webp"), #383b40', thumb: 'center / cover no-repeat url("/assets/scenes/planet-earth-thumb.webp"), #383b40' },
+      { id: 'scene-ocean-sunset', name: 'Ocean Sunset', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/ocean-sunset.webp"), #7c5329', thumb: 'center / cover no-repeat url("/assets/scenes/ocean-sunset-thumb.webp"), #7c5329' },
+      { id: 'scene-green-mountains', name: 'Green Mountains', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/green-mountains.webp"), #5a7370', thumb: 'center / cover no-repeat url("/assets/scenes/green-mountains-thumb.webp"), #5a7370' },
+      { id: 'scene-northern-lights', name: 'Northern Lights', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/northern-lights.webp"), #647b8e', thumb: 'center / cover no-repeat url("/assets/scenes/northern-lights-thumb.webp"), #647b8e' },
+      { id: 'scene-aurora-lake', name: 'Aurora Lake', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/aurora-lake.webp"), #3f778e', thumb: 'center / cover no-repeat url("/assets/scenes/aurora-lake-thumb.webp"), #3f778e' },
+      { id: 'scene-canyon', name: 'Canyon', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/canyon.webp"), #7b7f84', thumb: 'center / cover no-repeat url("/assets/scenes/canyon-thumb.webp"), #7b7f84' },
+      { id: 'scene-autumn-forest', name: 'Autumn Forest', photo: true, dark: true, css: 'center / cover no-repeat url("/assets/scenes/autumn-forest.webp"), #5e533c', thumb: 'center / cover no-repeat url("/assets/scenes/autumn-forest-thumb.webp"), #5e533c' }
+    ] },
     { group: 'Gradients', items: [
       { id: 'morning', name: 'Warm Morning', css: 'radial-gradient(circle at 10% 8%,#FFE2A6 0%,transparent 52%),radial-gradient(circle at 92% 96%,#FFC3A0 0%,transparent 55%),radial-gradient(circle at 85% 10%,#FFE9D2 0%,transparent 45%),#FBEFDD' },
       { id: 'sky', name: 'Sky', css: 'linear-gradient(135deg,#8EC5FF 0%,#C9B8FF 100%)' },

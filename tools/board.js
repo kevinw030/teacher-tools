@@ -52,7 +52,7 @@
       (TT.BACKGROUNDS || []).map(function (g) {
         return h('div', { class: 'bg-group' }, h('h4', { text: g.group }),
           h('div', { class: 'bg-grid' }, g.items.map(function (b) {
-            return h('button', { type: 'button', class: 'bg-swatch', 'data-bg': b.id, style: 'background:' + b.css, title: b.name, onclick: function () { setBg(b.id); } },
+            return h('button', { type: 'button', class: 'bg-swatch' + (b.photo ? ' photo' : ''), 'data-bg': b.id, style: 'background:' + (b.thumb || b.css), title: b.name, onclick: function () { setBg(b.id); } },
               h('span', { text: b.name }));
           })));
       }));
@@ -135,7 +135,7 @@
       if (st.bg === 'color') return st.customColor || '#7CC8FF';
       if (st.bg === 'photo') return '#555';
       var b = allBackgrounds().filter(function (x) { return x.id === st.bg; })[0];
-      return b ? b.css : '#8EC5FF';
+      return b ? (b.thumb || b.css) : '#8EC5FF';
     }
     function unrenderAll() {
       if (TT.closeLookPop) TT.closeLookPop();
