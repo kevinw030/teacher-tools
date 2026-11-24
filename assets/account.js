@@ -44,6 +44,7 @@
       ['Trivia Showdown', 'Quiz-show game for 1 to 4 teams, with your own questions too'],
       ['Your Own Bingo Word Lists', 'Any words you teach, with clues, saved for next time'],
       ['Customize Your Home Page', 'Your own categories, with tiles in your order'],
+      ['Theme Colors', 'Pick a color for the whole site: Ocean, Forest, Sunset, Berry or Grape'],
       ['Customize Morning Meeting', 'Move the tiles and add extra widgets'],
       ['The Last ' + PLANS.premium.tickets + ' Exit Tickets']
     ],

@@ -19,7 +19,7 @@
     bingoLists: ['Make Your Own Bingo Lists', 'Type or paste the words you teach, add clues, and save your lists to use again. The ready-made lists and Math Facts stay free.'],
     bingo: ['Class Bingo Is a Plus Game', 'Bingo cards made from your vocabulary words or math facts. Play on the board, print a class set, or let students join on their own devices with a class code.'],
     morning: ['Make Morning Meeting Your Own', 'Drag the tiles into your own order, change their size, and add extra widgets like today’s schedule, a countdown, a class poll or a sticky note. The standard page stays free.'],
-    dashboard: ['Make Your Home Page Your Own', 'Make your own categories, then drag your tools and games into the order you use them. Your layout is saved to your account.'],
+    dashboard: ['Make Your Home Page Your Own', 'Make your own categories, then drag your tools and games into the order you use them. Pick a theme color for the whole site, too. It is all saved to your account.'],
     plan: ['ED Sidekick Plus', 'Every escape room, Trivia Showdown, Seating Chart, Prompts and room for every class.']
   };
 

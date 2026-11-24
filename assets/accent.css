@@ -1,0 +1,38 @@
+/* Theme Colors (tools/accent.js): <html data-accent="ocean"> re-tints the whole site. Classic has no attribute.
+   Each color sets the page wash, soft surfaces and lines, the main buttons, focus ring and the home banner.
+   Tool colors (coral timer, violet picker…) and game stages keep their own colors. */
+:root[data-accent="ocean"] { --accent: #0B6FB8; --accent-ink: #fff; --bg: #EEF4F8; --surface-2: #E1EBF2; --line: #D3E0EA; --focus: #0B6FB8; --wel-a: #0C3A63; --wel-b: #125087; --wel-c: #1A66A8; }
+:root[data-accent="forest"] { --accent: #1F7A4D; --accent-ink: #fff; --bg: #EFF4EC; --surface-2: #E2EBDD; --line: #D3DFCC; --focus: #1F7A4D; --wel-a: #12442C; --wel-b: #1A5C3C; --wel-c: #23754D; }
+:root[data-accent="sunset"] { --accent: #C44A15; --accent-ink: #fff; --bg: #FBF0E6; --surface-2: #F4E3D3; --line: #EBD5C1; --focus: #C44A15; --wel-a: #6E2410; --wel-b: #8F3214; --wel-c: #B0441B; }
+:root[data-accent="berry"] { --accent: #B8246E; --accent-ink: #fff; --bg: #F8EEF3; --surface-2: #F0DFE8; --line: #E6CFDB; --focus: #B8246E; --wel-a: #5A1038; --wel-b: #77174B; --wel-c: #96205F; }
+:root[data-accent="grape"] { --accent: #6A3FD0; --accent-ink: #fff; --bg: #F2EFFA; --surface-2: #E6E0F5; --line: #D9D1EE; --focus: #6A3FD0; --wel-a: #2C1A6B; --wel-b: #3B258F; --wel-c: #4E31B0; }
+@media (prefers-color-scheme: dark) { :root[data-accent="ocean"]:not([data-theme="light"]) { --accent: #5DB5F0; --accent-ink: #14121F; --bg: #0B1218; --surface: #131C25; --surface-2: #1B2733; --line: #263545; --focus: #5DB5F0; } }
+:root[data-accent="ocean"][data-theme="dark"] { --accent: #5DB5F0; --accent-ink: #14121F; --bg: #0B1218; --surface: #131C25; --surface-2: #1B2733; --line: #263545; --focus: #5DB5F0; }
+@media (prefers-color-scheme: dark) { :root[data-accent="forest"]:not([data-theme="light"]) { --accent: #5FD08F; --accent-ink: #14121F; --bg: #0C130E; --surface: #141E17; --surface-2: #1C2A20; --line: #28392C; --focus: #5FD08F; } }
+:root[data-accent="forest"][data-theme="dark"] { --accent: #5FD08F; --accent-ink: #14121F; --bg: #0C130E; --surface: #141E17; --surface-2: #1C2A20; --line: #28392C; --focus: #5FD08F; }
+@media (prefers-color-scheme: dark) { :root[data-accent="sunset"]:not([data-theme="light"]) { --accent: #FF9B63; --accent-ink: #14121F; --bg: #16100B; --surface: #201811; --surface-2: #2C2118; --line: #3B2D21; --focus: #FF9B63; } }
+:root[data-accent="sunset"][data-theme="dark"] { --accent: #FF9B63; --accent-ink: #14121F; --bg: #16100B; --surface: #201811; --surface-2: #2C2118; --line: #3B2D21; --focus: #FF9B63; }
+@media (prefers-color-scheme: dark) { :root[data-accent="berry"]:not([data-theme="light"]) { --accent: #FF7FB6; --accent-ink: #14121F; --bg: #150C11; --surface: #1F131A; --surface-2: #2B1B25; --line: #3A2632; --focus: #FF7FB6; } }
+:root[data-accent="berry"][data-theme="dark"] { --accent: #FF7FB6; --accent-ink: #14121F; --bg: #150C11; --surface: #1F131A; --surface-2: #2B1B25; --line: #3A2632; --focus: #FF7FB6; }
+@media (prefers-color-scheme: dark) { :root[data-accent="grape"]:not([data-theme="light"]) { --accent: #A98BFF; --accent-ink: #14121F; --bg: #100D18; --surface: #191526; --surface-2: #231E35; --line: #2F2947; --focus: #A98BFF; } }
+:root[data-accent="grape"][data-theme="dark"] { --accent: #A98BFF; --accent-ink: #14121F; --bg: #100D18; --surface: #191526; --surface-2: #231E35; --line: #2F2947; --focus: #A98BFF; }
+
+/* Main buttons take the accent, except inside game stages and the board, which keep their own look. */
+:root[data-accent] .btn.primary:not(.ar-stage *, .board *, .join-go, .dash-done, .pen2 *, .pen-bar *, .tm2-timer *) { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+:root[data-accent] .btn.primary:not(.ar-stage *, .board *, .join-go, .dash-done, .pen2 *, .pen-bar *, .tm2-timer *):hover { background: color-mix(in srgb, var(--accent) 88%, #000); }
+:root[data-accent] .eyebrow::before { background: var(--accent); }
+:root[data-accent] .tool-head .eyebrow::before { background: var(--c, var(--accent)); }
+:root[data-accent] .nav a.active, :root[data-accent] .nav-drop.active { color: var(--accent); }
+:root[data-accent] a.dash-link, :root[data-accent] .site-foot a:hover { color: var(--accent); }
+:root[data-accent] #view-home > section.welcome { --wel-bg: var(--wel-a); --wel-bg2: var(--wel-b); --wel-row: var(--wel-c); }
+:root[data-accent] ::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+
+/* ---------- The picker, in the Customize bar on the home page ---------- */
+.dash-theme { display: flex; align-items: center; gap: var(--s3, 12px); flex-wrap: wrap; margin-top: var(--s3, 12px); padding-top: var(--s3, 12px); border-top: 1px solid var(--line); }
+.dash-theme-t { font: 800 15px var(--display); }
+.dash-swatches { display: flex; gap: var(--s2, 8px); flex-wrap: wrap; }
+.dash-sw { display: inline-flex; align-items: center; gap: 8px; padding: 5px 14px 5px 5px; border-radius: 99px; border: 2px solid var(--line); background: var(--surface); color: var(--ink); font: 700 14.5px var(--body); cursor: pointer; transition: transform .35s var(--spring), border-color .15s; }
+.dash-sw:hover { transform: translateY(-2px); }
+.dash-sw i { width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, var(--a) 0 50%, var(--b) 50% 100%); box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+.dash-sw.on { border-color: var(--a); box-shadow: 0 0 0 3px color-mix(in srgb, var(--a) 22%, transparent); }
+@media (prefers-reduced-motion: reduce) { .dash-sw { transition: none; } }

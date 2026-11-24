@@ -137,6 +137,8 @@
   }
   function finish(save) {
     if (!editing) return;
+    if (TT.accent) { if (save && pickedAccent) TT.accent.set(pickedAccent); else TT.accent.apply(); }
+    pickedAccent = null;
     if (save) {
       readDom();
       layout = normalize(serialize(draft));
@@ -185,6 +187,21 @@
     sec.paintSize = paintSize; paintSize();
     return sec;
   }
+  // Theme Colors: one accent color for the whole site (tools/accent.js). It previews right away and is kept on Done.
+  var pickedAccent = null;
+  function themeRow() {
+    if (!TT.accent || !TT.ACCENTS) return null;
+    var now = pickedAccent || TT.accent.get();
+    var row = h('div', { class: 'dash-swatches', role: 'radiogroup', 'aria-label': 'Theme color' }, TT.ACCENTS.map(function (a) {
+      var b = h('button', { type: 'button', class: 'dash-sw' + (a.id === now ? ' on' : ''), role: 'radio', 'aria-checked': a.id === now ? 'true' : 'false', style: '--a:' + a.a + ';--b:' + a.b, onclick: function () {
+        pickedAccent = a.id; TT.accent.preview(a.id);
+        [].forEach.call(row.children, function (x) { x.classList.toggle('on', x === b); x.setAttribute('aria-checked', x === b ? 'true' : 'false'); });
+        say(a.name + ' colors. Press Done to keep them.');
+      } }, h('i', { 'aria-hidden': 'true' }), a.name);
+      return b;
+    }));
+    return h('div', { class: 'dash-theme' }, h('span', { class: 'dash-theme-t', text: 'Theme Colors' }), row);
+  }
   function paintEdit() {
     clear(); closeMenu();
     document.body.classList.add('dash-editing'); home.classList.add('dash-edit');
@@ -197,7 +214,7 @@
     var main = h('div', { class: 'dash-bar-main' },
       h('div', { class: 'dash-bar-text' }, h('h2', { text: 'Customize Your Home' }), count),
       h('div', { class: 'dash-bar-btns' }, addBtn, resetBtn, cancel, done));
-    bar = h('div', { class: 'dash-bar glass', role: 'region', 'aria-label': 'Customize your home page' }, main);
+    bar = h('div', { class: 'dash-bar glass', role: 'region', 'aria-label': 'Customize your home page' }, main, themeRow());
     bar.paintCount = function () {
       count.textContent = matchMedia('(pointer: coarse)').matches ? 'Hold a tile, then drag it. Tap ••• to move or remove it.' : 'Drag tiles to move them, or tap ••• to move or remove one.';
     };
