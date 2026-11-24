@@ -62,3 +62,12 @@
   .cq2 .cq-form { padding: 16px; }
 }
 @media (prefers-reduced-motion: reduce) { .cq-tab.seg, .cq2 .cq-item { transition: none; } .cq-tab.seg:hover, .cq2 .cq-item:hover { transform: none; } }
+
+/* ---------- Phone polish (site-wide check, 2026-11-24) ---------- */
+.picked-head { flex-wrap: wrap; gap: 4px 12px; }
+@media (max-width: 760px) {
+  .segmented .seg { flex: 1 1 auto; padding-inline: 10px; font-size: 14.5px; }
+  .tv-teams .segmented { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+  .ar-team:has(.ar-team-sub:not(:empty)) { padding-bottom: 14px; }
+  .ar-team { column-gap: 6px; padding-right: 8px; } .ar-team-name { font-size: 13px; }
+}

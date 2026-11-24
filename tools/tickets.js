@@ -87,8 +87,9 @@
           h('button', { type: 'button', class: 'cq-x', 'aria-label': 'Delete this ticket', title: 'Delete', html: TT.icon('trash'), onclick: function () { state.saved.splice(i, 1); save(); paint(); } })));
       });
       var keep = TT.limit ? TT.limit('tickets') : 50;
-      root.append(h('h3', { class: 'cq-h', text: 'Past Tickets (' + state.saved.length + ')' }),
-        TT.premium && !TT.premium.has() ? TT.upsell('Your last ' + keep + ' tickets are kept. Plus keeps your last 50.') : null, list);
+      root.append(h('h3', { class: 'cq-h', text: 'Past Tickets (' + state.saved.length + ')' }));
+      if (TT.premium && !TT.premium.has()) root.append(TT.upsell('Your last ' + keep + ' tickets are kept. Plus keeps your last 50.'));
+      root.append(list);
     }
 
     // ----- 2. Students answer -----

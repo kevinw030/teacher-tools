@@ -2,7 +2,7 @@
    (tools/arcade.js, tools/arcade2.js). Same family as the Word Guess stage: ink outline, hard shadow, bright scene. ---------- */
 #view-tic-tac-toe > .panel, #view-four-in-a-row > .panel, #view-memory-match > .panel, #view-code-breaker > .panel, #view-riddle > .panel { padding: clamp(10px, 1.2vw, 16px); }
 .game.ar { gap: 14px; }
-.ar-stage { --ink: #1B1740; --turn: #fff; position: relative; width: 100%; overflow: hidden; isolation: isolate; color: var(--ink);
+.ar-stage { --ink: #1B1740; --turn: #fff; --surface: #FFFFFF; --surface-2: #EEF0F6; --muted: #5E6378; --line: #E3E6EF; --bg: #F5F6FA; color-scheme: light; position: relative; width: 100%; overflow: hidden; isolation: isolate; color: var(--ink);
   display: flex; flex-direction: column; gap: clamp(10px, 1.6vw, 20px);
   padding: clamp(12px, 1.8vw, 22px) clamp(12px, 2vw, 28px) clamp(16px, 2.2vw, 26px);
   border-radius: 26px; border: 3px solid var(--ink); box-shadow: 0 6px 0 var(--ink); }
