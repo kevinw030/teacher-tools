@@ -18,12 +18,12 @@ window.TT_ACCOUNT_CONFIG = {
   // Plus yearly $34.99 (Kevin's price, about 27% off twelve months). Early Access (people who join before earlyUntil;
   // the early prices hide themselves after that date): monthly 25% off ($2.99), yearly $29.99 (about 37% off twelve months).
 
-  // TEST MODE (sandbox) links for now. Swap for the live links right after testing.
+  // Live Stripe links (tested in the sandbox 2026-11-23).
   // Plus. From Stripe: Payment Links for the four Plus prices. Leave empty until payments are ready.
-  premiumMonthlyLink: 'https://buy.stripe.com/test_6oUeVcbjE3Uxc1fcCVc3m00',  // Plus monthly, $3.99
-  premiumYearlyLink: 'https://buy.stripe.com/test_7sY28q2N88aNaXb8mFc3m03',   // Plus yearly, $34.99
-  earlyMonthlyLink: 'https://buy.stripe.com/test_6oU6oGafAdv72qF9qJc3m02',    // Plus Early Access monthly, $2.99
-  earlyYearlyLink: 'https://buy.stripe.com/test_bJe9ASdrM76J1mB5atc3m04',     // Plus Early Access yearly, $29.99
+  premiumMonthlyLink: 'https://buy.stripe.com/28E9AS0Nv1CX58pd7a57W00',  // Plus monthly, $3.99
+  premiumYearlyLink: 'https://buy.stripe.com/7sY00ibs9a9t9oF7MQ57W07',   // Plus yearly, $34.99
+  earlyMonthlyLink: 'https://buy.stripe.com/eVqcN4gMt2H158p6IM57W01',    // Plus Early Access monthly, $2.99
+  earlyYearlyLink: 'https://buy.stripe.com/dRm4gy0Nv0yTdEV8QU57W06',     // Plus Early Access yearly, $29.99
   priceMonthly: '$3.99',
   priceYearly: '$34.99',
   earlyPriceMonthly: '$2.99',
@@ -45,7 +45,7 @@ window.TT_ACCOUNT_CONFIG = {
   topEarlyYearlyLink: '',
 
   // From Stripe: the customer portal link, so members can change or cancel their plan.
-  manageLink: 'https://billing.stripe.com/p/login/test_6oUeVcbjE3Uxc1fcCVc3m00',
+  manageLink: 'https://billing.stripe.com/p/login/28E9AS0Nv1CX58pd7a57W00',
 
   // Class lists, class jobs, seating charts and exit tickets can hold students' names.
   // 'never' keeps them on each computer only, 'choose' gives each teacher an on/off switch,
