@@ -400,3 +400,55 @@ img.pet-art-icon { width: 60px; height: 60px; margin: -4px 0; object-fit: contai
 @media (prefers-reduced-motion: reduce) { .pa-body { animation: none !important; } }
 .page.fs .pet-scene { max-width: 760px; margin-left: auto; margin-right: auto; width: 100%; }
 .mm-weather:has(+ .mm-card[hidden]) { grid-column: 1 / -1; }
+
+/* ---------- Group Maker (tools/groups.js), 2026-11-24 look ---------- */
+.gm { display: flex; flex-direction: column; gap: var(--s4); }
+.gm-deck { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--s4) var(--s5); padding: var(--s4); border-radius: 22px;
+  background: linear-gradient(120deg, color-mix(in srgb, var(--amber) 16%, var(--surface)), color-mix(in srgb, var(--coral) 12%, var(--surface))); border: 1px solid color-mix(in srgb, var(--amber) 28%, var(--line)); }
+.gm-field { display: flex; flex-direction: column; gap: var(--s2); min-width: 0; }
+.gm-lab { font-weight: 800; font-size: 12.5px; letter-spacing: .08em; text-transform: uppercase; color: color-mix(in srgb, var(--amber) 45%, var(--ink)); }
+.gm-deck .segmented { background: color-mix(in srgb, var(--surface) 70%, transparent); }
+.gm-stepper { display: inline-flex; align-items: center; gap: var(--s2); padding: 4px; border-radius: 16px; background: color-mix(in srgb, var(--surface) 70%, transparent); }
+.gm-step { appearance: none; cursor: pointer; width: 40px; height: 40px; border-radius: 12px; border: 0; display: grid; place-items: center; background: var(--surface); color: var(--ink); box-shadow: var(--shadow-sm); transition: transform .4s var(--spring); }
+.gm-step svg { width: 18px; height: 18px; stroke-width: 2.6; }
+.gm-step:hover { transform: scale(1.08); } .gm-step:active { transform: scale(.88); transition-duration: .08s; }
+.gm-n { min-width: 46px; text-align: center; font: 900 30px/1 var(--display); font-variant-numeric: tabular-nums; }
+.gm-n.bump { animation: gm-bump .45s var(--spring); }
+@keyframes gm-bump { 0% { transform: scale(1.5) rotate(-8deg); } 100% { transform: none; } }
+.gm-go { appearance: none; cursor: pointer; margin-left: auto; display: inline-flex; align-items: center; gap: var(--s3); padding: 14px 26px 14px 18px; border: 0; border-radius: 18px; color: #fff;
+  font: 800 19px/1 var(--display); background: linear-gradient(135deg, #F2643D, #E5397A); box-shadow: 0 6px 0 #B02A5B, 0 14px 24px -10px rgba(229, 57, 122, .7); transition: transform .4s var(--spring), box-shadow .15s ease; }
+.gm-go:hover { transform: translateY(-2px); } .gm-go:active { transform: translateY(4px); box-shadow: 0 2px 0 #B02A5B; transition-duration: .06s; }
+.gm-go:focus-visible { outline: 4px solid var(--focus); outline-offset: 3px; }
+.gm-go-ico { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; background: rgba(255, 255, 255, .22); }
+.gm-go-ico svg { width: 20px; height: 20px; stroke-width: 2.4; }
+.gm-go:hover .gm-go-ico svg { animation: gm-spin .6s var(--spring); } .gm-go.busy .gm-go-ico svg { animation: gm-spin .7s linear infinite; }
+@keyframes gm-spin { to { transform: rotate(360deg); } }
+.gm-hint { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); }
+.gm-pill { padding: 6px 14px; border-radius: 999px; background: var(--surface-2); font-weight: 700; font-size: 15px; color: var(--muted); }
+.gm-pill.strong { background: color-mix(in srgb, var(--emerald) 16%, var(--surface)); color: color-mix(in srgb, var(--emerald) 70%, var(--ink)); }
+.gm-pill.warn { background: color-mix(in srgb, var(--rose) 14%, var(--surface)); color: color-mix(in srgb, var(--rose) 75%, var(--ink)); }
+.gm-arrow { display: grid; color: var(--muted); } .gm-arrow svg { width: 18px; height: 18px; }
+.gm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--s4); align-items: start; }
+.gm-grid.few { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.gm-card { position: relative; border-radius: 22px; background: var(--surface); border: 2px solid color-mix(in srgb, var(--c) 32%, var(--line)); box-shadow: 0 6px 0 color-mix(in srgb, var(--c) 26%, var(--surface)), var(--shadow-sm); overflow: hidden; }
+.gm-card.deal { animation: gm-deal .7s var(--spring) calc(var(--i) * 55ms) both; }
+@keyframes gm-deal { from { opacity: 0; transform: translateY(40px) rotate(calc((var(--i) - 2) * 3deg)) scale(.8); } }
+.gm-card-head { display: flex; align-items: center; gap: var(--s3); padding: var(--s3) var(--s4); background: color-mix(in srgb, var(--c) 14%, var(--surface)); }
+.gm-card-head h3 { margin: 0; flex: 1; min-width: 0; font-size: 19px; font-weight: 800; line-height: 1.1; }
+.gm-badge { flex: none; width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: var(--c); color: #fff; font: 900 22px/1 var(--display); transform: rotate(-4deg); }
+.gm-badge.pic { background: color-mix(in srgb, var(--c) 22%, var(--surface)); width: 52px; height: 52px; margin: -4px 0; }
+.gm-badge.pic img { width: 46px; height: 46px; object-fit: contain; filter: drop-shadow(0 3px 3px rgba(14, 17, 32, .18)); }
+.gm-count { flex: none; min-width: 30px; height: 30px; padding: 0 8px; border-radius: 999px; display: grid; place-items: center; background: var(--c); color: #fff; font: 800 15px/1 var(--display); font-variant-numeric: tabular-nums; }
+.gm-names { list-style: none; margin: 0; padding: var(--s3); display: flex; flex-direction: column; gap: 6px; min-height: 52px; }
+.gm-names li { padding: 8px 12px; border-radius: 12px; background: color-mix(in srgb, var(--c) 8%, var(--surface-2)); font-weight: 700; font-size: 17px; overflow-wrap: anywhere; }
+.gm-names li.in { animation: gm-name .5s var(--spring) both; }
+@keyframes gm-name { from { opacity: 0; transform: translateY(-14px) scale(.7); background: var(--c); color: #fff; } }
+.gm-grid.done .gm-badge { animation: gm-cheer .8s var(--spring); }
+@keyframes gm-cheer { 30% { transform: rotate(10deg) scale(1.25) translateY(-6px); } 60% { transform: rotate(-10deg) scale(1.1); } }
+.gm-empty { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; gap: var(--s2); padding: var(--s6) var(--s4); border-radius: 22px; border: 2px dashed var(--line); text-align: center; }
+.gm-empty h3 { margin: 0; font-size: 24px; font-weight: 800; } .gm-empty p { margin: 0; color: var(--muted); }
+.gm-parade { display: flex; gap: var(--s2); margin-bottom: var(--s2); }
+.gm-parade img { width: clamp(44px, 7vw, 68px); aspect-ratio: 1; object-fit: contain; animation: gm-bob 2.2s ease-in-out calc(var(--i) * -.4s) infinite; }
+@keyframes gm-bob { 50% { transform: translateY(-9px) rotate(calc((var(--i) - 2) * 3deg)); } }
+@media (max-width: 760px) { .gm-go { margin-left: 0; width: 100%; justify-content: center; } .gm-deck { gap: var(--s3); } .gm-grid, .gm-grid.few { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); } .gm-names li { font-size: 15px; padding: 6px 10px; } .gm-card-head { padding: var(--s2) var(--s3); gap: var(--s2); } .gm-card-head h3 { font-size: 16px; } .gm-badge.pic { width: 40px; height: 40px; } .gm-badge.pic img { width: 36px; height: 36px; } }
+@media (prefers-reduced-motion: reduce) { .gm-card.deal, .gm-names li.in, .gm-parade img, .gm-n.bump, .gm-grid.done .gm-badge, .gm-go-ico svg { animation: none !important; } }
