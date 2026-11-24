@@ -16,6 +16,8 @@
   TT.mountBingo = function (el) {
     var S = Object.assign({}, DEF, TT.load('bingo', {}));
     if (!S.text && S.kind === 'words') { S.text = B.SAMPLES[0].text; S.listName = B.SAMPLES[0].name; }
+    // A built-in list keeps its current name even if it was renamed since this was saved.
+    B.SAMPLES.forEach(function (l) { if (S.text === l.text && !S.lists.some(function (m) { return m.name === S.listName; })) S.listName = l.name; });
     function save() { TT.save('bingo', S); }
 
     var root = h('div', { class: 'bgo' });
@@ -51,62 +53,98 @@
         h('button', { type: 'button', class: 'btn icon-only', 'aria-label': 'More', html: TT.icon('plus'), onclick: function () { set(value + 1); } }));
     }
 
-    var previewSeed = 1;
+    var previewSeed = 1, editing = false;
     function paintSetup() {
       root.textContent = '';
-      root.className = 'bgo bgo-setup';
+      root.className = 'bgo bgo-setup v2';
       var list = items(), need = B.cellsNeeded(S.size, free()), enough = list.length >= need;
 
-      // ---- Step 1: words or facts ----
-      var s1 = h('section', { class: 'bgo-step c-violet' }, stepHead(1, 'Pick What Goes on the Cards'));
-      s1.append(seg([['words', 'Vocabulary Words'], ['math', 'Math Facts']], S.kind, function (k) { S.kind = k; save(); paintSetup(); }, 'Card type'));
+      // ---- Step 1: what goes on the cards ----
+      // A gallery of lists to pick from. The chosen list shows a short summary; its words only open up
+      // when the teacher asks to edit them, so the page stays tidy.
+      var s1 = h('section', { class: 'bgo-step c-violet' }, stepHead(1, 'Pick What Goes on the Cards', 'Choose a ready-made set, use one of your own lists, or make a new one.'));
+      var gallery = h('div', { class: 'bgo-gallery', role: 'group', 'aria-label': 'Lists to choose from' });
+      function pick(o) {
+        var b = h('button', { type: 'button', class: 'bgo-pick c-' + (o.color || 'violet') + (o.on ? ' on' : '') + (o.cls ? ' ' + o.cls : ''), 'aria-pressed': o.on ? 'true' : 'false', onclick: o.onclick },
+          h('span', { class: 'bgo-pick-art', 'aria-hidden': 'true' }, o.art ? h('img', { src: o.art, alt: '', draggable: 'false' }) : h('span', { class: 'bgo-pick-glyph', text: o.glyph || '' })),
+          h('span', { class: 'bgo-pick-text' }, h('strong', { text: o.name }), h('span', { text: o.meta })),
+          o.on ? h('span', { class: 'bgo-pick-check', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' }) : null);
+        return b;
+      }
+      function metaOf(text) {
+        var it = B.fromWords(text), pics = it.filter(function (i) { return B.pic(i.card); }).length, clues = it.filter(function (i) { return i.clue; }).length;
+        if (pics && pics === it.length) return it.length + ' pictures';
+        return it.length + (it.length === 1 ? ' word' : ' words') + (clues ? ' with clues' : '');
+      }
+      function choose(l) { S.kind = 'words'; S.text = l.text; S.listName = l.name; editing = false; save(); paintSetup(); }
+      var isMine = S.kind === 'words' && S.lists.some(function (l) { return l.name === S.listName && l.text === S.text; });
+      var isSample = S.kind === 'words' && !isMine && B.SAMPLES.some(function (l) { return l.text === S.text; });
+      var isNew = S.kind === 'words' && !isMine && !isSample;
+      B.SAMPLES.forEach(function (l) {
+        gallery.append(pick({ name: l.name, meta: metaOf(l.text), art: l.art, glyph: l.glyph, color: l.color, on: isSample && S.text === l.text, onclick: function () { choose(l); } }));
+      });
+      gallery.append(pick({ name: 'Math Facts', meta: 'Add, subtract, multiply, divide', glyph: '7×8', color: 'cobalt', cls: 'is-math', on: S.kind === 'math', onclick: function () { S.kind = 'math'; editing = false; save(); paintSetup(); } }));
+      S.lists.forEach(function (l) {
+        gallery.append(pick({ name: l.name, meta: metaOf(l.text) + ' · My List', glyph: '★', color: 'amber', cls: 'is-mine', on: isMine && S.listName === l.name, onclick: function () { choose(l); } }));
+      });
+      gallery.append(pick({ name: 'Make a New List', meta: 'Type or paste your own words', glyph: '+', color: 'rose', cls: 'is-new', on: isNew, onclick: function () {
+        S.kind = 'words'; S.text = ''; S.listName = ''; editing = true; save(); paintSetup();
+        setTimeout(function () { var t = root.querySelector('textarea'); if (t) t.focus(); }, 30);
+      } }));
+      s1.append(gallery);
+
+      var detail = h('div', { class: 'bgo-detail' });
+      s1.append(detail);
       if (S.kind === 'words') {
-        var chips = h('div', { class: 'bgo-lists', role: 'group', 'aria-label': 'Word lists' });
-        function chip(name, active, onclick, extra) {
-          return h('button', { type: 'button', class: 'chip' + (active ? ' on' : '') + (extra ? ' ' + extra : ''), 'aria-pressed': active ? 'true' : 'false', onclick: onclick }, name);
-        }
-        S.lists.forEach(function (l, i) {
-          chips.append(chip(l.name, S.listName === l.name && S.text === l.text, function () { S.text = l.text; S.listName = l.name; save(); paintSetup(); }, 'mine'));
-        });
-        B.SAMPLES.forEach(function (l) {
-          chips.append(chip(l.name, S.listName === l.name && S.text === l.text, function () { S.text = l.text; S.listName = l.name; save(); paintSetup(); }));
-        });
-        chips.append(chip('+ New List', false, function () { S.text = ''; S.listName = ''; save(); paintSetup(); setTimeout(function () { var t = root.querySelector('textarea'); if (t) t.focus(); }, 30); }, 'add'));
+        if (isNew) editing = true;
         var ta = h('textarea', { rows: 9, class: 'bgo-text', 'aria-label': 'Words, one per line',
           placeholder: 'Type or paste one word per line.\nAdd a clue after a colon if you like:\nhabitat: The natural home of a plant or animal' });
         ta.value = S.text;
-        var count = h('p', { class: 'bgo-count', 'aria-live': 'polite' });
+        var count = h('span', { class: 'bgo-badge', 'aria-live': 'polite' });
         var callBox = h('div', { class: 'bgo-call-what' });
         function recount() {
-          var it = B.fromWords(ta.value), clues = it.filter(function (i) { return i.clue; }).length;
-          count.textContent = it.length + (it.length === 1 ? ' word' : ' words') + (clues ? ', ' + clues + ' with clues' : '') + ' · a ' + sizeLabel(S.size) + ' card needs ' + need;
-          count.classList.toggle('short', it.length < need);
+          var it = B.fromWords(ta.value), clues = it.filter(function (i) { return i.clue; }).length, short = it.length < need;
+          count.textContent = short ? (need - it.length) + ' more needed for a ' + sizeLabel(S.size) + ' card' : it.length + (it.length === 1 ? ' word' : ' words') + ' · plenty for a ' + sizeLabel(S.size) + ' card';
+          count.classList.toggle('short', short);
           callBox.textContent = '';
-          if (clues) callBox.append(h('span', { class: 'bgo-lab', text: 'Call Out' }),
-            seg([[true, 'The Clue'], [false, 'The Word']], !!S.callClue, function (v) { S.callClue = v; save(); paintSetup(); }, 'What to call'));
+          if (clues) callBox.append(h('span', { class: 'bgo-lab', text: 'You Call Out' }),
+            seg([[true, 'The Clue'], [false, 'The Word']], !!S.callClue, function (v) { S.callClue = v; save(); paintSetup(); }, 'What to call'),
+            h('span', { class: 'bgo-opt-help', text: S.callClue ? 'Students hear the clue and find the word.' : 'Students hear the word and find it.' }));
         }
         var typing;
         ta.addEventListener('input', function () {
           S.text = ta.value; recount(); save();
-          clearTimeout(typing); typing = setTimeout(function () { paintPreview(); paintPlay(); }, 350);
+          clearTimeout(typing); typing = setTimeout(function () { paintPreview(); paintPlay(); paintSummary(); }, 350);
         });
         recount();
-        var nameIn = h('input', { type: 'text', class: 'bgo-name', maxlength: 40, placeholder: 'List Name, Like “Unit 3 Words”', 'aria-label': 'List name' });
-        nameIn.value = S.lists.some(function (l) { return l.name === S.listName; }) ? S.listName : '';
-        var mine = S.lists.findIndex(function (l) { return l.name === S.listName; });
-        var saveRow = h('div', { class: 'row bgo-save-row' }, nameIn,
-          TT.button(mine >= 0 ? 'Update List' : 'Save to My Lists', { kind: 'small', icon: 'download', onclick: function () {
-            var name = nameIn.value.trim() || S.listName || 'My Words';
-            if (!B.fromWords(ta.value).length) { nameIn.focus(); return; }
-            var at = S.lists.findIndex(function (l) { return l.name === name; });
-            var row = { name: name, text: ta.value };
-            if (at >= 0) S.lists[at] = row; else S.lists.unshift(row);
-            S.listName = name; save(); paintSetup(); toast('Saved “' + name + '” to My Lists');
-          } }),
-          mine >= 0 ? TT.button('Delete', { kind: 'small', icon: 'trash', onclick: function () {
-            S.lists.splice(mine, 1); S.listName = ''; save(); paintSetup();
-          } }) : null);
-        s1.append(chips, ta, count, callBox, saveRow);
+        var headName = isNew ? 'Your New List' : (S.listName || 'Vocabulary');
+        var editBtn = isNew ? null : TT.button(editing ? 'Done' : 'See and Edit the Words', { kind: editing ? 'small primary' : 'small', icon: editing ? null : 'edit', onclick: function () { editing = !editing; paintSetup(); } });
+        detail.append(h('div', { class: 'bgo-detail-head' }, h('div', null, h('h3', { text: headName }), count), editBtn));
+        if (editing) {
+          var nameIn = h('input', { type: 'text', class: 'bgo-name', maxlength: 40, placeholder: 'List Name, Like “Unit 3 Words”', 'aria-label': 'List name' });
+          nameIn.value = isMine ? S.listName : '';
+          var mine = isMine ? S.lists.findIndex(function (l) { return l.name === S.listName; }) : -1;
+          var saveRow = h('div', { class: 'row bgo-save-row' }, nameIn,
+            TT.button(mine >= 0 ? 'Update List' : 'Save to My Lists', { kind: 'small primary', icon: 'download', onclick: function () {
+              var name = nameIn.value.trim() || (isMine ? S.listName : '') || 'My Words';
+              if (!B.fromWords(ta.value).length) { ta.focus(); return; }
+              var at = S.lists.findIndex(function (l) { return l.name === name; });
+              var row = { name: name, text: ta.value };
+              if (at >= 0) S.lists[at] = row; else S.lists.unshift(row);
+              S.listName = name; editing = false; save(); paintSetup(); toast('Saved “' + name + '” to My Lists');
+            } }),
+            mine >= 0 ? TT.button('Delete', { kind: 'small', icon: 'trash', onclick: function () {
+              S.lists.splice(mine, 1); S.text = B.SAMPLES[0].text; S.listName = B.SAMPLES[0].name; editing = false; save(); paintSetup();
+            } }) : null);
+          detail.append(ta, h('p', { class: 'bgo-hint', text: 'One word per line. Add a clue after a colon if you like. Save it to use it again another day.' }), saveRow);
+        } else {
+          // A peek at what is in the list.
+          var all = B.fromWords(S.text), peek = h('div', { class: 'bgo-peek' });
+          all.slice(0, 10).forEach(function (i) { peek.append(h('span', { class: 'bgo-peek-item' }, B.picEl(i.card, 'bgo-peek-pic'), i.card)); });
+          if (all.length > 10) peek.append(h('button', { type: 'button', class: 'bgo-peek-more', onclick: function () { editing = true; paintSetup(); } }, '+' + (all.length - 10) + ' more'));
+          detail.append(peek);
+        }
+        detail.append(callBox);
       } else {
         var ops = h('div', { class: 'bgo-ops', role: 'group', 'aria-label': 'Operations' });
         [['add', '+', 'Add'], ['sub', '−', 'Subtract'], ['mul', '×', 'Multiply'], ['div', '÷', 'Divide']].forEach(function (o) {
@@ -120,41 +158,51 @@
         var range = h('div', { class: 'row bgo-range' },
           stepper('Numbers From', S.min, 0, 12, function (v) { S.min = Math.min(v, S.max); save(); paintSetup(); }),
           stepper('To', S.max, 1, 12, function (v) { S.max = Math.max(v, S.min); save(); paintSetup(); }));
-        var mc = h('p', { class: 'bgo-count' + (enough ? '' : ' short'), text: list.stretched
-          ? 'Enough answers for a ' + sizeLabel(S.size) + ' card. A few facts start with numbers up to ' + list.stretched + ', so every card is different.'
-          : list.length + ' different answers · a ' + sizeLabel(S.size) + ' card needs ' + need });
+        var mc = h('span', { class: 'bgo-badge' + (enough ? '' : ' short'), text: list.stretched
+          ? 'Enough answers for a ' + sizeLabel(S.size) + ' card'
+          : enough ? list.length + ' different answers · plenty for a ' + sizeLabel(S.size) + ' card' : (need - list.length) + ' more answers needed for a ' + sizeLabel(S.size) + ' card' });
         var ex = list.length ? list[Math.floor(list.length / 2)] : null;
-        s1.append(ops, range, mc, ex ? h('p', { class: 'bgo-hint', text: 'You call a fact like “' + ex.calls[0] + '”, and students look for ' + ex.card + ' on their card.' }) : null);
+        detail.append(h('div', { class: 'bgo-detail-head' }, h('div', null, h('h3', { text: 'Math Facts' }), mc)), ops, range,
+          ex ? h('p', { class: 'bgo-hint', text: 'You call a fact like “' + ex.calls[0] + '”, and students look for ' + ex.card + ' on their card.' + (list.stretched ? ' A few facts start with numbers up to ' + list.stretched + ', so every card is different.' : '') }) : null);
       }
 
       // ---- Step 2: the card ----
-      var s2 = h('section', { class: 'bgo-step c-sky' }, stepHead(2, 'Choose the Card'));
+      var s2 = h('section', { class: 'bgo-step c-sky' }, stepHead(2, 'Set Up the Card', 'These apply to every card in the game.'));
+      function optRow(label, help, control) {
+        return h('div', { class: 'bgo-opt' }, h('div', { class: 'bgo-opt-text' }, h('span', { class: 'bgo-lab', text: label }), help ? h('span', { class: 'bgo-opt-help', text: help }) : null), control);
+      }
       var opts = h('div', { class: 'bgo-card-opts' },
-        h('div', { class: 'bgo-opt' }, h('span', { class: 'bgo-lab', text: 'Card Size' }),
-          seg([[3, sizeLabel(3)], [4, sizeLabel(4)], [5, sizeLabel(5)]], S.size, function (v) { S.size = v; save(); paintSetup(); }, 'Card size')),
-        S.size % 2 ? h('div', { class: 'bgo-opt' }, h('span', { class: 'bgo-lab', text: 'Free Space' }),
-          seg([[true, 'On'], [false, 'Off']], !!S.free, function (v) { S.free = v; save(); paintSetup(); }, 'Free space in the middle')) : null,
-        h('div', { class: 'bgo-opt' }, h('span', { class: 'bgo-lab', text: 'To Win' }),
+        optRow('Card Size', B.cellsNeeded(S.size, free()) + ' squares to fill', seg([[3, sizeLabel(3)], [4, sizeLabel(4)], [5, sizeLabel(5)]], S.size, function (v) { S.size = v; save(); paintSetup(); }, 'Card size')),
+        S.size % 2 ? optRow('Free Space', 'A free square in the middle', seg([[true, 'On'], [false, 'Off']], !!S.free, function (v) { S.free = v; save(); paintSetup(); }, 'Free space in the middle')) : null,
+        optRow('How to Win', { line: 'A full row, column or diagonal', corners: 'All four corner squares', full: 'Every square on the card' }[S.pattern],
           seg(Object.keys(B.PATTERNS).map(function (k) { return [k, B.PATTERNS[k]]; }), S.pattern, function (v) { S.pattern = v; save(); paintSetup(); }, 'How to win')),
         // Guided play: students' cards light up the called answer and say "It's on your card!".
-        h('div', { class: 'bgo-opt' }, h('span', { class: 'bgo-lab', text: 'Guided Play' }),
-          seg([[false, 'Off'], [true, 'On']], !!S.guided, function (v) { S.guided = v; save(); paintSetup(); }, 'Guided play'),
-          h('span', { class: 'bgo-opt-help', text: S.guided ? 'Students’ cards light up the called answer and tell them it’s there. Good for younger players.' : 'Students find the answers on their own.' })));
+        optRow('Guided Play', S.guided ? 'Cards light up the called answer. Good for younger players.' : 'Students find the answers on their own.',
+          seg([[false, 'Off'], [true, 'On']], !!S.guided, function (v) { S.guided = v; save(); paintSetup(); }, 'Guided play')));
+      s2.append(opts);
+
+      // ---- Beside the steps: a live sample card ----
       var prevBox = h('div', { class: 'bgo-preview', 'aria-hidden': 'true' });
-      var shuffleBtn = TT.button('Shuffle Preview', { kind: 'small', icon: 'shuffle', onclick: function () { previewSeed++; paintPreview(); } });
-      s2.append(h('div', { class: 'bgo-card-row' }, opts, h('div', { class: 'bgo-prev-col' }, prevBox, shuffleBtn)));
+      var shuffleBtn = TT.button('Show Another', { kind: 'small', icon: 'shuffle', onclick: function () { previewSeed++; paintPreview(); } });
+      var summary = h('ul', { class: 'bgo-summary' });
+      var side = h('aside', { class: 'bgo-side', 'aria-label': 'Sample card' },
+        h('div', { class: 'bgo-side-head' }, h('h2', { text: 'Sample Card' }), shuffleBtn), prevBox, summary);
+      function paintSummary() {
+        summary.textContent = '';
+        [title(), sizeLabel(S.size) + (free() ? ' With a Free Space' : ''), B.PATTERNS[S.pattern] + ' Wins', S.guided ? 'Guided Play On' : null].forEach(function (t) { if (t) summary.append(h('li', { text: t })); });
+      }
       function paintPreview() {
         var it = items(); prevBox.textContent = '';
         if (it.length < B.cellsNeeded(S.size, free())) { prevBox.append(h('div', { class: 'bgo-prev-empty', text: 'Add more ' + (S.kind === 'math' ? 'facts' : 'words') + ' to see a card.' })); return; }
         var cells = B.makeCard(it.length, S.size, free(), 'preview' + previewSeed);
-        var demo = {}; B.lines(S.size, S.pattern)[S.pattern === 'line' ? 0 : 0].forEach(function (p) { demo[p] = true; });
+        var demo = {}; B.lines(S.size, S.pattern)[0].forEach(function (p) { demo[p] = true; });
         var c = B.cardEl({ cards: it.map(function (i) { return i.card; }), cells: cells, size: S.size, marked: demo });
         prevBox.append(c);
         requestAnimationFrame(function () { B.fitCells(prevBox); });
       }
 
       // ---- Step 3: how to play ----
-      var s3 = h('section', { class: 'bgo-step c-coral' }, stepHead(3, 'How Will You Play?'));
+      var s3 = h('section', { class: 'bgo-step c-coral' }, stepHead(3, 'How Will You Play?', 'Pick one to start.'));
       var playBox = h('div', { class: 'bgo-play' });
       s3.append(playBox);
       function paintPlay() {
@@ -194,12 +242,12 @@
             h('div', { class: 'row' },
               TT.button('Start New Game', { kind: 'primary big', icon: 'play', onclick: function () { if (items().length >= B.cellsNeeded(S.size, free())) start(true); else toast('Add more words, or pick a smaller card.'); } }),
               TT.button('Close Game', { kind: 'big', icon: 'close', onclick: function () { if (confirmEnd()) endGame(); } }))));
-        root.append(s1, s2, s3);
-        paintPreview();
+        root.append(s1, s2, side, s3);
+        paintPreview(); paintSummary();
         return;
       }
-      root.append(s1, s2, s3);
-      paintPreview(); paintPlay();
+      root.append(s1, s2, side, s3);
+      paintPreview(); paintPlay(); paintSummary();
     }
 
     // ================= Printing =================

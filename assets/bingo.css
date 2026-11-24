@@ -351,3 +351,67 @@ button.bc-cell:focus-visible { outline: 4px solid var(--focus); outline-offset: 
 .join-call.has-pic .join-call-n { flex-basis: 100%; }
 .join-call-pic { width: clamp(52px, 15vw, 84px); aspect-ratio: 1; object-fit: contain; }
 @media print { .bc-img { width: 78%; } }
+
+/* ---------- Setup screen, tidier layout (2026-11-24): steps on the left, a sample card that stays beside them ---------- */
+.bgo-setup.v2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 360px); grid-template-areas: "s1 side" "s2 side" "s3 side"; gap: var(--s4) var(--s5); align-items: start; }
+.bgo-setup.v2 > .bgo-step:nth-of-type(1) { grid-area: s1; } .bgo-setup.v2 > .bgo-step:nth-of-type(2) { grid-area: s2; } .bgo-setup.v2 > .bgo-step:nth-of-type(3) { grid-area: s3; }
+.bgo-setup.v2 .bgo-step { gap: var(--s4); background: var(--surface); border-color: var(--line); box-shadow: var(--shadow-sm); }
+.bgo-setup.v2 .bgo-step-head { align-items: flex-start; }
+.bgo-setup.v2 .bgo-step-head h2 { line-height: 1.15; padding-top: 2px; }
+.bgo-setup.v2 .bgo-step-head p { font-size: 15px; margin-top: 2px; }
+.bgo-side { grid-area: side; position: sticky; top: 84px; display: flex; flex-direction: column; gap: var(--s3); padding: var(--s4); border-radius: 24px; background: color-mix(in srgb, var(--sky) 9%, var(--surface)); border: 1px solid color-mix(in srgb, var(--sky) 22%, var(--line)); }
+.bgo-side-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); }
+.bgo-side-head h2 { margin: 0; font-size: 20px; font-weight: 800; }
+.bgo-side .bgo-preview .bc { transform: rotate(1.2deg); }
+.bgo-summary { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s1) var(--s2); }
+.bgo-summary li { padding: 4px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-weight: 700; font-size: 13px; color: var(--muted); }
+/* List gallery */
+.bgo-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: var(--s3); }
+.bgo-pick { position: relative; appearance: none; cursor: pointer; font: inherit; text-align: left; display: flex; align-items: center; gap: var(--s3); padding: var(--s3); border-radius: 18px; color: var(--ink);
+  background: var(--surface); border: 2px solid var(--line); transition: transform .45s var(--spring), border-color .15s ease, background .15s ease, box-shadow .2s ease; }
+.bgo-pick:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--c) 50%, var(--line)); }
+.bgo-pick:active { transform: scale(.96); transition-duration: .1s; }
+.bgo-pick:focus-visible { outline: 4px solid var(--focus); outline-offset: 2px; }
+.bgo-pick.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 10%, var(--surface)); box-shadow: 0 6px 18px -8px color-mix(in srgb, var(--c) 70%, transparent); }
+.bgo-pick-art { flex: none; width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: color-mix(in srgb, var(--c) 16%, var(--surface)); transition: transform .5s var(--spring); }
+.bgo-pick-art img { width: 44px; height: 44px; object-fit: contain; }
+.bgo-pick-glyph { font: 900 22px/1 var(--display); color: var(--c); letter-spacing: -.03em; }
+.bgo-pick:hover .bgo-pick-art, .bgo-pick.on .bgo-pick-art { transform: rotate(-6deg) scale(1.06); }
+.bgo-pick-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.bgo-pick-text strong { font: 800 16px/1.2 var(--display); }
+.bgo-pick-text span { font-size: 13.5px; color: var(--muted); line-height: 1.25; }
+.bgo-pick-check { position: absolute; top: -8px; right: -8px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--c); color: #fff; box-shadow: 0 0 0 3px var(--surface); animation: bgo-check .5s var(--spring) both; }
+.bgo-pick-check svg { width: 15px; height: 15px; stroke-width: 3; }
+@keyframes bgo-check { from { transform: scale(0) rotate(-40deg); } }
+.bgo-pick.is-new { border-style: dashed; }
+/* The chosen list */
+.bgo-detail { display: flex; flex-direction: column; gap: var(--s3); padding: var(--s4); border-radius: 18px; background: var(--surface-2); }
+.bgo-detail-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; }
+.bgo-detail-head > div { display: flex; align-items: center; gap: var(--s2) var(--s3); flex-wrap: wrap; }
+.bgo-detail-head h3 { margin: 0; font-size: 19px; font-weight: 800; }
+.bgo-badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-weight: 700; font-size: 13px; background: color-mix(in srgb, var(--emerald) 16%, var(--surface)); color: color-mix(in srgb, var(--emerald) 70%, var(--ink)); }
+.bgo-badge.short { background: color-mix(in srgb, var(--rose) 16%, var(--surface)); color: color-mix(in srgb, var(--rose) 75%, var(--ink)); }
+.bgo-peek { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.bgo-peek-item, .bgo-peek-more { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-weight: 700; font-size: 14px; }
+.bgo-peek-item:has(img) { padding-left: 6px; }
+.bgo-peek-pic { width: 26px; height: 26px; object-fit: contain; }
+.bgo-peek-more { appearance: none; cursor: pointer; font-family: inherit; color: var(--violet); border-style: dashed; }
+.bgo-peek-more:hover { border-color: var(--violet); }
+.bgo-detail .bgo-text { min-height: 180px; background: var(--surface); }
+.bgo-detail .bgo-hint { font-size: 14px; }
+.bgo-detail .bgo-op { background: var(--surface); }
+.bgo-detail .bgo-op.on { background: var(--c); }
+/* Card options: label and a short note on the left, the choice on the right */
+.bgo-setup.v2 .bgo-card-opts { gap: 0; }
+.bgo-setup.v2 .bgo-opt { justify-content: space-between; gap: var(--s2) var(--s4); padding: var(--s3) 0; border-top: 1px solid var(--line); }
+.bgo-setup.v2 .bgo-opt:first-child { border-top: 0; padding-top: 0; } .bgo-setup.v2 .bgo-opt:last-child { padding-bottom: 0; }
+.bgo-opt-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 200px; }
+.bgo-setup.v2 .bgo-lab { font-size: 16px; color: var(--ink); }
+.bgo-opt-help { font-size: 14px; color: var(--muted); }
+@media (max-width: 1100px) {
+  .bgo-setup.v2 { grid-template-columns: minmax(0, 1fr); grid-template-areas: "s1" "s2" "side" "s3"; }
+  .bgo-side { position: static; } .bgo-side .bgo-preview { max-width: 340px; margin: 0 auto; }
+}
+@media (max-width: 560px) { .bgo-gallery { grid-template-columns: 1fr; } .bgo-detail { padding: var(--s3); } }
+@media (prefers-reduced-motion: reduce) { .bgo-pick, .bgo-pick-art, .bgo-pick-check { transition: none; animation: none; } }
+.bgo-setup.v2 .bgo-card-opts { align-self: stretch; }

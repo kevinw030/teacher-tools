@@ -4,7 +4,7 @@
   B.SAMPLES = [
     // Picture Bingo: every word here has one of Kevin's stickers (see B.PIC_SETS in assets/bingo-core.js),
     // so the cards and the calls show pictures. No clues, so the caller shows the picture and its name.
-    { name: '🦃 Thanksgiving Pictures', text: [
+    { name: 'Thanksgiving Pictures', art: '/assets/bingo/thanksgiving/turkey.webp', color: 'coral', text: [
       'Turkey',
       'Pumpkin',
       'Corn',
@@ -54,7 +54,7 @@
       'Place Setting',
       'Dinner Bell'
     ].join('\n') },
-    { name: 'Ecosystems (Science)', text: [
+    { name: 'Ecosystems (Science)', art: '/assets/bingo/thanksgiving/fox.webp', color: 'emerald', text: [
       'habitat: The natural home of a plant or animal',
       'ecosystem: Living and nonliving things working together in one place',
       'producer: A living thing that makes its own food from sunlight',
@@ -82,7 +82,7 @@
       'nutrients: The good stuff in food and soil that helps things grow',
       'organism: Any single living thing'
     ].join('\n') },
-    { name: 'Math Words', text: [
+    { name: 'Math Words', glyph: '÷', color: 'sky', text: [
       'sum: The answer to an addition problem',
       'difference: The answer to a subtraction problem',
       'product: The answer to a multiplication problem',
@@ -110,7 +110,7 @@
       'symmetry: When both halves of a shape match',
       'polygon: A closed flat shape with straight sides'
     ].join('\n') },
-    { name: 'Reading Words', text: [
+    { name: 'Reading Words', glyph: 'Aa', color: 'violet', text: [
       'character: A person or animal in a story',
       'setting: Where and when a story takes place',
       'plot: What happens in a story from beginning to end',
