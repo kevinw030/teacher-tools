@@ -1,0 +1,49 @@
+/* Sidekick Live on the student's device: the join call on their home, the answer shapes, and what
+   happens after each question. One job per screen, big enough for the youngest players. */
+.pl-live-call { background: linear-gradient(150deg, #22C3A6, #0E8F7A); border-radius: 30px; padding: 22px; display: grid; justify-items: center; gap: 8px; text-align: center; color: #fff;
+  box-shadow: inset 0 -8px 0 rgba(0, 0, 0, .18), 0 20px 36px -18px rgba(34, 195, 166, .9); animation: pl-call 2.4s ease-in-out infinite; }
+@keyframes pl-call { 50% { transform: translateY(-4px) scale(1.01); } }
+.pl-live-call .pl-title { color: #fff; font-size: clamp(24px, 6vw, 32px); }
+.pl-live-call .pl-kicker { color: rgba(255, 255, 255, .8); }
+.pl-btn.big { font-size: 26px; padding: 20px 32px; }
+
+.pl-main.is-live { justify-content: center; }
+.pl-live-head { display: flex; align-items: center; justify-content: space-between; color: #fff; }
+.pl-timer { font: 900 30px/1 var(--display); background: rgba(255, 255, 255, .14); border-radius: 999px; width: 58px; height: 58px; display: grid; place-items: center; }
+.pl-timer-bar { height: 10px; border-radius: 999px; background: rgba(255, 255, 255, .16); overflow: hidden; }
+.pl-timer-bar i { display: block; height: 100%; width: 100%; background: #FFD23F; transform-origin: left; animation: pl-drain linear forwards; }
+@keyframes pl-drain { to { transform: scaleX(0); } }
+.pl-answers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pl-ans { appearance: none; border: 0; cursor: pointer; min-height: clamp(110px, 20vh, 180px); border-radius: 24px; background: var(--ac); color: #fff; display: grid; justify-items: center; align-content: center; gap: 8px;
+  padding: 14px; font: 900 clamp(19px, 5vw, 26px)/1.15 var(--display); box-shadow: inset 0 -8px 0 rgba(0, 0, 0, .22); transition: transform .12s ease; }
+.pl-ans:active { transform: scale(.96); box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .22); }
+.pl-ans-ico { width: 40px; line-height: 0; }
+.pl-ans-ico svg { width: 100%; }
+.pl-dots3 { display: flex; gap: 10px; }
+.pl-dots3 i { width: 14px; height: 14px; border-radius: 50%; background: #CFC9F0; animation: pl-wait 1.2s ease-in-out infinite; }
+.pl-dots3 i:nth-child(2) { animation-delay: .15s; } .pl-dots3 i:nth-child(3) { animation-delay: .3s; }
+@keyframes pl-wait { 50% { transform: translateY(-8px); background: #FF7A59; } }
+.pl-count-n { margin: 0; font: 900 clamp(70px, 24vw, 130px)/1 var(--display); color: #FF7A59; }
+.pl-count-n.pop { animation: pl-count .5s var(--spring); }
+@keyframes pl-count { from { transform: scale(.4); opacity: 0; } }
+.pl-locked-shape { width: 70px; line-height: 0; }
+.pl-locked-shape svg { width: 100%; }
+
+.pl-verdict-mark { width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center; color: #fff; animation: pl-mark .55s var(--spring) both; }
+.pl-verdict-mark svg { width: 54px; height: 54px; }
+@keyframes pl-mark { from { transform: scale(.3) rotate(-25deg); opacity: 0; } }
+.is-right .pl-verdict-mark { background: #22C3A6; }
+.is-wrong .pl-verdict-mark { background: #E9465A; }
+.pl-gain { margin: 0; font: 900 40px/1 var(--display); color: #22C3A6; animation: pl-gain .7s var(--spring) both; }
+@keyframes pl-gain { from { transform: translateY(16px) scale(.6); opacity: 0; } }
+.pl-score-row { display: flex; gap: 22px; justify-content: center; margin-top: 4px; }
+.pl-score-row div { display: grid; justify-items: center; }
+.pl-score-row b { font: 900 30px/1 var(--display); color: #2B1F66; }
+.pl-score-row span { font-size: 14px; color: #5A5285; }
+.pl-podium { display: flex; gap: 12px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
+.pl-pod { display: grid; justify-items: center; font: 800 16px/1.1 var(--display); color: #2B1F66; }
+.pl-pod-n { font-size: 13px; color: #8A7FD0; }
+.pl-pod-buddy { width: 58px; }
+@media (prefers-reduced-motion: reduce) { .pl-live-call, .pl-timer-bar i { animation: none !important; } }
+.pl-score-row { margin: 10px 0 2px; }
+.pl-podium { margin-top: 16px; gap: 16px; }

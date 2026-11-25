@@ -68,6 +68,7 @@
     });
   }
   P.client = client;
+  P.clientNow = function () { return sb; };
   function rpc(name, args) {
     return client().then(function (c) { return c.rpc(name, args); }).then(function (r) {
       if (r.error) throw r.error;

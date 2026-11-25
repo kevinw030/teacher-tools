@@ -93,7 +93,7 @@
         bar.append(h('button', { type: 'button', role: 'tab', class: 'lab-tab' + (t.id === cur ? ' on' : ''), 'aria-selected': t.id === cur ? 'true' : 'false',
           onclick: function () { if (cur === t.id) return; cur = t.id; if (hideCur) hideCur(); paint(); } }, t.title));
       });
-      if (tabs.length < 2) bar.append(h('span', { class: 'lab-soon', text: 'Game hosting and question sets come next' }));
+      if (all.length < 3) bar.append(h('span', { class: 'lab-soon', text: 'Question sets come next' }));
       el.append(bar, box);
       var t = all.filter(function (x) { return x.id === cur; })[0];
       var res = t.mount(box, ctx) || {};
