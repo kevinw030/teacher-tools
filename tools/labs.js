@@ -238,13 +238,42 @@
             }));
           } })));
       }
+      // Type a new 4-digit PIN for one student, right in the row.
+      function editPin(cell, s) {
+        if (cell.querySelector('input')) return;
+        var input = h('input', { class: 'lab-pin-in', type: 'text', inputmode: 'numeric', maxlength: 4, value: s.pin, 'aria-label': 'New PIN for ' + s.first_name });
+        var old = cell.textContent;
+        cell.textContent = '';
+        function stop() { showPins = true; paintTools(); paintTable(); }
+        function save() {
+          var v = input.value.replace(/[^0-9]/g, '');
+          if (v.length !== 4) { say('A PIN is 4 numbers, like 2714.'); input.focus(); return; }
+          if (students.some(function (x) { return x.id !== s.id && x.pin === v; })) { say('Another student in this class already has that PIN. Pick a different one.'); input.focus(); return; }
+          if (v === s.pin) { stop(); return; }
+          q(sb().from('lab_students').update({ pin: v, fails: 0, paused_until: null }).eq('id', s.id)).then(function () {
+            say(s.first_name + '’s PIN is now ' + v + '.'); reload();
+          }, function (e) { say(errText(e)); stop(); });
+        }
+        input.addEventListener('input', function () { input.value = input.value.replace(/[^0-9]/g, '').slice(0, 4); });
+        input.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') { e.preventDefault(); save(); }
+          if (e.key === 'Escape') { cell.textContent = ''; stop(); void old; }
+        });
+        cell.append(input,
+          TT.button('Save', { kind: 'small primary', onclick: save }),
+          TT.button('', { kind: 'small', icon: 'close', aria: 'Cancel', onclick: stop }));
+        input.focus(); input.select();
+      }
       function paintTable() {
         tableBox.textContent = '';
         if (!students.length) { tableBox.append(h('p', { class: 'lab-empty', text: 'No students yet. Add their first names above.' })); return; }
         var rows = students.map(function (s) {
           var paused = s.paused_until && new Date(s.paused_until) > new Date();
           var nBadges = Object.keys(s.badges || {}).length, st = s.stats || {};
-          var pinCell = h('span', { class: 'lab-pin', text: showPins ? s.pin : '••••' });
+          // The PIN, with a pencil to type a new one for just this student.
+          var pinCell = h('span', { class: 'lab-pin-box' },
+            h('span', { class: 'lab-pin', text: showPins ? s.pin : '••••' }),
+            TT.button('', { kind: 'small ghost', icon: 'edit', aria: 'Change ' + s.first_name + '’s PIN', title: 'Change PIN', onclick: function () { editPin(pinCell, s); } }));
           var actions = h('div', { class: 'lab-row-actions' },
             paused ? TT.button('Unpause', { kind: 'small primary', onclick: function () {
               q(sb().from('lab_students').update({ paused_until: null, fails: 0 }).eq('id', s.id)).then(reload, function (e) { say(errText(e)); });
@@ -252,7 +281,7 @@
             TT.button('Gold Star', { kind: 'small', title: 'Give ' + s.first_name + ' the Gold Star badge', onclick: function () {
               q(sb().rpc('lab_save_results', { p_class: c.id, p_results: [{ id: s.id, badges: ['star'] }] })).then(function () { say(s.first_name + ' got a Gold Star!'); if (TT.chime) TT.chime(); reload(); }, function (e) { say(errText(e)); });
             } }),
-            TT.button('', { kind: 'small', icon: 'reset', aria: 'New PIN for ' + s.first_name, title: 'New PIN', onclick: function () {
+            TT.button('', { kind: 'small', icon: 'reset', aria: 'Random new PIN for ' + s.first_name, title: 'Random new PIN', onclick: function () {
               var taken = {}; students.forEach(function (x) { taken[x.pin] = 1; });
               var p = newPin(taken);
               q(sb().from('lab_students').update({ pin: p, fails: 0, paused_until: null }).eq('id', s.id)).then(function () { showPins = true; say(s.first_name + '’s new PIN is ' + p + '.'); reload(); }, function (e) { say(errText(e)); });

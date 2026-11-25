@@ -176,6 +176,89 @@
   function bandName(b) { for (var i = 0; i < BANDS.length; i++) if (BANDS[i][0] === b) return BANDS[i][1]; return b; }
   LB.bandName = bandName;
 
+
+  // ---------- Spelling: "which one is spelled right?", made from word lists ----------
+  // Each entry is the right spelling and three near misses, the kinds of mistakes students really make.
+  var SPELL = {
+    '1-2': [['because', 'becuase', 'becaus', 'becouse'], ['friend', 'freind', 'frend', 'frind'], ['their', 'thier', 'theer', 'ther'],
+      ['school', 'scool', 'shcool', 'schoole'], ['people', 'peopel', 'peeple', 'pepole'], ['little', 'litle', 'littel', 'liddle'],
+      ['again', 'agian', 'agen', 'agane'], ['pretty', 'prety', 'pritty', 'prettie'], ['could', 'cold', 'coud', 'culd'],
+      ['every', 'evry', 'everey', 'evrey']],
+    '3-4': [['beautiful', 'beutiful', 'beautifull', 'beatiful'], ['believe', 'beleive', 'belive', 'beleve'],
+      ['different', 'diffrent', 'diferent', 'differant'], ['probably', 'probly', 'probbably', 'probabley'],
+      ['favorite', 'favrite', 'faverite', 'favorit'], ['knowledge', 'knowlege', 'nowledge', 'knowladge'],
+      ['surprise', 'suprise', 'surprize', 'surprice'], ['tomorrow', 'tommorow', 'tomorow', 'tommorrow'],
+      ['separate', 'seperate', 'seperete', 'sepparate'], ['experiment', 'experement', 'expiriment', 'experimant']],
+    '5': [['necessary', 'neccessary', 'necesary', 'nessecary'], ['definitely', 'definately', 'definitly', 'defenitely'],
+      ['government', 'goverment', 'governmant', 'govermnent'], ['embarrass', 'embarass', 'embarras', 'emberrass'],
+      ['rhythm', 'rythm', 'rhythem', 'rythem'], ['occasion', 'ocassion', 'occassion', 'ocasion'],
+      ['independent', 'independant', 'indepedent', 'independint'], ['conscience', 'concience', 'conscence', 'consciense'],
+      ['restaurant', 'restarant', 'resturant', 'restaraunt'], ['familiar', 'familar', 'familliar', 'femiliar']]
+  };
+  LB.spellSet = function (band, n) {
+    var words = shuffle((SPELL[band] || SPELL['3-4']).slice()).slice(0, n || 10);
+    return { id: 'spell-' + band, title: 'Spelling · ' + bandName(band), subject: 'Spelling', grade: band,
+      questions: words.map(function (w) {
+        var choices = shuffle(w.slice());
+        return { q: 'Which word is spelled correctly?', a: choices, c: choices.indexOf(w[0]), tag: 'words' };
+      }) };
+  };
+
+  // ---------- Holidays and seasons ----------
+  // One set per holiday, for any grade. Each line: "Question|right|wrong|wrong|wrong".
+  var HOLIDAYS = [
+    ['halloween', 'Halloween', [10, 1], [10, 31], [
+      'What do we call a carved pumpkin?|a jack-o’-lantern|a scarecrow|a snowman|a sunflower',
+      'Which animal is a Halloween favorite?|a bat|a goldfish|a camel|a parrot',
+      'What do children say at the door on Halloween?|Trick or treat!|Happy New Year!|Good morning!|See you soon!',
+      'What color pair is on most Halloween decorations?|orange and black|pink and blue|green and gold|red and white',
+      'What is a group of bats called?|a colony|a herd|a school|a pod',
+      'In which month is Halloween?|October|September|November|December'
+    ]],
+    ['thanksgiving', 'Thanksgiving', [11, 1], [11, 30], [
+      'Which bird is on most Thanksgiving tables?|a turkey|a penguin|a robin|a flamingo',
+      'What is the name of the ship the Pilgrims sailed on?|the Mayflower|the Titanic|the Santa Maria|the Endeavour',
+      'Thanksgiving is a time to say what?|thank you|goodbye|hurry up|be quiet',
+      'Which vegetable is often made into a Thanksgiving pie?|pumpkin|broccoli|cucumber|celery',
+      'On which day of the week is Thanksgiving in the United States?|Thursday|Monday|Saturday|Sunday',
+      'What do we call the red skin that hangs from a turkey’s beak?|a wattle|a comb|a fin|a mane'
+    ]],
+    ['winter', 'Winter Holidays', [12, 1], [12, 31], [
+      'What shape is every snowflake?|a six-sided crystal|a square|a triangle|a circle',
+      'What do we call a winter storm with lots of snow and wind?|a blizzard|a drought|a heat wave|a hurricane',
+      'Which season has the shortest day of the year?|winter|summer|spring|fall',
+      'What do many families do together in December?|share meals and give gifts|plant gardens|go swimming|rake leaves',
+      'What is a candle holder with nine candles called?|a menorah|a lantern|a compass|a kettle',
+      'What do we call water that freezes into a hanging spike?|an icicle|a puddle|a stream|a geyser'
+    ]],
+    ['valentines', 'Valentine’s Day', [2, 1], [2, 14], [
+      'What shape says "I care about you"?|a heart|a star|a square|an arrow',
+      'In which month is Valentine’s Day?|February|January|March|April',
+      'What do people often send on Valentine’s Day?|cards|boots|rocks|keys',
+      'Which colors are used most on Valentine’s Day?|red and pink|brown and gray|green and black|blue and orange',
+      'What is a kind word you can say to a friend?|You are kind|Go away|Be quiet|Not now',
+      'What sweet treat is often shaped like a heart?|chocolate|pickles|popcorn|crackers'
+    ]],
+    ['spring', 'Spring and Earth Day', [3, 15], [4, 30], [
+      'What do we call baby plants coming up?|sprouts|rocks|clouds|fossils',
+      'What do we do with cans and bottles to help the Earth?|recycle them|bury them|burn them|hide them',
+      'In which month is Earth Day?|April|July|October|January',
+      'What helps flowers move their pollen?|bees|cars|rocks|clouds',
+      'What do we call a long time with no rain?|a drought|a flood|a blizzard|a breeze',
+      'Which season comes after winter?|spring|summer|fall|winter'
+    ]]
+  ];
+  function holidaySet(hd) {
+    return { id: 'holiday-' + hd[0], title: hd[1], subject: 'Holidays', grade: '',
+      questions: shuffle(hd[4].slice()).map(function (l) { return parse(l, 'Holidays'); }) };
+  }
+  // The holiday nearest today comes first in the list.
+  function holidayNow(hd) {
+    var now = new Date(), m = now.getMonth() + 1, d = now.getDate(), from = hd[2], to = hd[3];
+    var after = m > from[0] || (m === from[0] && d >= from[1]), before = m < to[0] || (m === to[0] && d <= to[1]);
+    return after && before;
+  }
+
   // ---------- The list the teacher picks from ----------
   function parse(line, subject) {
     var p = line.split('|'), right = p[1];
@@ -198,6 +281,13 @@
       var n = WRITTEN[band][subject].length;
       out.push({ id: 'bank-' + band + '-' + subject, title: subject, subject: subject, grade: band, count: n + ' questions',
         make: function () { var s = LB.written(band, subject); s.questions = shuffle(s.questions.slice()); return s; } });
+    });
+    out.push({ id: 'spell-' + band, title: 'Spelling', subject: 'Spelling', grade: band, count: (SPELL[band] || []).length + ' words',
+      make: function (n) { return LB.spellSet(band, n || 10); } });
+    // Holidays: whichever one is near today sits first, then the rest through the year.
+    HOLIDAYS.slice().sort(function (a, b) { return (holidayNow(b) ? 1 : 0) - (holidayNow(a) ? 1 : 0); }).forEach(function (hd) {
+      out.push({ id: 'holiday-' + hd[0], title: hd[1] + (holidayNow(hd) ? ' · Now' : ''), subject: 'Holidays', grade: '', count: hd[4].length + ' questions',
+        make: function () { return holidaySet(hd); } });
     });
     return out;
   };

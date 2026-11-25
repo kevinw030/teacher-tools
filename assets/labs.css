@@ -80,3 +80,10 @@
 .lab-show-code { margin: 0; font: 900 clamp(44px, 9vw, 96px)/1 var(--display); letter-spacing: .06em; color: #E9465A; white-space: nowrap; }
 .lab-qr { width: 180px; margin: 12px 0 16px; }
 .lab-qr svg { width: 100%; height: auto; display: block; }
+.lab-pin-box { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
+.lab-pin-box .btn { flex: none; }
+/* While a PIN is being typed, that row gives the PIN column the room it needs. */
+.lab-st:has(.lab-pin-in) { grid-template-columns: minmax(120px, 1fr) auto 80px 80px 100px auto; }
+.lab-pin-in { width: 74px; font: 800 17px/1 var(--display); letter-spacing: .12em; text-align: center; padding: 7px 6px; }
+.btn.ghost { border-color: transparent; background: transparent; box-shadow: none; padding: 6px; opacity: .55; }
+.btn.ghost:hover { opacity: 1; background: var(--surface-2); border-color: var(--line); }
