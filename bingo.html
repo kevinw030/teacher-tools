@@ -63,6 +63,8 @@
 <link rel="stylesheet" href="/assets/spelling.css?v=sp1124">
 <link rel="stylesheet" href="/assets/account-home.css?v=ah1124">
 <link rel="stylesheet" href="/assets/feedback.css?v=fb1125">
+<link rel="stylesheet" href="/assets/buddy.css?v=sl1125">
+<link rel="stylesheet" href="/assets/labs.css?v=sl1125">
 <link rel="canonical" href="https://edsidekick.com/bingo">
 </head>
 <body>
@@ -411,6 +413,15 @@
   <div id="ownerMount"></div>
 </main>
 
+<!-- LABS (owner-only preview of Sidekick Live; tools/labs.js) -->
+<main class="page c-violet" id="view-labs" data-view="labs" hidden>
+  <header class="tool-head">
+    <div><span class="eyebrow">Owner Only · Preview</span><h1>Sidekick Live Labs</h1><p>Class sign-ins, buddies, badges and live quiz games. Only you can see this page.</p></div>
+    <div class="row js-fs-slot"></div>
+  </header>
+  <div id="labsMount"></div>
+</main>
+
 <!-- SOUND LEVEL -->
 <main class="page c-sky" id="view-sound-level" data-view="sound-level" hidden>
   <header class="tool-head">
@@ -521,7 +532,7 @@
 <script src="/assets/core.js?v=20261123h"></script>
 <script src="/tools/accent.js?v=ac1124"></script>
 <script src="/assets/account-config.js?v=live1124"></script>
-<script src="/assets/account.js?v=fb1125"></script>
+<script src="/assets/account.js?v=sl1125"></script>
 <script src="/assets/invite.js?v=iv1124"></script>
 <script src="/assets/feedback.js?v=fb1125"></script>
 <script src="/assets/track.js?v=od1123"></script>
@@ -596,8 +607,11 @@
 <script src="/tools/feedback-owner.js?v=fb1125"></script>
 <script src="/tools/owner.js?v=fb1125"></script>
 <script src="/tools/account-home.js?v=fb1125"></script>
+<script src="/assets/buddy.js?v=sl1125"></script>
+<script src="/assets/labs-badges.js?v=sl1125"></script>
+<script src="/tools/labs.js?v=sl1125"></script>
 <script src="/assets/theme-toggle.js?v=ft1124b"></script>
-<script src="/assets/app.js?v=sp1124"></script>
+<script src="/assets/app.js?v=sl1125"></script>
 <script src="/tools/dashboard.js?v=ac1124"></script>
 <script src="/tools/polish.js?v=po1124"></script>
 <script src="/tools/game-icons.js?v=sp1125"></script>

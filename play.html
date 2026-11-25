@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sidekick Live · ED Sidekick</title>
+<meta name="description" content="Sign in to your class and play.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#24166B">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400..900&family=Atkinson+Hyperlegible+Next:wght@400..800&display=swap">
+<link rel="stylesheet" href="/assets/styles.css?v=del1124">
+<link rel="stylesheet" href="/assets/home.css?v=20261123h">
+<link rel="stylesheet" href="/assets/theme.css?v=20261123h">
+<link rel="stylesheet" href="/assets/learn.css?v=rw1124">
+<link rel="stylesheet" href="/assets/confetti.css?v=cf1124b">
+<link rel="stylesheet" href="/assets/lobby.css?v=an1123j">
+<link rel="stylesheet" href="/assets/buddy.css?v=sl1125">
+<link rel="stylesheet" href="/assets/play.css?v=sl1125">
+</head>
+<body class="pl-body">
+<!-- Sidekick Live, the student page (Labs preview, owner only for now). Students sign in with their class
+     code, their name and a 4-digit PIN that their teacher made. What's saved about a student: first name,
+     PIN, buddy, badges and game stats (see supabase/labs.sql). No menus or links to the teacher's tools. -->
+<header class="pl-top">
+  <span class="brand" aria-label="ED Sidekick">
+    <span class="logo logo-ed" aria-hidden="true">ED</span>
+    <span class="brand-name" aria-hidden="true">Sidekick</span>
+  </span>
+  <span class="pl-live-tag">Live <em>Preview</em></span>
+</header>
+<main class="pl-main" id="play" aria-live="polite"></main>
+<noscript><p class="pl-sub">Please turn on JavaScript to play.</p></noscript>
+<script>window.TT = window.TT || {}; TT.h = TT.h || function (tag, attrs) {
+  var el = document.createElement(tag);
+  if (attrs) Object.keys(attrs).forEach(function (k) { var v = attrs[k]; if (v == null || v === false) return;
+    if (k.slice(0, 2) === 'on') el.addEventListener(k.slice(2), v); else if (k === 'html') el.innerHTML = v; else if (k === 'text') el.textContent = v; else el.setAttribute(k, v === true ? '' : v); });
+  for (var i = 2; i < arguments.length; i++) { var c = arguments[i]; if (c == null || c === false) continue; if (Array.isArray(c)) c.forEach(function (x) { if (x != null) el.append(x); }); else el.append(c); }
+  return el; };</script>
+<script src="/assets/account-config.js?v=live1124"></script>
+<script src="/tools/confetti.js?v=cf1124b"></script>
+<script src="/tools/mascot.js?v=20261123h"></script>
+<script src="/tools/disguise.js?v=elf1124c"></script>
+<script src="/tools/disguise-elf.js?v=elf1124c"></script>
+<script src="/assets/bingo-core.js?v=tg1124"></script>
+<script src="/assets/bingo-live.js?v=bg1123"></script>
+<script src="/assets/name-filter.js?v=xt1124"></script>
+<script src="/assets/lobby.js?v=cf1124b"></script>
+<script src="/assets/buddy.js?v=sl1125"></script>
+<script src="/assets/labs-badges.js?v=sl1125"></script>
+<script src="/assets/play.js?v=sl1125"></script>
+<script>window.Play && window.Play.start();</script>
+</body>
+</html>
