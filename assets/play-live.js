@@ -18,6 +18,16 @@
 
   var conn = null, state = null, joined = false, me = null, inGame = false, asked = null, picked = -1, askedAt = 0, tick = null, score = 0, slot = null;
 
+  // What assets/play-solo.js needs from here.
+  P.live = {
+    state: function () { return state; },
+    send: function (ev, data) { if (conn) conn.send(ev, data || {}); },
+    me: function () { return me; },
+    leave: function () { leave(); },
+    showEnd: function (e) { showEnd(e); },
+    shape: shape, color: color
+  };
+
   // Student Home shows this when a game is on.
   P.onHome(function (box, student) {
     me = student; slot = box;
@@ -37,6 +47,11 @@
         q: function (q) { if (joined) showQuestion(q); },
         reveal: function (r) { if (joined) showReveal(r); },
         end: function (e) { if (joined) showEnd(e); },
+        // The self-paced race (assets/play-solo.js draws these screens).
+        sq: function (q) { if (joined && q.sid === me.id && window.PlaySolo) PlaySolo.question(q); },
+        judge: function (d) { if (joined && d.sid === me.id && window.PlaySolo) PlaySolo.judge(d); },
+        prize: function (d) { if (joined && d.sid === me.id && window.PlaySolo) PlaySolo.prize(d); },
+        nudge: function (d) { if (joined && d.sid === me.id && window.PlaySolo) PlaySolo.nudge(d); },
         over: function () { state = null; joined = false; if (inGame) { inGame = false; P.home(); } else paintSlot(); }
       },
       onLive: function () { conn.send('hi', {}); if (joined) conn.send('join', { sid: me.id, name: me.name, buddy: me.buddy }); }
@@ -65,6 +80,7 @@
     P.home();
   }
 
+  P.live.waiting = function () { waiting(); };
   function waiting() {
     var r = P.screen('is-live is-wait');
     r.append(h('div', { class: 'pl-card' },

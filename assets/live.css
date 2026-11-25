@@ -170,3 +170,17 @@
 }
 .live-mascot { width: 120px; margin: -10px 0 4px; }
 .live-mascot.end { width: 110px; justify-self: center; margin: 0 auto; }
+
+/* The live race board (self-paced modes) */
+.live-race { display: grid; gap: 8px; }
+.live-race-rows { display: grid; gap: 6px; }
+.live-race-row { display: grid; grid-template-columns: 50px 42px minmax(80px, 150px) 1fr auto; align-items: center; gap: 10px; padding: 7px 14px; border-radius: 16px; background: rgba(255, 255, 255, .1); font: 800 19px/1.1 var(--display); }
+.live-race-row.lead { background: rgba(255, 210, 63, .22); }
+.live-race-row b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.live-race-bar { display: block; height: 16px; border-radius: 999px; background: rgba(255, 255, 255, .12); overflow: hidden; }
+.live-race-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #FFB627, #FF7A59); transition: width .6s var(--spring); }
+.live-race-unit { margin: 0; text-align: center; color: #BFB5FF; }
+.live-solo-foot { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.live-solo-foot .muted { color: #BFB5FF; margin: 0; }
+.lab-solo-note { margin: 0; }
+@media (max-width: 700px) { .live-race-row { grid-template-columns: 40px 34px 1fr auto; } .live-race-bar { display: none; } }

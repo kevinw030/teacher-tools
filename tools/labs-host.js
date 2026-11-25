@@ -17,12 +17,13 @@
 
   var SECS = [10, 15, 20, 30, 45];
   var LENGTHS = [10, 15, 20, 30];
+  var MINUTES = [3, 5, 8, 12];
 
   TT.labs.tab({ id: 'host', title: 'Host a Game', order: 1, mount: mountHost });
 
   function mountHost(box) {
     var game = null;   // the running game
-    var pick = { classId: null, band: '3-4', setId: null, mode: 'classic', secs: 20, length: 15 };
+    var pick = { classId: null, band: '3-4', setId: null, mode: 'classic', secs: 20, length: 15, minutes: 5 };
     try { Object.assign(pick, JSON.parse(localStorage.getItem('tt-live-pick') || '{}')); } catch (e) {}
     function remember() { try { localStorage.setItem('tt-live-pick', JSON.stringify(pick)); } catch (e) {} }
 
@@ -60,18 +61,29 @@
           return h('button', { type: 'button', class: 'lab-mode' + (m.id === pick.mode ? ' on' : ''), style: '--mc:' + m.color, onclick: function () { pick.mode = m.id; remember(); setup(); } },
             h('span', { class: 'lab-mode-art', html: m.art }), h('b', { text: m.name }), h('span', { text: m.blurb }));
         }));
+        var modeNow = LiveModes.get(pick.mode);
         var secRow = h('div', { class: 'lab-choice' }, SECS.map(function (s) { return chip(s + ' sec', s === pick.secs, function () { pick.secs = s; remember(); setup(); }); }));
         var lenRow = h('div', { class: 'lab-choice' }, LENGTHS.map(function (n) { return chip(n + ' questions', n === pick.length, function () { pick.length = n; remember(); setup(); }); }));
+        var minRow = h('div', { class: 'lab-choice' }, MINUTES.map(function (n) { return chip(n + ' minutes', n === pick.minutes, function () { pick.minutes = n; remember(); setup(); }); }));
 
         box.append(h('section', { class: 'panel lab-panel' },
           h('div', { class: 'lab-panel-head' }, h('div', null, h('h2', { text: 'Host a Game' }),
             h('p', { class: 'muted', text: 'Your class signs in at edsidekick.com/play and joins with one tap.' }))),
           field('Class', classRow), field('Grade', bandRow), field('Question Set', setGrid),
-          field('Game Mode', modeGrid), field('Seconds per Question', secRow), field('Game Length', lenRow),
+          field('Game Mode', modeGrid),
+          modeNow.solo ? field('How Long the Race Runs', minRow) : field('Seconds per Question', secRow),
+          modeNow.solo ? h('p', { class: 'muted lab-solo-note', text: 'Self-paced: everyone answers on their own device at their own speed, and the big screen keeps the live leaderboard.' }) : field('Game Length', lenRow),
           h('div', { class: 'lab-go' }, TT.button('Start the Game', { kind: 'primary', icon: 'play', onclick: function () {
             var klass = classes.filter(function (c) { return c.id === pick.classId; })[0];
             var setCard = all.filter(function (s) { return s.id === pick.setId; })[0];
             if (!klass || !setCard) return;
+            var m = LiveModes.get(pick.mode);
+            if (m.solo) {
+              // A self-paced race runs in its own engine (tools/labs-solo.js).
+              game = LiveSolo.run(box, { klass: klass, set: setCard.make(Math.max(30, pick.minutes * 8)), mode: m, minutes: pick.minutes,
+                onQuit: function () { game = null; setup(); } });
+              return;
+            }
             game = runGame(box, { klass: klass, set: setCard.make(pick.length), mode: pick.mode, secs: pick.secs, length: pick.length, onQuit: function () { game = null; setup(); } });
           } }))));
       }, function (err) {
