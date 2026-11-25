@@ -296,7 +296,7 @@
       p.picker ? h('section', { class: 'ah-card ah-picker' }, p.picker) : null,
       h('div', { class: 'ah-cols' },
         h('div', { class: 'ah-main' }, statsCard(s), picksCard(), stickerCard(s, p.plan)),
-        h('div', { class: 'ah-side' }, ownerCard(p), planCard(p), inviteCard())),
+        h('div', { class: 'ah-side' }, ownerCard(p), planCard(p), inviteCard(), TT.feedbackCard ? TT.feedbackCard() : null)),
       toolsCard(p));
   };
 })();

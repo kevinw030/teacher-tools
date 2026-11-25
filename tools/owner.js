@@ -472,7 +472,7 @@
       var y = window.scrollY;
       root.style.minHeight = root.offsetHeight + 'px';
       root.textContent = '';
-      root.append(header(), kpis(), previewCard(),
+      root.append(header(), kpis(), previewCard(), TT.ownerFeedback ? TT.ownerFeedback() : null,
         h('div', { class: 'od-grid' },
           trafficCard(), topCard(), membersCard(), usersCard(), premiumCard(), interestCard(), incomeCard(),
           devicesCard(), sourcesCard(), timesCard(), escapeCard()));
@@ -483,7 +483,7 @@
     // Sign-in finishes a moment after the page opens, so try again once the account is known.
     if (TT.account && TT.account.onChange) TT.account.onChange(function () { if (!data && !loading && TT.account.signedIn() && TT.page() === 'owner') load(); });
     load();
-    return { show: function () { if (!loading) load(); } };
+    return { show: function () { if (!loading) load(); if (TT.ownerFeedback && TT.ownerFeedback.refresh) TT.ownerFeedback.refresh(); } };
   };
 
   // ---------- Reminder while the owner previews Free or Premium ----------
