@@ -71,6 +71,7 @@
       window.Buddy ? Buddy.el(me.buddy, 'big') : null,
       h('h1', { class: 'pl-title', text: 'You’re In, ' + me.name + '!' }),
       h('p', { class: 'pl-sub', text: 'Look at the big screen. The game starts in a moment.' }),
+      state && state.title ? h('p', { class: 'pl-kicker', text: state.title }) : null,
       h('div', { class: 'pl-dots3', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')),
       h('button', { type: 'button', class: 'pl-signout', onclick: leave, text: 'Leave the Game' })));
   }
@@ -135,6 +136,7 @@
         ? '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 25l10 10 18-22"/></svg>'
         : '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"><path d="M14 14l20 20M34 14 14 34"/></svg>' }),
       h('h1', { class: 'pl-title', text: right ? (mine.streak >= 3 ? mine.streak + ' in a Row!' : 'That’s Right!') : 'Not This Time' }),
+      mine.team ? h('p', { class: 'pl-kicker', text: mine.team }) : null,
       right && mine.gained ? h('p', { class: 'pl-gain', text: '+' + mine.gained }) : h('p', { class: 'pl-sub', text: 'The answer is on the big screen.' }),
       h('div', { class: 'pl-score-row' },
         h('div', null, h('b', { text: (mine.score || 0).toLocaleString() }), h('span', { text: 'Points' })),

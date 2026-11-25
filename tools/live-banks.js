@@ -201,5 +201,10 @@
     });
     return out;
   };
+  // Mix up where the right answer sits, so nobody plays by remembering "it's always the triangle".
+  LB.mixChoices = function (item) {
+    var right = item.a[item.c], a = shuffle(item.a.slice());
+    return { q: item.q, a: a, c: a.indexOf(right), tag: item.tag || '' };
+  };
   LB.shuffle = shuffle;
 })();
